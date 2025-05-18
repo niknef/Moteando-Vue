@@ -12,7 +12,7 @@ export default {
 </script>
 
 <template>
-  <nav class="bg-gray-800 text-gray-100 px-4 py-3 shadow-md">
+  <nav class="bg-gray-800 text-gray-100 px-10 py-3 shadow-md">
     <div class="container mx-auto flex items-center justify-between">
       <!-- Logo -->
       <router-link to="/" class="flex items-center gap-2">
