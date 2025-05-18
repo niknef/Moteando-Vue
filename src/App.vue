@@ -1,27 +1,26 @@
-<script> 
-// api option
+<script>
+import AppNavbar from './components/layout/AppNavbar.vue'
+import AppFooter from './components/layout/AppFooter.vue'
 
-import Home from './pages/Home.vue'
-//Exportamos el componente App
 export default {
-    //Name permite configurar el nombre del componente
-    name: 'App',
-    //Components permite importar otros componentes
-    components: { Home },
-    //Data es una funcion que retorna un objeto con los datos del componente
-    data() {
-        return {
-            msg: 'Hello Vue!'
-        }
-    }
+  name: 'App',
+  components: {
+    AppNavbar,
+    AppFooter
+  }
 }
 </script>
 
 <template>
-    <div class="container mx-auto p-4">
-        <router-view />
-    </div>
-    <footer class="flex justify-center items-center h-25 bg-slate-800 text-white">
-        <p>Da Vinci &copy; 2025</p>
-    </footer>
+  
+  <div class="flex flex-col min-h-screen bg-gray-900 text-gray-100">
+    <AppNavbar />
+
+    
+    <main class="flex-grow container mx-auto p-4">
+      <router-view />
+    </main>
+
+    <AppFooter />
+  </div>
 </template>
