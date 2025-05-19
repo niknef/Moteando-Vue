@@ -62,7 +62,7 @@ export default {
         </template>
         <template v-else>
           <li>
-            <router-link to="/profile" class="hover:text-orange-400">Perfil</router-link>
+            <router-link to="/my-profile" class="hover:text-orange-400">Perfil</router-link>
           </li>
           <li>
             <router-link to="/post" class="hover:text-orange-400">Posteos</router-link>

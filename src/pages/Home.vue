@@ -68,7 +68,7 @@ export default {
 
         <!-- Si SÍ está autenticado -->
         <template v-else>
-        <router-link to="/profile" class="w-full sm:w-auto">
+        <router-link to="/my-profile" class="w-full sm:w-auto">
           <BaseButton type="orange" class="w-full sm:w-auto">Mi perfil</BaseButton>
         </router-link>
         <BaseButtonOutline type="error" class="w-full sm:w-auto" @click="handleLogout">

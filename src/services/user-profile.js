@@ -6,7 +6,16 @@
  */
 export async function addUserProfile(data) {
   // Esta función se encargará de crear el perfil extendido al momento del registro
-  // TODO: Implementar insert en Supabase
+  const { error } = await supabase
+    .from('user_profiles')
+    .insert({
+      ...data
+    });
+
+  if (error) {
+    console.error('[user-profile.js addUserProfile] No se pudo crear el perfi: ', error);
+    throw new Error('No se pudo crear el perfil' + error );
+  }
 }
 
 /**
@@ -16,9 +25,19 @@ export async function addUserProfile(data) {
  * @returns {Promise<Object>}
  */
 export async function getUserProfileByPK(id) {
-  // Esta función traerá el perfil completo desde Supabase
-  // TODO: Implementar select by primary key
-  return {}
+    // Esta función traerá el perfil completo desde Supabase
+    const { data, error } = await supabase
+          .from('user_profiles')
+          .select()
+          .eq('id', id);
+
+      if(error) {
+          console.error('[user-profile.js getUserProfileByPK] No se pudo traer el perfil, ya que hay uno o más errores en el valor recibido.', error);
+          
+          throw new Error('No se pudo traer el perfil, ya que hay uno o más errores en el valor recibido.' + error);
+      }
+      // hard-codeamos la posición 0 del array.
+      return data[0];
 }
 
 /**
@@ -30,5 +49,14 @@ export async function getUserProfileByPK(id) {
  */
 export async function updateUserProfile(id, data) {
   // Esta función actualizará nombre, apellido, bio, moto, etc.
-  // TODO: Implementar update en Supabase
+  const { error } = await supabase
+        .from('user_profiles')
+        .update({...data})
+        .eq('id', id);
+    
+    if(error) {
+        console.error('[user-profile.js updateUserProfile] No se pudo editar el perfil: ', error);
+        
+        throw new Error('No se pudo editar el perfil:' + error);
+    }
 }
