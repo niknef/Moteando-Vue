@@ -32,7 +32,8 @@ export default {
       <p class="max-w-2xl mx-auto text-gray-300 text-lg mb-6 ">
         Unite a la comunidad motera donde podés compartir rutas, experiencias, y conectarte con otros fanáticos de las dos ruedas.
       </p>
-      <div class="flex justify-center gap-4">
+      <div class="flex flex-col sm:flex-row justify-center gap-4">
+
         <router-link to="/register">
             <BaseButton type="orange">
                 Crear cuenta
