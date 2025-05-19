@@ -4,6 +4,7 @@ import Home from '../pages/Home.vue'
 import Register from '../pages/Register.vue'
 import Login from '../pages/Login.vue'
 import MyProfile from '../pages/MyProfile.vue'
+import MyProfileEdit from '../pages/MyProfileEdit.vue'
 
 
 //Rutas -> 
@@ -13,6 +14,7 @@ const routes = [
     {path: '/register', component: Register},
     {path: '/login', component: Login},
     {path: '/my-profile', component: MyProfile, meta: {requiresAuth: true}},
+    {path: '/my-profile/edit', component: MyProfileEdit, meta: {requiresAuth: true}},
 ];
 
 //Creamos el router

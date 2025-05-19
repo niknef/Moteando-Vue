@@ -21,6 +21,8 @@ export default {
           return 'bg-green-600 hover:bg-green-500 focus:bg-green-500';
         case 'error':
           return 'bg-red-600 hover:bg-red-500 focus:bg-red-500';
+        case 'loading':
+          return 'bg-gray-200';
         default:
           return 'bg-blue-600 hover:bg-blue-500 focus:bg-blue-500';
       }

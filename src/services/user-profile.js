@@ -1,3 +1,4 @@
+import supabase from "./supabase";
 /**
  * Agrega un nuevo perfil de usuario a la tabla "profiles"
  * 
