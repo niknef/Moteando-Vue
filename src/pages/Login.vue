@@ -2,12 +2,16 @@
 import BaseHeading1 from '@/components/ui/BaseHeading1.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
 import { login } from '@/services/auth'
+import { ArrowRightOnRectangleIcon } from '@heroicons/vue/24/outline'
+import Loader from '@/components/ui/Loader.vue'
 
 export default {
   name: 'Login',
   components: {
     BaseHeading1,
-    BaseButton
+    BaseButton,
+    ArrowRightOnRectangleIcon,
+    Loader
   },
   data() {
     return {
@@ -48,7 +52,7 @@ export default {
 </script>
 
 <template>
-  <section class="max-w-md mx-auto bg-neutral-800 text-gray-100 p-8 rounded-lg shadow-md mt-8">
+  <section class="max-w-md mx-auto bg-neutral-800 text-gray-100 p-8 sm:rounded-lg shadow-md mt-8">
     <BaseHeading1>Iniciar sesión</BaseHeading1>
 
     <form @submit.prevent="handleSubmit" class="flex flex-col gap-4 mt-4">
@@ -74,11 +78,20 @@ export default {
         />
       </div>
 
+      <div class="flex items-center justify-between mt-4 mx-auto">
       <BaseButton type="orange" htmlType="submit">
-        {{ loading ? 'Ingresando...' : 'Ingresar' }}
-      </BaseButton>
+  <template #icon>
+    <template v-if="loading">
+      <Loader class="w-5 h-5 border-2" />
+    </template>
+    <ArrowRightOnRectangleIcon v-else class="w-5 h-5" />
+  </template>
+  {{ loading ? 'Ingresando...' : 'Ingresar' }}
+</BaseButton>
 
-      <router-link to="/register" class="text-orange-500 underline text-center">
+      </div>
+
+      <router-link to="/register" class="text-orange-500 underline text-center hover:text-orange-600">
         ¿No tenés cuenta? Registrate
       </router-link>
 

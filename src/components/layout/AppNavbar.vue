@@ -2,10 +2,22 @@
 import Logo from '@/assets/moteando.svg'
 import BaseButton from '@/components/ui/BaseButton.vue'
 import { logout, subscribeToAuth } from '@/services/auth'
+import {
+  ArrowRightOnRectangleIcon,
+  ArrowLeftOnRectangleIcon,
+  UserIcon,
+  HomeIcon
+} from '@heroicons/vue/24/outline'
 
 export default {
   name: 'AppNavbar',
-  components: { BaseButton },
+  components: {
+    BaseButton,
+    ArrowRightOnRectangleIcon,
+    ArrowLeftOnRectangleIcon,
+    UserIcon,
+    HomeIcon
+  },
   data() {
     return {
       Logo,
@@ -48,52 +60,100 @@ export default {
         {{ showMenu ? '✕' : '☰' }}
       </button>
 
-      <!-- Links en horizontal -->
+      <!-- Menú horizontal desktop -->
       <ul class="hidden sm:flex items-center gap-4">
         <li>
-          <router-link to="/" class="hover:text-orange-400 transition-colors">Inicio</router-link>
-        </li>
-        <template v-if="user.id === null">
+  <router-link to="/" class="hover:text-orange-400 flex items-center gap-1">
+    <HomeIcon class="w-5 h-5" />
+    Inicio
+  </router-link>
+</li>
+
+
+        <template v-if="!user.id">
           <li>
-            <BaseButton type="orange">
-              <router-link to="/login">Ingresar</router-link>
-            </BaseButton>
+            <router-link to="/login" class="hover:text-orange-400">
+              <BaseButton type="orange">
+                <template #icon>
+                  <ArrowRightOnRectangleIcon class="w-5 h-5" />
+                </template>
+                Ingresar
+              </BaseButton>
+            </router-link>
           </li>
         </template>
+
         <template v-else>
-          <li>
-            <router-link to="/my-profile" class="hover:text-orange-400">Perfil</router-link>
-          </li>
           <li>
             <router-link to="/post" class="hover:text-orange-400">Posteos</router-link>
           </li>
           <li>
+            <router-link to="/my-profile" class="hover:text-orange-400 flex items-center gap-1">
+              <UserIcon class="w-5 h-5" />
+              Perfil
+            </router-link>
+          </li>
+          <li>
             <form @submit.prevent="handleLogout">
-              <BaseButton type="error" htmlType="submit">Cerrar sesión</BaseButton>
+              <BaseButton type="error" htmlType="submit">
+                <template #icon>
+                  <ArrowLeftOnRectangleIcon class="w-5 h-5" />
+                </template>
+                Cerrar sesión
+              </BaseButton>
             </form>
           </li>
         </template>
       </ul>
     </div>
 
-    <!-- Menú hamburguesa -->
+    <!-- Menú hamburguesa mobile -->
     <transition name="fade">
-      <div v-if="showMenu" class="sm:hidden fixed inset-0 bg-neutral-900 text-white flex flex-col items-center justify-center gap-6 z-40">
-        <router-link to="/" class="text-xl" @click="closeMenu">Inicio</router-link>
+      <div v-if="showMenu" class="sm:hidden fixed inset-0 bg-neutral-900 text-white flex flex-col items-center justify-center z-40">
+        <ul class="flex flex-col items-center gap-6 text-xl">
+          <li>
+  <router-link to="/" class="flex items-center gap-2" @click="closeMenu">
+    <HomeIcon class="w-6 h-6" />
+    Inicio
+  </router-link>
+</li>
 
-        <template v-if="user.id === null">
-          <BaseButton type="orange">
-            <router-link to="/login">Ingresar</router-link>
-          </BaseButton>
-        </template>
 
-        <template v-else>
-          <router-link to="/my-profile" class="text-xl" @click="closeMenu">Perfil</router-link>
-          <router-link to="/post" class="text-xl" @click="closeMenu">Posteos</router-link>
-          <form @submit.prevent="handleLogout">
-            <BaseButton type="error" htmlType="submit">Cerrar sesión</BaseButton>
-          </form>
-        </template>
+          <template v-if="!user.id">
+            <li>
+              <router-link to="/login" @click="closeMenu">
+                <BaseButton type="orange">
+                  <template #icon>
+                    <ArrowRightOnRectangleIcon class="w-5 h-5" />
+                  </template>
+                  Ingresar
+                </BaseButton>
+              </router-link>
+            </li>
+          </template>
+
+          <template v-else>
+            <li>
+              <router-link to="/post" @click="closeMenu">Posteos</router-link>
+            </li>
+            <li>
+              <router-link to="/my-profile" class="flex items-center gap-2" @click="closeMenu">
+                <UserIcon class="w-6 h-6" />
+                Perfil
+              </router-link>
+            </li>
+            <li>
+              <form @submit.prevent="handleLogout">
+                <BaseButton type="error" htmlType="submit">
+                  <template #icon>
+                    <ArrowLeftOnRectangleIcon class="w-5 h-5" />
+                  </template>
+                  Cerrar sesión
+                </BaseButton>
+              </form>
+            </li>
+          </template>
+        </ul>
       </div>
     </transition>
   </nav>

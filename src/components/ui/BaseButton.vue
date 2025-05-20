@@ -8,8 +8,7 @@ export default {
     },
     htmlType: {
       type: String,
-      default: 'button' // esto nos va a aservir para el botón de submit cuando lo usemos en formularios
-      
+      default: 'button'
     }
   },
   computed: {
@@ -23,6 +22,8 @@ export default {
           return 'bg-red-600 hover:bg-red-500 focus:bg-red-500';
         case 'loading':
           return 'bg-gray-200';
+        case 'gray':
+          return 'bg-gray-700 hover:bg-gray-600 focus:bg-gray-600';
         default:
           return 'bg-blue-600 hover:bg-blue-500 focus:bg-blue-500';
       }
@@ -34,8 +35,9 @@ export default {
 <template>
   <button
     :type="htmlType"
-    :class="`transition px-6 py-2 rounded text-white font-semibold ${colorClasses}`"
+    :class="`inline-flex items-center gap-2 transition px-6 py-2 rounded text-white font-semibold ${colorClasses}`"
   >
+    <slot name="icon" />
     <slot />
   </button>
 </template>

@@ -3,13 +3,22 @@ import BaseHeading1 from '@/components/ui/BaseHeading1.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
 import BaseButtonOutline from '@/components/ui/BaseButtonOutline.vue'
 import { logout, subscribeToAuth } from '@/services/auth'
+import {
+  UserPlusIcon,
+  ArrowRightOnRectangleIcon,
+  UserIcon
+} from '@heroicons/vue/24/outline'
+
 
 export default {
   name: 'Home',
   components: { 
     BaseHeading1,
     BaseButton,
-    BaseButtonOutline
+    BaseButtonOutline,
+    UserPlusIcon,
+    ArrowRightOnRectangleIcon,
+    UserIcon
   },
   data() {
     return {
@@ -34,7 +43,7 @@ export default {
 </script>
 
 <template>
-  <section class="relative text-center py-20 overflow-hidden rounded-md shadow-md mt-6 max-w-5xl mx-auto">
+  <section class="relative text-center py-20 overflow-hidden rounded-md shadow-md mt-0 max-w-5xl mx-auto sm:w-full sm:mt-6">
     <!-- Imagen de fondo -->
     <img
       src="@/assets/ruta-motos-banner.jpg"
@@ -55,21 +64,34 @@ export default {
         Unite a la comunidad motera donde podés compartir rutas, experiencias, y conectarte con otros fanáticos de las dos ruedas.
       </p>
 
-      <div class="flex flex-col sm:flex-row justify-center gap-4">
+      <div class="flex flex-col sm:flex-row justify-center gap-4 mx-auto aling-items-center">
         <!-- Si NO está autenticado -->
         <template v-if="!user.id">
-          <router-link to="/register" class="w-full sm:w-auto">
-            <BaseButton type="orange" class="w-full sm:w-auto" >Crear cuenta</BaseButton>
+          <router-link to="/register">
+            <BaseButton type="orange" >
+              <template #icon>
+                <UserPlusIcon class="w-5 h-5" />
+              </template>
+              Crear cuenta</BaseButton>
           </router-link>
           <router-link to="/login">
-            <BaseButtonOutline type="orange" class="w-full sm:w-auto">Iniciar sesión</BaseButtonOutline>
+            <BaseButtonOutline type="orange">
+              <template #icon>
+                <ArrowRightOnRectangleIcon class="w-5 h-5" />
+              </template>
+                Iniciar sesión</BaseButtonOutline>
           </router-link>
         </template>
 
         <!-- Si SÍ está autenticado -->
         <template v-else>
-        <router-link to="/my-profile" class="w-full sm:w-auto">
-          <BaseButton type="orange" class="w-full sm:w-auto">Mi perfil</BaseButton>
+        <router-link to="/my-profile">
+          <BaseButton type="orange">
+            <template #icon>
+              <UserIcon class="w-5 h-5" />
+            </template>
+            Mi perfil
+          </BaseButton>
         </router-link>
       </template>
       </div>

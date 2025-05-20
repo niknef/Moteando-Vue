@@ -5,21 +5,25 @@ export default {
     type: {
       type: String,
       default: 'primary'
+    },
+    htmlType: {
+      type: String,
+      default: 'button'
     }
   },
   computed: {
     colorClasses() {
       switch (this.type) {
-        case 'success':
-          return 'border-green-600 text-green-600 hover:bg-green-600 hover:text-white';
-        case 'error':
-          return 'border-red-600 text-red-600 hover:bg-red-600 hover:text-white';
         case 'orange':
           return 'border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white';
+        case 'success':
+          return 'border-green-500 text-green-500 hover:bg-green-500 hover:text-white';
+        case 'error':
+          return 'border-red-500 text-red-500 hover:bg-red-500 hover:text-white';
         case 'gray':
-          return 'border-gray-500 text-gray-500 hover:bg-gray-500 hover:text-white';
+          return 'border-gray-500 text-gray-300 hover:bg-gray-700 hover:text-white';
         default:
-          return 'border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white';
+          return 'border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white';
       }
     }
   }
@@ -28,9 +32,10 @@ export default {
 
 <template>
   <button
-    type="button"
-    :class="`transition px-6 py-2 rounded font-semibold border ${colorClasses}`"
+    :type="htmlType"
+    :class="`inline-flex items-center gap-2 px-6 py-2 border font-semibold rounded transition ${colorClasses}`"
   >
+    <slot name="icon" />
     <slot />
   </button>
 </template>

@@ -35,7 +35,7 @@ export default {
 </script>
 
 <template>
-  <section class="max-w-xl mx-auto mt-8 mb-6 px-4 sm:px-10 bg-neutral-800 text-white p-6 rounded-lg shadow-md">
+  <section class="max-w-xl mx-auto sm:mt-8 mb-6 px-4 sm:px-10 bg-neutral-800 text-white p-6 sm:rounded-lg shadow-md">
 
     <BaseHeading1 class="text-center">Mi perfil</BaseHeading1>
 
