@@ -8,4 +8,3 @@ export default {
     <slot />
   </label>
 </template>
-

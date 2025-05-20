@@ -1,4 +1,3 @@
-
 <script>
 export default {
   name: 'BaseInput',
@@ -16,11 +15,7 @@ export default {
 }
 </script>
 <template>
-  <input
-    :type="type"
-    :value="modelValue"
-    @input="$emit('update:modelValue', $event.target.value)"
+  <input :type="type" :value="modelValue" @input="$emit('update:modelValue', $event.target.value)"
     :placeholder="placeholder"
-    class="w-full px-4 py-2 bg-neutral-600 rounded text-white placeholder-gray-400 focus:outline-none"
-  />
+    class="w-full px-4 py-2 bg-neutral-600 rounded text-white placeholder-gray-400 focus:outline-none" />
 </template>

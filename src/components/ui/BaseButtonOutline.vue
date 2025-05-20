@@ -31,10 +31,8 @@ export default {
 </script>
 
 <template>
-  <button
-    :type="htmlType"
-    :class="`inline-flex items-center gap-2 px-6 py-2 border font-semibold rounded transition ${colorClasses}`"
-  >
+  <button :type="htmlType"
+    :class="`inline-flex items-center gap-2 px-6 py-2 border font-semibold rounded transition ${colorClasses}`">
     <slot name="icon" />
     <slot />
   </button>

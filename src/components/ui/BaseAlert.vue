@@ -1,4 +1,6 @@
 <script>
+//Alerta para mostrar mensajes de éxito o error
+
 export default {
   name: 'BaseAlert',
   props: {
@@ -16,16 +18,11 @@ export default {
 </script>
 
 <template>
-  <div
-    v-if="message"
-    :class="[
-      'text-center text-sm px-4 py-2 rounded transition-all',
-      type === 'success' ? 'text-green-400 bg-green-800/30' : '',
-      type === 'error' ? 'text-red-400 bg-red-800/30' : ''
-    ]"
-  >
+  <div v-if="message" :class="[
+    'text-center text-sm px-4 py-2 rounded transition-all',
+    type === 'success' ? 'text-green-400 bg-green-800/30' : '',
+    type === 'error' ? 'text-red-400 bg-red-800/30' : ''
+  ]">
     {{ message }}
   </div>
 </template>
-
-

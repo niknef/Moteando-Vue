@@ -50,14 +50,14 @@ export default {
 <template>
   <section class="max-w-xl mx-auto mt-8 bg-neutral-800 text-white p-6 rounded-lg shadow-md mb-6">
 
-    <!-- Loader grande y centrado -->
+
     <div v-if="loading" class="flex items-center justify-center min-h-screen">
       <Loader class="w-16 h-16 border-4" />
     </div>
 
     <div v-else>
     <div class="flex items-center justify-between mb-4">
-      <!-- Botón volver -->
+      <!-- volver -->
       <router-link to="/post">
         <button class="flex items-center gap-1 bg-gray-700 hover:bg-gray-600 text-white font-semibold px-4 py-2 rounded text-sm transition mb-4">
             <ArrowLeftIcon class="w-5 h-5" />
@@ -66,7 +66,7 @@ export default {
         </router-link>
  
 
-      <!-- Título y divider -->
+      
       <BaseHeading1 class="text-left">Perfil de {{ user.first_name }} {{ user.last_name }}</BaseHeading1>
     </div>
       <hr class="border-t border-gray-600 mt-2 mb-6" />

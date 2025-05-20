@@ -1,12 +1,14 @@
 <script>
-import { getPostById } from '@/services/posts'
-import { getCommentsByPost, createComment, subscribeToNewComments } from '@/services/comments'
-import { subscribeToAuth } from '@/services/auth'
-import BaseHeading1 from '@/components/ui/BaseHeading1.vue'
-import Loader from '@/components/ui/Loader.vue'
-import BaseAlert from '@/components/ui/BaseAlert.vue'
-import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
-import { nextTick } from 'vue'
+//componente de detalle de un post en especifico 
+
+import { getPostById } from '@/services/posts'  // Importo el método para obtener un post por id
+import { getCommentsByPost, createComment, subscribeToNewComments } from '@/services/comments' // Importo los métodos para obtener y crear comentarios
+import { subscribeToAuth } from '@/services/auth' // Importo el método para subscribirme a los cambios de auth
+import BaseHeading1 from '@/components/ui/BaseHeading1.vue' // h1
+import Loader from '@/components/ui/Loader.vue' // Loader
+import BaseAlert from '@/components/ui/BaseAlert.vue' // Alertas
+import { ArrowLeftIcon } from '@heroicons/vue/24/outline' // Iconos
+import { nextTick } from 'vue' // Importo nextTick para hacer scroll al final de la lista de comentarios - chat global 
 
 export default {
   name: 'PostDetail',
@@ -19,7 +21,7 @@ export default {
   data() {
     return {
       post: null,
-      comments: [],
+      comments: [], // Array de comentarios
       newComment: '',
       loading: true,
       error: null,
@@ -31,17 +33,20 @@ export default {
   },
   async mounted() {
     try {
+      // En el mounted llamo a la función subscribeToAuth para subscribirme a los cambios de auth
       subscribeToAuth(user => {
         this.userId = user.id
       })
 
+      // Obtengo el id del post de la ruta
       const id = this.$route.params.id
-      this.post = await getPostById(id)
-      this.comments = await getCommentsByPost(id)
+      this.post = await getPostById(id) // Llamo al método getPostById para obtener el post por id
+      this.comments = await getCommentsByPost(id) // Llamo al método getCommentsByPost para obtener los comentarios del post
 
       await nextTick()
-      this.scrollToBottom()
+      this.scrollToBottom() // Hago scroll al final de la lista de comentarios
 
+      // Subscribo a los nuevos comentarios para el manejo en real time
       subscribeToNewComments(id, async comment => {
         this.comments.push(comment)
         await nextTick()
@@ -56,21 +61,21 @@ export default {
   },
   methods: {
     async submitComment() {
-      if (!this.newComment.trim()) return
+      if (!this.newComment.trim()) return // Valido que el comentario no esté vacío
 
       this.commentLoading = true
       this.commentSuccess = false
       this.commentError = null
 
       try {
-        await createComment({
+        await createComment({ // Llamo al método createComment para crear un nuevo comentario donde le pasamos el id del post y el contenido del comentario
           post_id: this.post.id,
           content: this.newComment.trim()
         })
 
-        this.newComment = ''
+        this.newComment = '' // Reinicio el campo de comentario
         this.commentSuccess = true
-        setTimeout(() => this.commentSuccess = false, 2000)
+        setTimeout(() => this.commentSuccess = false, 2000) // Oculto el mensaje de éxito después de 2 segundos
       } catch (e) {
         this.commentError = 'No se pudo enviar el comentario.'
         console.error('[submitComment] Error:', e)

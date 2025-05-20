@@ -1,12 +1,14 @@
 <script>
-import BaseHeading1 from '@/components/ui/BaseHeading1.vue'
-import BaseButton from '@/components/ui/BaseButton.vue'
-import BaseInput from '@/components/ui/BaseInput.vue'
-import BaseLabel from '@/components/ui/BaseLabel.vue'
-import Loader from '@/components/ui/Loader.vue'
-import { register } from '@/services/auth'
-import { UserPlusIcon } from '@heroicons/vue/24/outline'
-import BaseAlert from '../components/ui/BaseAlert.vue'
+//componente de registro 
+
+import BaseHeading1 from '@/components/ui/BaseHeading1.vue' // h1
+import BaseButton from '@/components/ui/BaseButton.vue' // Botón
+import BaseInput from '@/components/ui/BaseInput.vue' // Input
+import BaseLabel from '@/components/ui/BaseLabel.vue' // Label
+import Loader from '@/components/ui/Loader.vue' // Loader
+import { register } from '@/services/auth' // Importo el método register para registrar un nuevo usuario
+import { UserPlusIcon } from '@heroicons/vue/24/outline' // Icono de usuario
+import BaseAlert from '../components/ui/BaseAlert.vue' // Importo el componente de alerta
 
 export default {
   name: 'Register',
@@ -35,11 +37,12 @@ export default {
       this.loading = true
 
       try {
-        await register(this.user.email, this.user.password)
-        this.$router.push('/')
+        await register(this.user.email, this.user.password) // Llamo al método register para registrar un nuevo usuario
+        this.$router.push('/') // Redirijo al usuario a la página de inicio
       } catch (error) {
         const msg = error.message
 
+        // manejo personalizado de errores
         if (msg.includes('User already registered')) {
           this.error = 'Ese correo ya está registrado. Intenta con otro.'
         } else if (msg.includes('Password should be at least 6 characters')) {

@@ -1,13 +1,10 @@
 <script>
-import BaseHeading1 from '@/components/ui/BaseHeading1.vue'
-import BaseButton from '@/components/ui/BaseButton.vue'
-import BaseButtonOutline from '@/components/ui/BaseButtonOutline.vue'
-import { logout, subscribeToAuth } from '@/services/auth'
-import {
-  UserPlusIcon,
-  ArrowRightOnRectangleIcon,
-  UserIcon
-} from '@heroicons/vue/24/outline'
+// Importamos los componentes que vamos a utilizar
+import BaseHeading1 from '@/components/ui/BaseHeading1.vue' // h1
+import BaseButton from '@/components/ui/BaseButton.vue' // Botón
+import BaseButtonOutline from '@/components/ui/BaseButtonOutline.vue' // Botón outline
+import { logout, subscribeToAuth } from '@/services/auth' // Importo los métodos de autenticación
+import { UserPlusIcon, ArrowRightOnRectangleIcon, UserIcon } from '@heroicons/vue/24/outline' //iconos
 
 
 export default {
@@ -29,12 +26,14 @@ export default {
     }
   },
   mounted() {
+    // En el mounted llamo a la función subscribeToAuth para subscribirme a los cambios de auth
     subscribeToAuth(newUserData => {
       this.user = newUserData
     })
   },
   methods: {
-    async handleLogout() {
+    async handleLogout() { // Método para cerrar sesión
+      // Valido que el usuario esté autenticado
       await logout()
       this.$router.push('/login')
     }
@@ -45,14 +44,12 @@ export default {
 <template>
   <section
     class="relative text-center py-20 overflow-hidden rounded-md shadow-md mt-0 max-w-5xl mx-auto sm:w-full sm:mt-6">
-    <!-- Imagen de fondo -->
+    <!-- Imagen -->
     <img src="@/assets/ruta-motos-banner.jpg" alt="Ruta motera"
       class="absolute inset-0 w-full h-full object-cover opacity-40" />
-
-    <!-- Capa oscura -->
     <div class="absolute inset-0 bg-black opacity-30"></div>
 
-    <!-- Contenido -->
+
     <div class="relative z-10">
       <div v-if="user.id && user.email" class="mb-4 text-xl text-orange-400 font-semibold">
         ¡Hola, {{ user.email }}!
@@ -65,7 +62,7 @@ export default {
       </p>
 
       <div class="flex flex-col sm:flex-row justify-center gap-4 mx-auto aling-items-center">
-        <!-- Si NO está autenticado -->
+        <!-- Creo una seccion dinamica la cual va interactuar dependiendo el usuario este autenticado o no -->
         <template v-if="!user.id">
           <router-link to="/register">
             <BaseButton type="orange">
@@ -85,7 +82,7 @@ export default {
           </router-link>
         </template>
 
-        <!-- Si SÍ está autenticado -->
+
         <template v-else>
           <router-link to="/my-profile">
             <BaseButton type="orange">
@@ -100,6 +97,7 @@ export default {
     </div>
   </section>
 
+  <!-- seccion de contenido -->
   <section class="bg-neutral-900 text-white py-16 px-6 sm:px-12 mt-12">
     <div class="max-w-5xl mx-auto text-center">
       <h2 class="text-3xl font-bold mb-6 text-orange-400">¿Qué podés hacer en Moteando?</h2>

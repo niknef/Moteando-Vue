@@ -1,6 +1,8 @@
 <script>
-import { getLastPosts, subscribeToNewPosts } from '@/services/posts'
-import { createComment, getCommentCounts } from '@/services/comments'
+// componente para mostrar una lista de los ultimos posteos
+
+import { getLastPosts, subscribeToNewPosts } from '@/services/posts' // Importo el método para obtener los últimos posteos y subscribirme a nuevos posteos
+import { createComment, getCommentCounts } from '@/services/comments' // Importo los métodos para crear comentarios y obtener los counts de comentarios
 import BaseHeading1 from '@/components/ui/BaseHeading1.vue'
 import Loader from '@/components/ui/Loader.vue'
 import BaseAlert from '@/components/ui/BaseAlert.vue'
@@ -19,39 +21,40 @@ export default {
     },
     data() {
         return {
-            posts: [],
+            posts: [], // Array de posteos
             loading: true,
             error: null,
-            expandedComments: {},
-            commentCounts: {},
-            commentTexts: {},
-            commentLoading: {},
-            commentSuccess: {},
-            commentError: {}
+            expandedComments: {}, // Objeto para manejar el estado de los comentarios
+            commentCounts: {}, // Objeto para manejar los counts de comentarios
+            commentTexts: {}, // Objeto para manejar los textos de los comentarios
+            commentLoading: {}, // Objeto para manejar el loading de los comentarios
+            commentSuccess: {}, // Objeto para manejar el éxito de los comentarios
+            commentError: {} // Objeto para manejar el error de los comentarios
         }
     },
     async mounted() {
-  try {
-    const data = await getLastPosts()
-    this.posts = data
-    this.commentCounts = await getCommentCounts()
+        try {
+            const data = await getLastPosts() // Llamo al método getLastPosts para obtener los últimos posteos
+            this.posts = data // Asigno los posteos a la variable posts
+            this.commentCounts = await getCommentCounts() // Llamo al método getCommentCounts para obtener los counts de comentarios
 
-    // Suscribirse a nuevos posts
-    subscribeToNewPosts(newPost => {
-      this.posts.unshift(newPost)
-      this.commentCounts[newPost.id] = 0
-    })
+            // Suscribirse a nuevos posts en real time
+            subscribeToNewPosts(newPost => {
+                this.posts.unshift(newPost)
+                this.commentCounts[newPost.id] = 0
+            })
 
-  } catch (e) {
-    this.error = 'No se pudieron cargar los posteos.'
-    console.error('[PostList] Error:', e)
-  } finally {
-    this.loading = false
-  }
-},
+        } catch (e) {
+            this.error = 'No se pudieron cargar los posteos.'
+            console.error('[PostList] Error:', e)
+        } finally {
+            this.loading = false
+        }
+    },
     methods: {
-        toggleComments(postId) {
-            this.expandedComments = {
+
+        toggleComments(postId) { // Método para alternar la visibilidad de los comentarios
+            this.expandedComments = { // Alterno el estado de los comentarios
                 ...this.expandedComments,
                 [postId]: !this.expandedComments[postId]
             }
@@ -62,17 +65,18 @@ export default {
             this.commentError[postId] = null
 
             try {
-                await createComment({
+
+                await createComment({ // Llamo al método createComment para crear un nuevo comentario
                     post_id: postId,
                     content: this.commentTexts[postId] || ''
-                    })
+                })
 
-                    this.commentSuccess[postId] = true
-                    this.commentTexts[postId] = ''
+                this.commentSuccess[postId] = true
+                this.commentTexts[postId] = ''
 
-                    //  Volvemos a consultar los counts actualizados desde la DB
-                    const counts = await getCommentCounts()
-                    this.commentCounts = counts
+                //  Volvemos a consultar los counts actualizados desde la DB
+                const counts = await getCommentCounts()
+                this.commentCounts = counts
                 //Oculta el form y el mensaje de éxito a los 2 segundos
                 setTimeout(() => {
                     this.expandedComments[postId] = false

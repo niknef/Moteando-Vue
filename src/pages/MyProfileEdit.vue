@@ -1,18 +1,19 @@
 <script>
-import BaseHeading1 from '@/components/ui/BaseHeading1.vue'
-import BaseButton from '@/components/ui/BaseButton.vue'
-import BaseInput from '@/components/ui/BaseInput.vue'
-import BaseLabel from '@/components/ui/BaseLabel.vue'
-import Loader from '@/components/ui/Loader.vue'
-import { subscribeToAuth, updateAuthProfile } from '@/services/auth'
-import supabase from '@/services/supabase'
-import {
-  CheckCircleIcon,
-  ArrowLeftIcon,
-  PhotoIcon
-} from '@heroicons/vue/24/outline'
-import BaseAlert from '../components/ui/BaseAlert.vue'
+//Componente para editar un perfil de usuario
 
+//Importaciones necesarias para el componente
+import BaseHeading1 from '@/components/ui/BaseHeading1.vue' // h1
+import BaseButton from '@/components/ui/BaseButton.vue' // Botón
+import BaseInput from '@/components/ui/BaseInput.vue' // Input
+import BaseLabel from '@/components/ui/BaseLabel.vue' // Label
+import Loader from '@/components/ui/Loader.vue' // Loader
+import { subscribeToAuth, updateAuthProfile } from '@/services/auth' // Importo el método para subscribirme a los cambios de auth
+// y el método para actualizar el perfil
+import supabase from '@/services/supabase' // Importo el cliente de supabase
+import { CheckCircleIcon, ArrowLeftIcon, PhotoIcon } from '@heroicons/vue/24/outline'
+import BaseAlert from '../components/ui/BaseAlert.vue' // Alertas
+
+//Creamos una constante para la ruta por defecto de la imagen de perfil en caso de que no haya una subida
 const defaultAvatar = '/assets/user.jpg'
 
 export default {
@@ -41,23 +42,24 @@ export default {
         bike_model: '',
         avatar_url: ''
       },
-      oldAvatarPath: null,
-      success: false,
-      error: null,
-      loading: false,
-      selectedFile: null,
-      previewUrl: null,
-      defaultAvatar
+      oldAvatarPath: null, // Para almacenar la ruta del avatar anterior
+      success: false, // Para manejar el mensaje de éxito
+      error: null, // Para manejar el mensaje de error
+      loading: false, // Para manejar el loader
+      selectedFile: null, // Para almacenar el archivo seleccionado
+      previewUrl: null, // Para almacenar la URL de previsualización de la imagen
+      defaultAvatar // Ruta por defecto de la imagen de perfil
     }
   },
   mounted() {
-    subscribeToAuth(userData => {
-      if (userData.id) {
-        this.user = {
+    // En el mounted llamo a la función subscribeToAuth para subscribirme a los cambios de auth
+    subscribeToAuth(userData => { 
+      if (userData.id) { // Si el usuario está autenticado
+        this.user = { // Actualizo el objeto user con los datos del usuario
           id: userData.id,
           email: userData.email
         }
-        this.profile = {
+        this.profile = { // aca manejamos los datos del perfil del usuario en caso de que no haya, o en caso que el usuario ya haya cargado algun dato
           first_name: userData.first_name || '',
           last_name: userData.last_name || '',
           bio: userData.bio || '',
@@ -65,14 +67,17 @@ export default {
           avatar_url: userData.avatar_url || ''
         }
 
+        // Si el usuario tiene una imagen de perfil, la guardo en la variable oldAvatarPath
+        // para poder eliminarla si el usuario sube una nueva
         if (userData.avatar_url) {
-          const parts = userData.avatar_url.split('/storage/v1/object/public/avatars/')
-          this.oldAvatarPath = parts[1] || null
+          const parts = userData.avatar_url.split('/storage/v1/object/public/avatars/') // Divido la URL para obtener la ruta del archivo
+          this.oldAvatarPath = parts[1] || null // Guardamos la ruta del archivo en la variable oldAvatarPath utilizamos la parte 1 del array que contiene la ruta
         }
       }
     })
   },
   methods: {
+    // Método para manejar el submit del formulario
     async handleSubmit() {
       if (this.loading) return
 
@@ -81,38 +86,41 @@ export default {
       this.loading = true
 
       try {
-        let newAvatarUrl = this.profile.avatar_url
+        
+        let newAvatarUrl = this.profile.avatar_url // si el usuario sube una foto nueva, la guardamos en la variable newAvatarUrl
 
-        if (this.selectedFile) {
-          const fileExt = this.selectedFile.name.split('.').pop()
-          const timestamp = Date.now()
-          const filePath = `${this.user.id}/avatar-${timestamp}.${fileExt}`
+        if (this.selectedFile) { // manejo del archivo seleccionado
+          const fileExt = this.selectedFile.name.split('.').pop() // Obtenemos la extensión del archivo usando el split para dividir la cadena en el punto
+          const timestamp = Date.now() // Obtenemos el timestamp actual para crear un nombre único para el archivo
+          const filePath = `${this.user.id}/avatar-${timestamp}.${fileExt}` // Creamos la ruta del archivo usando el id del usuario y el timestamp
 
-          const { error: uploadError } = await supabase.storage
-            .from('avatars')
-            .upload(filePath, this.selectedFile, { upsert: true })
+          const { error: uploadError } = await supabase.storage // Subimos el archivo a Supabase Storage
+            .from('avatars') // Seleccionamos el bucket de Supabase Storage
+            .upload(filePath, this.selectedFile, { upsert: true }) // Subimos el archivo y lo reemplazamos si ya existe
 
-          if (uploadError) throw uploadError
+          if (uploadError) throw uploadError // Si hay un error al subir el archivo, lanzamos el error
 
-          const { data } = supabase.storage.from('avatars').getPublicUrl(filePath)
-          newAvatarUrl = data.publicUrl
+          const { data } = supabase.storage.from('avatars').getPublicUrl(filePath) // Obtenemos la URL pública del archivo subido
+          newAvatarUrl = data.publicUrl // Guardamos la URL pública en la variable newAvatarUrl
 
           if (this.oldAvatarPath) {
+            // si el usuario desea cambiar la foto de perfil, eliminamos la foto anterior de supabase para optimizacion del espacio
             await supabase.storage.from('avatars').remove([this.oldAvatarPath])
           }
 
-          this.oldAvatarPath = filePath
+          this.oldAvatarPath = filePath 
           this.profile.avatar_url = newAvatarUrl
           this.previewUrl = null
         }
 
         await updateAuthProfile({
+          // esperamos para actualizar el perfil del usuario usando el metodo updateAuthProfile y le pasamos el perfil y la url de la imagen
           ...this.profile,
           avatar_url: newAvatarUrl
         })
 
-        this.success = true
-      } catch (e) {
+        this.success = true // Si se actualiza el perfil, mostramos un mensaje de éxito
+      } catch (e) { //manejo de errores
         this.error = 'Hubo un error al actualizar el perfil.'
         console.error('[MyProfileEdit] error:', e)
       } finally {
@@ -120,14 +128,16 @@ export default {
       }
     },
 
-    onFileChange(event) {
-      const file = event.target.files[0]
-      if (!file) return
+    onFileChange(event) { // Manejo del evento de cambio de archivo
+      const file = event.target.files[0] // Obtenemos el primer archivo seleccionado
+      if (!file) return // Si no hay archivo  salimos de la función
 
-      const isImage = file.type.startsWith('image/')
-      const maxSizeMB = 1
+      const isImage = file.type.startsWith('image/') //verificamos el tipo de archivo
+      const maxSizeMB = 1 // Definimos el tamaño máximo del archivo en MB
 
+      //manejo de verificaciones de archivos
       if (!isImage) {
+        
         this.error = 'El archivo debe ser una imagen.'
         return
       }
@@ -137,6 +147,7 @@ export default {
         return
       }
 
+      // Si hay una URL de previsualización anterior
       if (this.previewUrl) {
         URL.revokeObjectURL(this.previewUrl)
       }
@@ -146,7 +157,7 @@ export default {
       this.error = null
     },
 
-    async removePreview() {
+    async removePreview() { // Manejo del evento de quitar la previsualización
       if (this.previewUrl) {
         URL.revokeObjectURL(this.previewUrl)
       }
@@ -155,14 +166,14 @@ export default {
       this.previewUrl = null
 
       if (this.oldAvatarPath) {
-        await supabase.storage.from('avatars').remove([this.oldAvatarPath])
+        await supabase.storage.from('avatars').remove([this.oldAvatarPath]) // Eliminamos la imagen anterior de Supabase Storage
         this.oldAvatarPath = null
       }
 
       this.profile.avatar_url = ''
     }
   },
-  beforeUnmount() {
+  beforeUnmount() { //despues de desmontar el componente, revocamos la URL de previsualización
     if (this.previewUrl) {
       URL.revokeObjectURL(this.previewUrl)
     }
@@ -173,7 +184,7 @@ export default {
 <template>
   <section class="max-w-xl mx-auto sm:mt-8 bg-neutral-800 text-white p-6 sm:rounded-lg shadow-md mb-6">
     <BaseHeading1>Editar perfil</BaseHeading1>
-
+    <!-- formulario -->
     <form @submit.prevent="handleSubmit" class="flex flex-col gap-4 mt-4">
       <div>
         <BaseLabel>Email</BaseLabel>
@@ -205,6 +216,8 @@ export default {
         <BaseLabel>Biografía</BaseLabel>
         <textarea v-model="profile.bio" rows="3" class="w-full px-4 py-2 bg-neutral-600 rounded"></textarea>
       </div>
+
+      <!-- imagen -->
 
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div class="flex flex-col gap-2 sm:w-1/2">

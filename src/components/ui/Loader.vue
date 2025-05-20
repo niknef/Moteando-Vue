@@ -40,6 +40,7 @@ export default {
   0% {
     transform: rotate(0);
   }
+
   50% {
     transform: rotate(180deg);
     border-top-color: rgb(139, 46, 46);
@@ -47,6 +48,7 @@ export default {
     border-right-color: transparent;
     border-left-color: transparent;
   }
+
   100% {
     transform: rotate(360deg);
   }
