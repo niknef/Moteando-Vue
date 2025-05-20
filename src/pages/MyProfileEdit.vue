@@ -11,6 +11,7 @@ import {
   ArrowLeftIcon,
   PhotoIcon
 } from '@heroicons/vue/24/outline'
+import BaseAlert from '../components/ui/BaseAlert.vue'
 
 const defaultAvatar = '/assets/user.jpg'
 
@@ -24,7 +25,8 @@ export default {
     Loader,
     CheckCircleIcon,
     ArrowLeftIcon,
-    PhotoIcon
+    PhotoIcon,
+    BaseAlert
   },
   data() {
     return {
@@ -259,12 +261,8 @@ export default {
         </template>
       </div>
 
-      <p v-if="success" class="text-green-400 text-sm mt-2 text-center">
-        Perfil actualizado correctamente.
-      </p>
-      <p v-if="error" class="text-red-400 text-sm mt-2 text-center">
-        {{ error }}
-      </p>
+      <BaseAlert :message="success && '¡Perfil actualizado!'" type="success" />
+      <BaseAlert :message="error" type="error" />
     </form>
   </section>
 </template>

@@ -1,17 +1,23 @@
 <script>
 import BaseHeading1 from '@/components/ui/BaseHeading1.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
+import BaseInput from '@/components/ui/BaseInput.vue'
+import BaseLabel from '@/components/ui/BaseLabel.vue'
+import Loader from '@/components/ui/Loader.vue'
 import { login } from '@/services/auth'
 import { ArrowRightOnRectangleIcon } from '@heroicons/vue/24/outline'
-import Loader from '@/components/ui/Loader.vue'
+import BaseAlert from '../components/ui/BaseAlert.vue'
 
 export default {
   name: 'Login',
   components: {
     BaseHeading1,
     BaseButton,
+    BaseInput,
+    BaseLabel,
+    Loader,
     ArrowRightOnRectangleIcon,
-    Loader
+    BaseAlert
   },
   data() {
     return {
@@ -30,7 +36,7 @@ export default {
 
       try {
         await login(this.user.email, this.user.password)
-        this.$router.push('/') 
+        this.$router.push('/')
       } catch (error) {
         const msg = error.message
 
@@ -57,45 +63,31 @@ export default {
 
     <form @submit.prevent="handleSubmit" class="flex flex-col gap-4 mt-4">
       <div>
-        <label for="email" class="block mb-1 text-md font-semibold text-gray-300">Email</label>
-        <input
-          v-model="user.email"
-          type="email"
-          id="email"
-          class="w-full px-4 py-2 rounded bg-neutral-600 text-white placeholder-gray-400 focus:outline-none"
-          placeholder="ejemplo@email.com"
-          required
-        />
+        <BaseLabel for="email">Email</BaseLabel>
+        <BaseInput v-model="user.email" id="email" type="email" placeholder="ejemplo@email.com" required />
       </div>
+
       <div>
-        <label for="password" class="block mb-1 text-md font-semibold text-gray-300">Contraseña</label>
-        <input
-          v-model="user.password"
-          type="password"
-          id="password"
-          class="w-full px-4 py-2 rounded bg-neutral-600 text-white placeholder-gray-400 focus:outline-none"
-          required
-        />
+        <BaseLabel for="password">Contraseña</BaseLabel>
+        <BaseInput v-model="user.password" id="password" type="password" placeholder="••••••••" required />
       </div>
 
-      <div class="flex items-center justify-between mt-4 mx-auto">
-      <BaseButton type="orange" htmlType="submit">
-  <template #icon>
-    <template v-if="loading">
-      <Loader class="w-5 h-5 border-2" />
-    </template>
-    <ArrowRightOnRectangleIcon v-else class="w-5 h-5" />
-  </template>
-  {{ loading ? 'Ingresando...' : 'Ingresar' }}
-</BaseButton>
-
+      <div class="flex items-center justify-center mt-4">
+        <BaseButton type="orange" htmlType="submit">
+          <template #icon>
+            <Loader class="w-5 h-5 border-2" v-if="loading" />
+            <ArrowRightOnRectangleIcon class="w-5 h-5" v-else />
+          </template>
+          {{ loading ? 'Ingresando...' : 'Ingresar' }}
+        </BaseButton>
       </div>
 
       <router-link to="/register" class="text-orange-500 underline text-center hover:text-orange-600">
         ¿No tenés cuenta? Registrate
       </router-link>
 
-      <p v-if="error" class="text-red-400 text-sm mt-2 text-center">{{ error }}</p>
+      
+      <BaseAlert :message="error" type="error" />
     </form>
   </section>
 </template>

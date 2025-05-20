@@ -1,17 +1,23 @@
 <script>
 import BaseHeading1 from '@/components/ui/BaseHeading1.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
+import BaseInput from '@/components/ui/BaseInput.vue'
+import BaseLabel from '@/components/ui/BaseLabel.vue'
 import Loader from '@/components/ui/Loader.vue'
 import { register } from '@/services/auth'
 import { UserPlusIcon } from '@heroicons/vue/24/outline'
+import BaseAlert from '../components/ui/BaseAlert.vue'
 
 export default {
   name: 'Register',
   components: {
     BaseHeading1,
     BaseButton,
+    BaseInput,
+    BaseLabel,
+    Loader,
     UserPlusIcon,
-    Loader
+    BaseAlert
   },
   data() {
     return {
@@ -57,34 +63,31 @@ export default {
 
     <form @submit.prevent="handleSubmit" class="flex flex-col gap-4 mt-4">
       <div>
-        <label for="email" class="block mb-1 text-md font-semibold text-gray-300">Email</label>
-        <input
+        <BaseLabel for="email">Email</BaseLabel>
+        <BaseInput
           v-model="user.email"
-          type="email"
           id="email"
-          class="w-full px-4 py-2 rounded bg-neutral-600 text-white placeholder-gray-400 focus:outline-none"
+          type="email"
           placeholder="ejemplo@email.com"
           required
         />
       </div>
 
       <div>
-        <label for="password" class="block mb-1 text-md font-semibold text-gray-300">Contraseña</label>
-        <input
+        <BaseLabel for="password">Contraseña</BaseLabel>
+        <BaseInput
           v-model="user.password"
-          type="password"
           id="password"
-          class="w-full px-4 py-2 rounded bg-neutral-600 text-white placeholder-gray-400 focus:outline-none"
+          type="password"
+          placeholder="••••••••"
           required
         />
       </div>
 
-      <div class="flex items-center justify-between mt-4 mx-auto">
+      <div class="flex items-center justify-center mt-4">
         <BaseButton type="orange" htmlType="submit" :disabled="loading">
           <template #icon>
-            <template v-if="loading">
-              <Loader class="w-5 h-5 border-2" />
-            </template>
+            <Loader v-if="loading" class="w-5 h-5 border-2" />
             <UserPlusIcon v-else class="w-5 h-5" />
           </template>
           {{ loading ? 'Creando cuenta...' : 'Crear cuenta' }}
@@ -98,9 +101,8 @@ export default {
         ¿Ya tenés cuenta? Inicia sesión
       </router-link>
 
-      <p v-if="error" class="text-red-400 text-sm mt-2 text-center">
-        {{ error }}
-      </p>
+      
+      <BaseAlert :message="error" type="error" />
     </form>
   </section>
 </template>

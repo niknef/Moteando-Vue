@@ -7,6 +7,7 @@ import Loader from '@/components/ui/Loader.vue'
 import { createPost } from '@/services/posts'
 import { subscribeToAuth } from '@/services/auth'
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
+import BaseAlert from '../components/ui/BaseAlert.vue'
 
 export default {
   name: 'CreatePost',
@@ -16,7 +17,8 @@ export default {
     BaseInput,
     BaseLabel,
     Loader,
-    ArrowLeftIcon
+    ArrowLeftIcon,
+    BaseAlert
   },
   data() {
     return {
@@ -114,20 +116,23 @@ export default {
 
       <div>
         <BaseLabel for="description">Descripción</BaseLabel>
-        <textarea id="description" v-model="post.description" required class="w-full px-4 py-2 bg-neutral-600 rounded" placeholder="Contanos cómo fue el recorrido, si lo hiciste solo o en grupo..."></textarea>
+        <textarea id="description" v-model="post.description" required class="w-full px-4 py-2 bg-neutral-600 rounded"
+          placeholder="Contanos cómo fue el recorrido, si lo hiciste solo o en grupo..."></textarea>
       </div>
 
       <div class="flex justify-end gap-4 items-center">
         <template v-if="loading">
-          <BaseButton type="loading"><Loader size="sm" /></BaseButton>
+          <BaseButton type="loading">
+            <Loader size="sm" />
+          </BaseButton>
         </template>
         <template v-else>
           <BaseButton type="orange" htmlType="submit">Publicar</BaseButton>
         </template>
       </div>
 
-      <p v-if="success" class="text-green-400 text-sm text-center">¡Publicación creada correctamente!</p>
-      <p v-if="error" class="text-red-400 text-sm text-center">{{ error }}</p>
+      <BaseAlert :message="success && '¡Perfil actualizado!'" type="success" />
+      <BaseAlert :message="error" type="error" />
     </form>
   </section>
 </template>
