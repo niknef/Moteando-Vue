@@ -7,7 +7,7 @@ import MyProfile from '../pages/MyProfile.vue'
 import MyProfileEdit from '../pages/MyProfileEdit.vue'
 import CreatePost from '../pages/CreatePost.vue'
 import Posts from '../pages/PostList.vue'
-
+import UserProfile from '../pages/UserProfile.vue'
 
 
 //Rutas -> 
@@ -20,6 +20,7 @@ const routes = [
     {path: '/my-profile/edit', component: MyProfileEdit, meta: {requiresAuth: true}},
     {path: '/create-post', component: CreatePost, meta: {requiresAuth: true}},
     {path: '/post', component: Posts, meta: {requiresAuth: true}},
+    {path: '/usuario/:id', component: UserProfile, meta: {requiresAuth: true}},
 ];
 
 //Creamos el router

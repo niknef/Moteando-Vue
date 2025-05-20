@@ -9,6 +9,7 @@ export async function getLastPosts(limit = 20) {
     .select(`
       *,
       user_profiles!user_id(
+        id,
         first_name,
         last_name,
         avatar_url,

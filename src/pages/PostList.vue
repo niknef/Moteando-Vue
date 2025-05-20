@@ -66,10 +66,13 @@ export default {
                 <img :src="post.user_profiles?.avatar_url || '/assets/user.jpg'" alt="Avatar"
                     class="w-10 h-10 rounded-full object-cover border" />
                 <div>
-                    <p class="font-semibold">
-                        {{ post.user_profiles?.first_name || 'Sin nombre' }}
-                        {{ post.user_profiles?.last_name || '' }}
-                    </p>
+                    <router-link
+                    :to="`/usuario/${post.user_profiles?.id}`"
+                    class="font-semibold hover:underline hover:text-orange-400"
+                    >
+                    {{ post.user_profiles?.first_name || 'Sin nombre' }}
+                    {{ post.user_profiles?.last_name || '' }}
+                    </router-link>
                     <p class="text-sm text-gray-400">{{ post.created_at.split('T')[0] }}</p>
                 </div>
             </div>
