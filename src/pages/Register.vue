@@ -42,28 +42,28 @@ export default {
 </script>
 
 <template>
-  <section class="max-w-md mx-auto bg-gray-800 text-gray-100 p-8 rounded-lg shadow-md mt-8">
+  <section class="max-w-md mx-auto bg-neutral-800 text-gray-100 p-8 rounded-lg shadow-md mt-8">
     <BaseHeading1>Crear cuenta</BaseHeading1>
 
     <form @submit.prevent="handleSubmit" class="flex flex-col gap-4 mt-4">
         <div>
-            <label for="email" class="block mb-1 text-sm text-gray-300">Email</label>
+            <label for="email" class="block mb-1 text-md font-semibold text-gray-300">Email</label>
             <input
             v-model="user.email"
             type="email"
             id="email"
-            class="w-full px-4 py-2 rounded bg-gray-700 text-white placeholder-gray-400 focus:outline-none"
+            class="w-full px-4 py-2 rounded bg-neutral-600 text-white placeholder-gray-400 focus:outline-none"
             placeholder="ejemplo@email.com" 
             required
             />
         </div>
         <div>
-            <label for="password" class="block mb-1 text-sm text-gray-300">Contraseña</label>
+            <label for="password" class="block mb-1 text-md font-semibold text-gray-300">Contraseña</label>
             <input
             v-model="user.password"
             type="password"
             id="password"
-            class="w-full px-4 py-2 rounded bg-gray-700 text-white placeholder-gray-400 focus:outline-none"
+            class="w-full px-4 py-2 rounded bg-neutral-600 text-white placeholder-gray-400 focus:outline-none"
             required
             />
         </div>
