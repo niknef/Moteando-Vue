@@ -35,8 +35,8 @@ export default {
 </script>
 
 <template>
-  <nav class="bg-gray-800 text-gray-100 px-6 py-3 shadow-md relative z-50">
-    <div class="container mx-auto flex items-center justify-between">
+  <nav class="bg-neutral-900 text-gray-100 px-6 py-3 shadow-md relative z-50">
+    <div class="container mx-auto flex items-center justify-between w-11/12">
       <!-- Logo -->
       <router-link to="/" class="flex items-center gap-2 z-50" @click="closeMenu">
         <img :src="Logo" alt="Moteando" class="h-10 w-auto" />

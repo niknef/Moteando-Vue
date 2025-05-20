@@ -13,11 +13,11 @@ export default {
 
 <template>
   
-  <div class="flex flex-col min-h-screen bg-gray-900 text-gray-100">
+  <div class="flex flex-col min-h-screen bg-black/95 text-gray-100">
     <AppNavbar />
 
     
-    <main class="flex-grow container mx-auto p-4">
+    <main class="flex-grow container mx-auto">
       <router-view />
     </main>
 

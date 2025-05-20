@@ -35,34 +35,59 @@ export default {
 </script>
 
 <template>
-  <section class="max-w-xl mx-auto mt-8 bg-gray-800 text-white p-6 rounded-lg shadow-md text-center">
-    <BaseHeading1>Mi perfil</BaseHeading1>
+  <section class="max-w-xl mx-auto mt-8 mb-6 px-4 sm:px-10 bg-neutral-800 text-white p-6 rounded-lg shadow-md">
+
+    <BaseHeading1 class="text-center">Mi perfil</BaseHeading1>
 
     <div class="mt-6 flex flex-col items-center gap-4">
+      <!-- Avatar -->
       <img
         :src="user.avatar_url || '/assets/user.jpg'"
         alt="Foto de perfil"
-        class="w-32 h-32 rounded-full object-cover"
+        class="w-32 h-32 rounded-full object-cover border border-gray-500"
       />
+    </div>
 
-      <p class="text-xl font-semibold">
-        {{ user.first_name || 'Agregar información en editar perfil' }}
-        {{ user.last_name || '' }}
-      </p>
+  <!-- Datos personales -->
+<!-- Datos personales centrados pero alineados a la izquierda -->
+<div class="my-6 flex justify-center">
+  <div class="space-y-4 text-left w-full max-w-md text-sm sm:text-base">
+      <div class="flex flex-col sm:flex-row sm:justify-between gap-4 justify mx-auto">
+        <div class="flex-1">
+          <p class="text-gray-300 font-semibold">Nombre:</p>
+          <p>{{ user.first_name || 'Agregar información en editar perfil' }}</p>
+        </div>
+        <div class="flex-1">
+          <p class="text-gray-300 font-semibold">Apellido:</p>
+          <p>{{ user.last_name || 'Agregar información en editar perfil' }}</p>
+        </div>
+      </div>
+      <div class="flex flex-col sm:flex-row sm:justify-between gap-4 justify mx-auto">
+        <div class="flex-1">
+          <p class="text-gray-300 font-semibold">Email:</p>
+        <p>{{ user.email }}</p>
+        </div>
+        <div class="flex-1">
+          <p class="text-gray-300 font-semibold">Moto:</p>
+        <p >{{ user.bike_model || 'Agregar información en editar perfil' }}</p>
+        </div>
+      </div>
 
-      <p class="text-sm text-gray-400">{{ user.email }}</p>
+      <div>
+        <p class="text-gray-300 font-semibold">Biografía:</p>
+        <p>{{ user.bio || 'Agregar información en editar perfil' }}</p>
+      </div>
 
-      <p class="italic text-sm text-gray-300">
-        {{ user.bio || 'Agregar información en editar perfil' }}
-      </p>
+      
+    </div>
+  </div>
 
-      <p class="text-sm mt-1 text-orange-400">
-        Moto: {{ user.bike_model || 'Agregar información en editar perfil' }}
-      </p>
-
+    <!-- Botón editar -->
+    <div class="mt-6 text-center">
       <router-link to="/my-profile/edit">
         <BaseButton type="orange">Editar perfil</BaseButton>
       </router-link>
     </div>
   </section>
 </template>
+

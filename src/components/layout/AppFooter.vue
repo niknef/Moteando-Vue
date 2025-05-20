@@ -12,8 +12,8 @@ export default {
 </script>
 
 <template>
-  <footer class="bg-gray-800 text-gray-400 py-4 px-10">
-    <div class="container mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 px-4">
+  <footer class="bg-neutral-900 text-gray-400 py-4 px-10">
+    <div class="container mx-auto flex flex-col sm:flex-row items-center justify-between w-11/12">
      
       <router-link to="/" class="flex items-center gap-2 hover:opacity-80 transition-opacity">
         <img :src="Logo" alt="Moteando" class="h-8 w-auto" />

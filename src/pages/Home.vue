@@ -34,7 +34,7 @@ export default {
 </script>
 
 <template>
-  <section class="relative text-center py-20 px-4 overflow-hidden rounded-xl shadow-lg mt-6 max-w-5xl mx-auto">
+  <section class="relative text-center py-20 overflow-hidden rounded-md shadow-md mt-6 max-w-5xl mx-auto">
     <!-- Imagen de fondo -->
     <img
       src="@/assets/ruta-motos-banner.jpg"
@@ -43,14 +43,14 @@ export default {
     />
 
     <!-- Capa oscura -->
-    <div class="absolute inset-0 bg-black opacity-50"></div>
+    <div class="absolute inset-0 bg-black opacity-30"></div>
 
     <!-- Contenido -->
     <div class="relative z-10">
       <div v-if="user.id && user.email" class="mb-4 text-xl text-orange-400 font-semibold">
         ¡Hola, {{ user.email }}!
       </div>
-      <BaseHeading1>Moteando: Motos, amigos y aventuras</BaseHeading1>
+      <BaseHeading1><span class="text-white">Mote</span><span class="font-bold">ando</span>: Motos, amigos y aventuras</BaseHeading1>
       <p class="max-w-2xl mx-auto text-gray-300 text-lg mb-6">
         Unite a la comunidad motera donde podés compartir rutas, experiencias, y conectarte con otros fanáticos de las dos ruedas.
       </p>
@@ -71,9 +71,6 @@ export default {
         <router-link to="/my-profile" class="w-full sm:w-auto">
           <BaseButton type="orange" class="w-full sm:w-auto">Mi perfil</BaseButton>
         </router-link>
-        <BaseButtonOutline type="error" class="w-full sm:w-auto" @click="handleLogout">
-          Cerrar sesión
-        </BaseButtonOutline>
       </template>
       </div>
     </div>

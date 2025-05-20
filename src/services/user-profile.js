@@ -54,6 +54,8 @@ export async function updateUserProfile(id, data) {
         .from('user_profiles')
         .update({...data})
         .eq('id', id);
+        
+
     
     if(error) {
         console.error('[user-profile.js updateUserProfile] No se pudo editar el perfil: ', error);
