@@ -78,7 +78,7 @@ export default {
 
     <!-- Menú hamburguesa -->
     <transition name="fade">
-      <div v-if="showMenu" class="sm:hidden fixed inset-0 bg-gray-900 text-white flex flex-col items-center justify-center gap-6 z-40">
+      <div v-if="showMenu" class="sm:hidden fixed inset-0 bg-neutral-900 text-white flex flex-col items-center justify-center gap-6 z-40">
         <router-link to="/" class="text-xl" @click="closeMenu">Inicio</router-link>
 
         <template v-if="user.id === null">
@@ -88,7 +88,7 @@ export default {
         </template>
 
         <template v-else>
-          <router-link to="/profile" class="text-xl" @click="closeMenu">Perfil</router-link>
+          <router-link to="/my-profile" class="text-xl" @click="closeMenu">Perfil</router-link>
           <router-link to="/post" class="text-xl" @click="closeMenu">Posteos</router-link>
           <form @submit.prevent="handleLogout">
             <BaseButton type="error" htmlType="submit">Cerrar sesión</BaseButton>

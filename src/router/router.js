@@ -5,6 +5,9 @@ import Register from '../pages/Register.vue'
 import Login from '../pages/Login.vue'
 import MyProfile from '../pages/MyProfile.vue'
 import MyProfileEdit from '../pages/MyProfileEdit.vue'
+import CreatePost from '../pages/CreatePost.vue'
+import Posts from '../pages/PostList.vue'
+
 
 
 //Rutas -> 
@@ -15,6 +18,8 @@ const routes = [
     {path: '/login', component: Login},
     {path: '/my-profile', component: MyProfile, meta: {requiresAuth: true}},
     {path: '/my-profile/edit', component: MyProfileEdit, meta: {requiresAuth: true}},
+    {path: '/create-post', component: CreatePost, meta: {requiresAuth: true}},
+    {path: '/post', component: Posts, meta: {requiresAuth: true}},
 ];
 
 //Creamos el router

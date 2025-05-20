@@ -176,7 +176,7 @@ export default {
 
 
 <template>
-  <section class="max-w-xl mx-auto mt-8 bg-neutral-800 text-white p-6 rounded-lg shadow-md">
+  <section class="max-w-xl mx-auto mt-8 bg-neutral-800 text-white p-6 rounded-lg shadow-md mb-6">
     <BaseHeading1>Editar perfil</BaseHeading1>
 
     <form @submit.prevent="handleSubmit" class="flex flex-col gap-4 mt-4">

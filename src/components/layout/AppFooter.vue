@@ -12,7 +12,7 @@ export default {
 </script>
 
 <template>
-  <footer class="bg-neutral-900 text-gray-400 py-4 px-10">
+  <footer class="bg-neutral-900 text-gray-400 py-4 px-10 mt-4">
     <div class="container mx-auto flex flex-col sm:flex-row items-center justify-between w-11/12">
      
       <router-link to="/" class="flex items-center gap-2 hover:opacity-80 transition-opacity">
