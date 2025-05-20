@@ -58,15 +58,16 @@ export async function getLastPosts(limit = 20) {
 }
 
 /**
- * Crear un nuevo post
- * @param {{
- *   user_id: string,
- *   start_point: string,
- *   end_point: string,
- *   duration: string,
- *   rating: number,
- *   description: string
- * }} post
+ * Crea un nuevo post en la base de datos.
+ * 
+ * @param {Object} post - Objeto con los datos del post.
+ * @param {string} post.user_id - ID del autor.
+ * @param {string} post.start_point - Punto de partida.
+ * @param {string} post.end_point - Punto de llegada.
+ * @param {string} post.duration - Duración estimada.
+ * @param {number} post.rating - Valoración (1 a 5).
+ * @param {string} post.description - Descripción de la ruta.
+ *  
  */
 export async function createPost(post) {
   const { error } = await supabase

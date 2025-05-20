@@ -3,7 +3,7 @@ import supabase from './supabase'
 /**
  * Obtener comentarios de un post, con datos del perfil del autor.
  * @param {string} postId
- * @returns {Promise<Array>}
+ * @returns {Promise}
  */
 export async function getCommentsByPost(postId) {
   const { data, error } = await supabase
@@ -28,6 +28,12 @@ export async function getCommentsByPost(postId) {
   return data
 }
 
+/**
+ * Obtiene todos los comentarios con perfil del autor por ID de post.
+ * 
+ * @param {string} postId - ID del post.
+ * @returns {Promise} - Lista de comentarios.
+ */
 export async function getCommentsByPostId(postId) {
   const { data, error } = await supabase
     .from('comments')
@@ -52,13 +58,12 @@ export async function getCommentsByPostId(postId) {
 }
 
 /**
- * Crear un nuevo comentario
- * @param {{
- *   post_id: string,
- *   user_id: string,
- *   profile_id: string,
- *   content: string
- * }} comment
+ * Crea un nuevo comentario en Supabase.
+ * 
+ * @param {Object} comment - Comentario a crear.
+ * @param {string} comment.post_id - ID del post relacionado.
+ * @param {string} comment.content - Contenido del comentario.
+ * @returns {Promise}
  */
 export async function createComment({ post_id, content }) {
   const { data: session } = await supabase.auth.getSession()
@@ -80,9 +85,10 @@ export async function createComment({ post_id, content }) {
 }
 
 /**
- * Escuchar nuevos comentarios de un post en tiempo real
- * @param {string} postId
- * @param {(comment: object) => void} callback
+ * Suscribe a eventos de nuevos comentarios en tiempo real.
+ * 
+ * @param {string} postId - ID del post.
+ * @param {(comment: object) => void} callback - Función que se ejecuta cuando llega un nuevo comentario.
  */
 export function subscribeToNewComments(postId, callback) {
   const channel = supabase.channel('comments')
@@ -124,8 +130,10 @@ export function subscribeToNewComments(postId, callback) {
 }
 
 /**
- * Eliminar un comentario (si es del autor)
- * @param {string} commentId
+ * Elimina un comentario si pertenece al usuario actual.
+ * 
+ * @param {string} commentId - ID del comentario.
+ * @returns {Promise}
  */
 export async function deleteComment(commentId) {
   const { error } = await supabase
@@ -139,6 +147,12 @@ export async function deleteComment(commentId) {
   }
 }
 
+
+/**
+ * Obtiene la cantidad de comentarios por post.
+ * 
+ * @returns {Promise} - Objeto con claves como post_id y valores como cantidad.
+ */
 export async function getCommentCounts() {
   const { data, error } = await supabase
     .from('comments')

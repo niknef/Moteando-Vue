@@ -64,10 +64,12 @@ async function loadCurrentUserProfile() {
 }
 
 /**
+ * Registra un nuevo usuario con email y password.
+ * También crea un perfil asociado en la base de datos.
  * 
- * @param {string} email 
- * @param {string} password 
- * @returns {Promise}
+ * @param {string} email - Correo electrónico del usuario.
+ * @param {string} password - Contraseña del usuario.
+ * @returns {Promise} - Objeto del usuario creado.
  */
 export async function register(email, password) {
   const { data, error } = await supabase.auth.signUp({ email, password })
@@ -97,10 +99,12 @@ export async function register(email, password) {
 }
 
 /**
+ * Inicia sesión con email y contraseña.
+ * Carga los datos del perfil extendido tras autenticarse.
  * 
- * @param {string} email 
- * @param {string} password 
- * @returns {Promise}
+ * @param {string} email - Correo electrónico.
+ * @param {string} password - Contraseña.
+ * @returns {Promise} - Usuario autenticado.
  */
 export async function login(email, password) {
   const { data, error } = await supabase.auth.signInWithPassword({
@@ -124,7 +128,12 @@ export async function login(email, password) {
 
   return data.user
 }
-
+/**
+ * 
+ * Cierra la sesión del usuario actual y borra los datos del perfil en memoria y localStorage.
+ * 
+ * @returns {Promise}
+ */
 export async function logout() {
   supabase.auth.signOut()
 
@@ -141,9 +150,10 @@ export async function logout() {
 }
 
 /**
- * Actualiza el perfil del usuario autenticado.
+ * Actualiza el perfil del usuario autenticado en Firestore y en memoria local.
  * 
- * @param {{first_name?: string, last_name?: string, bio?: string, bike_model?: string, avatar_url?: string}} data 
+ * @param data - Campos a actualizar (nombre, bio, moto, etc.).
+ * @returns {Promise}
  */
 export async function updateAuthProfile(data) {
   try {
@@ -194,7 +204,7 @@ function notifyAll() {
 /**
  * Actualiza la data del usuario con la info provista, y notifica a todos los observers.
  * 
- * @param {Partial<typeof user>} data 
+ * @param {Partial} data 
  */
 function updateUser(data) {
   user = {
