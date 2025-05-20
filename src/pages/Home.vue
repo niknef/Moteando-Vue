@@ -99,4 +99,31 @@ export default {
       </div>
     </div>
   </section>
+
+  <section class="bg-neutral-900 text-white py-16 px-6 sm:px-12 mt-12">
+    <div class="max-w-5xl mx-auto text-center">
+      <h2 class="text-3xl font-bold mb-6 text-orange-400">¿Qué podés hacer en Moteando?</h2>
+      <p class="text-gray-300 mb-12">
+        Estas son solo algunas de las funciones que hacen de Moteando la app ideal para tu vida sobre dos ruedas.
+      </p>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10 text-left">
+        <div class="bg-neutral-800 p-6 rounded-lg shadow-md hover:shadow-lg transition">
+          <h3 class="text-xl font-semibold text-orange-300 mb-2">📍 Crear y compartir rutas</h3>
+          <p class="text-gray-400">Planeá tus recorridos favoritos y compartilos con la comunidad.</p>
+        </div>
+        <div class="bg-neutral-800 p-6 rounded-lg shadow-md hover:shadow-lg transition">
+          <h3 class="text-xl font-semibold text-orange-300 mb-2">🎉 Participar en eventos</h3>
+          <p class="text-gray-400">Sumate a encuentros moteros en todo el país organizados por otros usuarios.</p>
+        </div>
+        <div class="bg-neutral-800 p-6 rounded-lg shadow-md hover:shadow-lg transition">
+          <h3 class="text-xl font-semibold text-orange-300 mb-2">💬 Conectar con moteros</h3>
+          <p class="text-gray-400">Chateá, hacé amigos y armá grupo para salir a rodar con seguridad.</p>
+        </div>
+      </div>
+    </div>
+    <div class="mt-12 flex justify-center">
+      <img src="@/assets/moteros-en-ruta.jpg" alt="Grupo de motos en ruta"
+        class="rounded-lg shadow-md max-h-96 w-full object-cover sm:w-2/3" />
+    </div>
+  </section>
 </template>

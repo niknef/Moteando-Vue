@@ -1,35 +1,90 @@
 <script>
-import { getLastPosts } from '@/services/posts'
+import { getLastPosts, subscribeToNewPosts } from '@/services/posts'
+import { createComment, getCommentCounts } from '@/services/comments'
 import BaseHeading1 from '@/components/ui/BaseHeading1.vue'
 import Loader from '@/components/ui/Loader.vue'
-import { MapPinIcon, StarIcon, ClockIcon } from '@heroicons/vue/24/outline'
-
+import BaseAlert from '@/components/ui/BaseAlert.vue'
+import { EyeIcon, MapPinIcon, StarIcon, ClockIcon } from '@heroicons/vue/24/outline'
 
 export default {
     name: 'PostList',
     components: {
         BaseHeading1,
         Loader,
+        BaseAlert,
         MapPinIcon,
         StarIcon,
-        ClockIcon
+        ClockIcon,
+        EyeIcon
     },
     data() {
         return {
             posts: [],
             loading: true,
-            error: null
+            error: null,
+            expandedComments: {},
+            commentCounts: {},
+            commentTexts: {},
+            commentLoading: {},
+            commentSuccess: {},
+            commentError: {}
         }
     },
     async mounted() {
-        try {
-            const data = await getLastPosts()
-            this.posts = data
-        } catch (e) {
-            this.error = 'No se pudieron cargar los posteos.'
-            console.error('[PostList] Error:', e)
-        } finally {
-            this.loading = false
+  try {
+    const data = await getLastPosts()
+    this.posts = data
+    this.commentCounts = await getCommentCounts()
+
+    // Suscribirse a nuevos posts
+    subscribeToNewPosts(newPost => {
+      this.posts.unshift(newPost)
+      this.commentCounts[newPost.id] = 0
+    })
+
+  } catch (e) {
+    this.error = 'No se pudieron cargar los posteos.'
+    console.error('[PostList] Error:', e)
+  } finally {
+    this.loading = false
+  }
+},
+    methods: {
+        toggleComments(postId) {
+            this.expandedComments = {
+                ...this.expandedComments,
+                [postId]: !this.expandedComments[postId]
+            }
+        },
+        async submitComment(postId) {
+            this.commentLoading[postId] = true
+            this.commentSuccess[postId] = false
+            this.commentError[postId] = null
+
+            try {
+                await createComment({
+                    post_id: postId,
+                    content: this.commentTexts[postId] || ''
+                    })
+
+                    this.commentSuccess[postId] = true
+                    this.commentTexts[postId] = ''
+
+                    //  Volvemos a consultar los counts actualizados desde la DB
+                    const counts = await getCommentCounts()
+                    this.commentCounts = counts
+                //Oculta el form y el mensaje de éxito a los 2 segundos
+                setTimeout(() => {
+                    this.expandedComments[postId] = false
+                    this.commentSuccess[postId] = false
+                }, 2000)
+
+            } catch (error) {
+                this.commentError[postId] = 'No se pudo enviar el comentario.'
+                console.error('[submitComment] Error:', error)
+            } finally {
+                this.commentLoading[postId] = false
+            }
         }
     }
 }
@@ -40,44 +95,46 @@ export default {
         <div class="flex items-center justify-between mb-4">
             <BaseHeading1>Últimos posteos</BaseHeading1>
             <router-link to="/create-post">
-                <button class="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-4 py-2 rounded transition text-sm">
-                + Nuevo post
+                <button
+                    class="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-4 py-2 rounded transition text-sm">
+                    + Nuevo post
                 </button>
             </router-link>
-            </div>
+        </div>
 
-        <!-- Loader centrado -->
         <div v-if="loading" class="flex justify-center mt-6">
             <Loader class="w-20 h-20 border-4" />
         </div>
 
-        <!-- Error -->
         <div v-if="error" class="text-center text-red-400 mt-6">{{ error }}</div>
 
-        <!-- Sin posts -->
         <div v-if="!loading && posts.length === 0" class="text-center text-gray-300 mt-6">
             No hay publicaciones aún.
         </div>
 
-        <!-- Listado de posteos -->
         <div v-for="post in posts" :key="post.id" class="bg-neutral-800 text-white p-6 mt-6 rounded-lg shadow">
-            <!-- Info del usuario -->
-            <div class="flex items-center gap-4 mb-3">
-                <img :src="post.user_profiles?.avatar_url || '/assets/user.jpg'" alt="Avatar"
-                    class="w-10 h-10 rounded-full object-cover border" />
-                <div>
-                    <router-link
-                    :to="`/usuario/${post.user_profiles?.id}`"
-                    class="font-semibold hover:underline hover:text-orange-400"
-                    >
-                    {{ post.user_profiles?.first_name || 'Sin nombre' }}
-                    {{ post.user_profiles?.last_name || '' }}
-                    </router-link>
-                    <p class="text-sm text-gray-400">{{ post.created_at.split('T')[0] }}</p>
+            <div class="flex items-center justify-between gap-4 mb-3">
+                <div class="flex items-center gap-4">
+                    <img :src="post.user_profiles?.avatar_url || '/assets/user.jpg'" alt="Avatar"
+                        class="w-10 h-10 rounded-full object-cover border" />
+                    <div>
+                        <router-link :to="`/usuario/${post.user_profiles?.id}`"
+                            class="font-semibold hover:underline hover:text-orange-400">
+                            {{ post.user_profiles?.first_name || 'Sin nombre' }} {{ post.user_profiles?.last_name || ''
+                            }}
+                        </router-link>
+                        <p class="text-sm text-gray-400">{{ post.created_at.split('T')[0] }}</p>
+                    </div>
                 </div>
+
+                <router-link :to="`/post/${post.id}`"
+                    class="flex items-center gap-1 text-sm bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded text-white transition">
+                    <EyeIcon class="w-5 h-5" />
+                    Ver más
+                </router-link>
             </div>
             <hr class="border-t border-neutral-700 mb-4" />
-            <!-- Info del post -->
+
             <p class="text-orange-400 font-semibold mb-1 flex items-center gap-2">
                 <MapPinIcon class="w-5 h-5" />
                 De: {{ post.start_point }} → {{ post.end_point }}
@@ -94,10 +151,31 @@ export default {
                 {{ post.description }}
             </p>
 
-            <!-- Acciones futuras -->
-            <div class="flex gap-4 text-sm text-orange-400">
-                <button class="hover:underline">❤️ Me gusta</button>
-                <button class="hover:underline">💬 Comentar</button>
+            <div class="flex gap-4 text-sm justify-end text-orange-400">
+                <button class="hover:underline" @click="toggleComments(post.id)">
+                    💬 Comentar ({{ commentCounts[post.id] || 0 }})
+                </button>
+            </div>
+
+            <div v-if="expandedComments[post.id]" class="mt-4">
+                <textarea v-model="commentTexts[post.id]" class="w-full p-3 bg-neutral-700 rounded text-white"
+                    placeholder="Escribí tu comentario..."></textarea>
+                <div class="text-right mt-2">
+                    <button @click="submitComment(post.id)" :disabled="commentLoading[post.id]"
+                        class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded text-sm transition">
+                        <template v-if="commentLoading[post.id]">
+                            <Loader class="w-4 h-4 border-2 inline" /> Enviando...
+                        </template>
+                        <template v-else>
+                            Enviar
+                        </template>
+                    </button>
+                </div>
+
+                <div class="mt-2">
+                    <BaseAlert v-if="commentSuccess[post.id]" type="success" message="Comentario enviado con éxito." />
+                    <BaseAlert v-if="commentError[post.id]" type="error" :message="commentError[post.id]" />
+                </div>
             </div>
         </div>
     </section>

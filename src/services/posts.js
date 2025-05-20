@@ -1,4 +1,33 @@
 import supabase from './supabase'
+/**
+ * Obtener un post por su ID con los datos del autor
+ * @param {string} id
+ * @returns {Promise<Object>}
+ */
+export async function getPostById(id) {
+  const { data, error } = await supabase
+    .from('posts')
+    .select(`
+      *,
+      user_profiles!user_id (
+        id,
+        first_name,
+        last_name,
+        avatar_url,
+        bio,
+        bike_model
+      )
+    `)
+    .eq('id', id)
+    .single() // esperamos solo un resultado
+
+  if (error) {
+    console.error('[posts.js getPostById] Error al obtener post:', error)
+    throw error
+  }
+
+  return data
+}
 
 /**
  * Obtener los últimos posteos con datos del autor (de user_profiles)

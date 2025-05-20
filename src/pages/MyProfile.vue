@@ -53,29 +53,35 @@ export default {
 <div class="my-6 flex justify-center">
   <div class="space-y-4 text-left w-full max-w-md text-sm sm:text-base">
       <div class="flex flex-col sm:flex-row sm:justify-between gap-4 justify mx-auto">
-        <div class="flex-1">
-          <p class="text-gray-300 font-semibold">Nombre:</p>
-          <p>{{ user.first_name || 'Agregar información en editar perfil' }}</p>
+        <div class="flex-1 bg-neutral-100/10 p-2 rounded-sm">
+          <h2 class="text-gray-300 font-semibold">Nombre:</h2>
+          <hr class="border-t border-orange-500/20 mb-0" />
+
+          <p class="text-sm text-white/50 mt-1">{{ user.first_name || 'Agregar información en editar perfil' }}</p>
         </div>
-        <div class="flex-1">
-          <p class="text-gray-300 font-semibold">Apellido:</p>
-          <p>{{ user.last_name || 'Agregar información en editar perfil' }}</p>
+        <div class="flex-1 bg-neutral-100/10 p-2 rounded-sm">
+          <h2 class="text-gray-300 font-semibold">Apellido:</h2>
+          <hr class="border-t border-orange-500/20 mb-0" />
+          <p class="text-sm text-white/50 mt-1">{{ user.last_name || 'Agregar información en editar perfil' }}</p>
         </div>
       </div>
       <div class="flex flex-col sm:flex-row sm:justify-between gap-4 justify mx-auto">
-        <div class="flex-1">
-          <p class="text-gray-300 font-semibold">Email:</p>
-        <p>{{ user.email }}</p>
+        <div class="flex-1 bg-neutral-100/10 p-2 rounded-sm">
+          <h2 class="text-gray-300 font-semibold">Email:</h2>
+          <hr class="border-t border-orange-500/20 mb-0" />
+        <p class="text-sm text-white/50 mt-1">{{ user.email }}</p>
         </div>
-        <div class="flex-1">
-          <p class="text-gray-300 font-semibold">Moto:</p>
-        <p >{{ user.bike_model || 'Agregar información en editar perfil' }}</p>
+        <div class="flex-1 bg-neutral-100/10 p-2 rounded-sm">
+          <h2 class="text-gray-300 font-semibold">Moto:</h2>
+          <hr class="border-t border-orange-500/20 mb-0" />
+        <p class="text-sm text-white/50 mt-1" >{{ user.bike_model || 'Agregar información en editar perfil' }}</p>
         </div>
       </div>
 
-      <div>
-        <p class="text-gray-300 font-semibold">Biografía:</p>
-        <p>{{ user.bio || 'Agregar información en editar perfil' }}</p>
+      <div class="bg-neutral-100/10 p-2 rounded-sm">
+        <h2 class="text-gray-300 font-semibold">Biografía:</h2>
+        <hr class="border-t border-orange-500/20 mb-0" />
+        <p class="text-sm text-white/50 mt-1">{{ user.bio || 'Agregar información en editar perfil' }}</p>
       </div>
 
       
