@@ -148,8 +148,10 @@ export default {
         </template>
       </div>
       <!-- Mensajes de éxito y error -->
-      <BaseAlert :message="success && '¡Perfil actualizado!'" type="success" />
-      <BaseAlert :message="error" type="error" />
+      <BaseAlert v-if="success" message="Post creado exitosamente" type="success" />
+
+
+      <BaseAlert v-if="error" :message="error" type="error" />
     </form>
   </section>
 </template>

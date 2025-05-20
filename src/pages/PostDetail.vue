@@ -3,6 +3,7 @@
 
 import { getPostById } from '@/services/posts'  // Importo el método para obtener un post por id
 import { getCommentsByPost, createComment, subscribeToNewComments } from '@/services/comments' // Importo los métodos para obtener y crear comentarios
+
 import { subscribeToAuth } from '@/services/auth' // Importo el método para subscribirme a los cambios de auth
 import BaseHeading1 from '@/components/ui/BaseHeading1.vue' // h1
 import Loader from '@/components/ui/Loader.vue' // Loader
