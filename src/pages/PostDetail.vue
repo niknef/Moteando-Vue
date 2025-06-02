@@ -100,9 +100,7 @@ export default {
 <template>
   <section class="max-w-4xl mx-auto mt-8 px-4 text-white">
     <div class="mb-6 flex justify-between items-center">
-      <a href="/post" class="flex items-center gap-2 text-sm bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded">
-        <ArrowLeftIcon class="w-5 h-5" /> Volver
-      </a>
+      
       <BaseHeading1>Detalle del Post</BaseHeading1>
     </div>
 
@@ -162,7 +160,10 @@ export default {
       <div>
         <textarea v-model="newComment" class="w-full p-3 bg-neutral-700 rounded text-white"
           placeholder="Escribí tu comentario..."></textarea>
-        <div class="text-right mt-2">
+        <div class="flex justify-end gap-4 ">
+          <a href="/post" class="flex items-center gap-2 text-sm bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded">
+        <ArrowLeftIcon class="w-5 h-5" /> Volver
+      </a>
           <button @click="submitComment" :disabled="commentLoading"
             class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded text-sm transition">
             <template v-if="commentLoading">

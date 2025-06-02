@@ -92,15 +92,7 @@ export default {
 <template>
   <section class="max-w-xl mx-auto sm:mt-8 bg-neutral-800 text-white p-6 sm:rounded-lg shadow-md">
     <div class="flex items-center justify-between mb-4">
-      <!-- Boton para volver -->
-      <router-link to="/post">
-        <BaseButton type="gray">
-          <template #icon>
-            <ArrowLeftIcon class="w-5 h-5" />
-          </template>
-          Volver
-        </BaseButton>
-      </router-link>
+      
 
       <BaseHeading1>Crear publicación</BaseHeading1>
     </div>
@@ -137,7 +129,18 @@ export default {
           placeholder="Contanos cómo fue el recorrido, si lo hiciste solo o en grupo..."></textarea>
       </div>
 
-      <div class="flex justify-end gap-4 items-center">
+      <div class="flex justify-end gap-4 ">
+
+        <!-- Boton para volver -->
+      <router-link to="/post">
+        <BaseButton type="gray">
+          <template #icon>
+            <ArrowLeftIcon class="w-5 h-5" />
+          </template>
+          Volver
+        </BaseButton>
+      </router-link>
+      
         <template v-if="loading">
           <BaseButton type="loading">
             <Loader size="sm" />

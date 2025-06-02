@@ -43,7 +43,7 @@ export default {
 
 <template>
   <section
-    class="relative text-center py-20 overflow-hidden rounded-md shadow-md mt-0 max-w-5xl mx-auto sm:w-full sm:mt-6">
+    class="relative text-center py-20 overflow-hidden rounded-md shadow-md mt-0 mx-auto sm:w-full sm:mt-6">
     <!-- Imagen -->
     <img src="@/assets/ruta-motos-banner.jpg" alt="Ruta motera"
       class="absolute inset-0 w-full h-full object-cover opacity-40" />

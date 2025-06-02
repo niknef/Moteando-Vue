@@ -1,0 +1,8 @@
+- Nombre y Apellido: Nicolas Ezequiel Firpo
+- Materia: Clientes Web Mobile
+- Carrera: Diseño y Programación Web
+- Cuatrimestre: 4° cuatrimestre
+- Año: 2025
+- Comisión: W2041
+- Docente:Santiago Gallino
+- Entrega: Primer Parcial

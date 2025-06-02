@@ -59,13 +59,4 @@ El sistema permite:
 
 ---
 
-## 📄 Datos del alumno
 
-- **Nombre y Apellido:** Nicolas Ezequiel Firpo
-- **Materia:** Clientes Web Mobile
-- **Carrera:** Diseño y Programación Web
-- **Cuatrimestre:** 1° cuatrimestre 2025
-- **Docente:** Santiago Gallino
-- **Entrega:** Primer Parcial
-
----

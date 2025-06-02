@@ -9,6 +9,7 @@ import CreatePost from '../pages/CreatePost.vue'
 import Posts from '../pages/PostList.vue'
 import UserProfile from '../pages/UserProfile.vue'
 import PostsDetail from '../pages/PostDetail.vue'
+import MapView from '../pages/MapView.vue'
 
 
 //Rutas -> 
@@ -23,6 +24,7 @@ const routes = [
     {path: '/post', component: Posts, meta: {requiresAuth: true}},
     {path: '/usuario/:id', component: UserProfile, meta: {requiresAuth: true}},
     {path: '/post/:id', component: PostsDetail, meta: {requiresAuth: true}},
+    {path: '/map', component: MapView, meta: {requiresAuth: true}},
 ];
 
 //Creamos el router
