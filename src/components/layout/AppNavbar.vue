@@ -83,6 +83,9 @@ export default {
         <!-- Si el usuario está logueado mostramos el botón de cerrar sesión y las vistas de usuario  -->
         <template v-else>
           <li>
+            <router-link to="/map" class="hover:text-orange-400">Mapa</router-link>
+          </li>
+          <li>
             <router-link to="/post" class="hover:text-orange-400">Posteos</router-link>
           </li>
           <li>
@@ -133,6 +136,11 @@ export default {
           </template>
 
           <template v-else>
+            <li>
+              <router-link to="/map" @click="closeMenu">Mapa
+                
+              </router-link>
+            </li>
             <li>
               <router-link to="/post" @click="closeMenu">Posteos</router-link>
             </li>
