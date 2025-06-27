@@ -7,5 +7,5 @@ const IconComp = computed(() => lucide[props.name])
 
 <template>
   <component :is="IconComp" :size="props.size" stroke-width="1.5"
-             :class="active ? 'text-orange-400' : 'text-gray-400'" />
+             :class="active ? 'text-orange-400' : 'text-white'" />
 </template>

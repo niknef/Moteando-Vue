@@ -1,62 +1,50 @@
-<script>
-//Componente para el login
-//Importaciones necesarias para el componente
-import BaseHeading1 from '@/components/ui/BaseHeading1.vue' // h1
-import BaseButton from '@/components/ui/BaseButton.vue' // Botón
-import BaseInput from '@/components/ui/BaseInput.vue' // Input
-import BaseLabel from '@/components/ui/BaseLabel.vue' // Label
-import Loader from '@/components/ui/Loader.vue' // Loader
-import { login } from '@/services/auth' // Importo el método para iniciar sesión
-import { ArrowRightOnRectangleIcon } from '@heroicons/vue/24/outline' // Iconos
-import BaseAlert from '../components/ui/BaseAlert.vue' // Alertas
+<script setup>
+/* ────────── imports ────────── */
+import { ref, reactive } from 'vue'
+import { useRouter } from 'vue-router'
+import IconLucide     from '@/components/ui/IconLucide.vue'
+import BaseHeading1   from '@/components/ui/BaseHeading1.vue'
+import BaseButton     from '@/components/ui/BaseButton.vue'
+import BaseInput      from '@/components/ui/BaseInput.vue'
+import BaseLabel      from '@/components/ui/BaseLabel.vue'
+import Loader         from '@/components/ui/Loader.vue'
+import BaseAlert      from '@/components/ui/BaseAlert.vue'
+import { login }      from '@/services/auth'
 
-export default {
-  name: 'Login',
-  components: {
-    BaseHeading1,
-    BaseButton,
-    BaseInput,
-    BaseLabel,
-    Loader,
-    ArrowRightOnRectangleIcon,
-    BaseAlert
-  },
-  data() {
-    return {
-      user: {
-        email: '',
-        password: ''
-      },
-      error: null,
-      loading: false
+defineOptions({ name: 'Login' })   // Esto aunque es opcional en api composition, lo pongo para ayudar a identificar el componente
+
+/* ────────── estado reactivo ────────── */
+const user = reactive({
+  email    : '',
+  password : ''
+})
+const error   = ref(null)
+const loading = ref(false)
+
+/* ────────── router ────────── */
+const router = useRouter()
+
+/* ────────── acciones ────────── */
+async function handleSubmit () {
+  error.value   = null
+  loading.value = true
+
+  try {
+    await login(user.email, user.password)
+    router.push('/map')               // redirección a la pantalla principal -> que ahora es el mapa
+    
+  } catch (err) {
+    const msg = err.message
+    if (msg.includes('Invalid login credentials')) {
+      error.value = 'Datos incorrectos. Revisá tu email y contraseña.'
+    } else if (msg.includes('Email not confirmed')) {
+      error.value = 'Confirmá tu email antes de iniciar sesión.'
+    } else {
+      error.value = 'Ocurrió un error inesperado. Intentalo de nuevo.'
     }
-  },
-  methods: {
-    // Método para manejar el submit del formulario
-    async handleSubmit() {
-      this.error = null
-      this.loading = true
-
-      try {
-        await login(this.user.email, this.user.password) // LLamamos al metodo login pasandole el email y la contraseña
-        this.$router.push('/') // Redirigimos al usuario a la página de inicio
-      } catch (error) { // si no se puede iniciar sesión, mostramos un mensaje de error
-
-        const msg = error.message
-        // Creo mensajes de error personalizados para cada caso
-        if (msg.includes('Invalid login credentials')) {
-          this.error = 'Email o contraseña incorrectos.'
-        } else if (msg.includes('Email not confirmed')) {
-          this.error = 'Tenés que verificar tu correo antes de ingresar.'
-        } else {
-          this.error = 'Ocurrió un error inesperado al iniciar sesión.'
-        }
-
-        console.error('[Login handleSubmit] Error:', msg)
-      } finally {
-        this.loading = false // Oculto el loader
-      }
-    }
+    console.error('[Login] ', msg)
+  } finally {
+    loading.value = false
   }
 }
 </script>
@@ -66,32 +54,53 @@ export default {
     <BaseHeading1>Iniciar sesión</BaseHeading1>
 
     <form @submit.prevent="handleSubmit" class="flex flex-col gap-4 mt-4">
-      <!-- email -->
+      <!-- Email -->
       <div>
         <BaseLabel for="email">Email</BaseLabel>
-        <BaseInput v-model="user.email" id="email" type="email" placeholder="ejemplo@email.com" required />
-      </div>
-      <!-- password -->
-      <div>
-        <BaseLabel for="password">Contraseña</BaseLabel>
-        <BaseInput v-model="user.password" id="password" type="password" placeholder="••••••••" required />
+        <BaseInput
+          v-model="user.email"
+          id="email"
+          type="email"
+          autocomplete="email"
+          placeholder="ejemplo@email.com"
+          required
+        />
       </div>
 
+      <!-- Password -->
+      <div>
+        <BaseLabel for="password">Contraseña</BaseLabel>
+        <BaseInput
+          v-model="user.password"
+          id="password"
+          type="password"
+          autocomplete="current-password"
+          placeholder="••••••••"
+          required
+        />
+      </div>
+
+      <!-- Submit -->
       <div class="flex items-center justify-center mt-4">
-        <BaseButton type="orange" htmlType="submit">
+        <BaseButton type="orange" htmlType="submit" :disabled="loading">
           <template #icon>
-            <Loader class="w-5 h-5 border-2" v-if="loading" />
-            <ArrowRightOnRectangleIcon class="w-5 h-5" v-else />
+            <Loader v-if="loading" class="w-5 h-5 border-2" />
+            <!-- Icono Lucide cuando no está cargando -->
+            <IconLucide v-else name="LogIn" :size="20" />
           </template>
-          {{ loading ? 'Ingresando...' : 'Ingresar' }}
+          {{ loading ? 'Ingresando…' : 'Ingresar' }}
         </BaseButton>
       </div>
 
-      <router-link to="/register" class="text-orange-500 underline text-center hover:text-orange-600">
+      <!-- Link a register -->
+      <router-link
+        to="/register"
+        class="text-orange-500 underline text-center hover:text-orange-600"
+      >
         ¿No tenés cuenta? Registrate
       </router-link>
 
-
+      <!-- Error global -->
       <BaseAlert :message="error" type="error" />
     </form>
   </section>
