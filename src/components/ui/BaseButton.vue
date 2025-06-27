@@ -19,6 +19,7 @@ export default {
         //El orange lo vamos a utilizar en botones principales
         case 'orange':
           return 'bg-orange-500 hover:bg-orange-600 focus:bg-orange-600';
+  
         //Botones de confirmación
         case 'success':
           return 'bg-green-600 hover:bg-green-500 focus:bg-green-500';

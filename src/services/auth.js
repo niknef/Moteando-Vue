@@ -1,221 +1,132 @@
 import supabase from './supabase'
-import { addUserProfile, getUserProfileByPK, updateUserProfile } from './user-profile'
+import {
+  addUserProfile,
+  getUserProfileByPK,
+  updateUserProfile
+} from './user-profile'
 
-//--------------------------------------------------------------------
-// Definimos la variable para los datos del usuario
-//--------------------------------------------------------------------
+/* ------------------------------------------------------------------ */
+/* Estado local                                                        */
+/* ------------------------------------------------------------------ */
 let user = {
   id: null,
   email: null,
   first_name: null,
   last_name: null,
   bio: null,
-  bike_model: null,
-  avatar_url: null
+  avatar_url: null,
+  active_bike_id: null          // ← FK a user_bikes
 }
 
-//--------------------------------------------------------------------
-// Definimos un array para los observers 
-//--------------------------------------------------------------------
 let observers = []
 
-//--------------------------------------------------------------------
-// Invocamos la función para cargar los datos actuales del usuario 
-//--------------------------------------------------------------------
-loadCurrentUser()
-
-//--------------------------------------------------------------------
-// Si hay datos en localStorage, los usamos para facilitar el reload
-//--------------------------------------------------------------------
+/* ------------------------------------------------------------------ */
+/* Sesión persistida                                                   */
+/* ------------------------------------------------------------------ */
 if (localStorage.getItem('user')) {
   user = JSON.parse(localStorage.getItem('user'))
 }
+loadCurrentUser()
 
-/**
- * Verificamos si el usuario ya estaba autenticado en Supabase
- * y en caso afirmativo, lo cargamos al sistema.
- */
-async function loadCurrentUser() {
-  const { data } = await supabase.auth.getUser()
-
-  // Si no hay un usuario, retornamos null.
-  if (!data?.user) return null
-
-  // Actualizamos los datos del usuario, y notificamos a los observers.
-  updateUser({
-    id: data.user.id,
-    email: data.user.email
-  })
-
-  // Cargamos el perfil del usuario extendido
-  loadCurrentUserProfile()
+/* ------------------------------------------------------------------ */
+/* Helpers                                                             */
+/* ------------------------------------------------------------------ */
+function notify (cb)     { cb({ ...user }) }
+function notifyAll ()    { observers.forEach(notify) }
+function updateUser (d)  {
+  user = { ...user, ...d }
+  user.id ? localStorage.setItem('user', JSON.stringify(user))
+          : localStorage.removeItem('user')
+  notifyAll()
 }
 
-/**
- * Carga el perfil extendido del usuario autenticado.
- */
-async function loadCurrentUserProfile() {
+/* ------------------------------------------------------------------ */
+/* Cargar usuario actual (Auth + perfil)                               */
+/* ------------------------------------------------------------------ */
+async function loadCurrentUser () {
+  const { data } = await supabase.auth.getUser()
+  if (!data?.user) return null
+
+  updateUser({ id: data.user.id, email: data.user.email })
+  await loadCurrentUserProfile()
+}
+
+async function loadCurrentUserProfile () {
   try {
     const profile = await getUserProfileByPK(user.id)
     updateUser(profile)
-  } catch (error) {
-    console.error('[auth.js loadCurrentUserProfile] Error al obtener el perfil del usuario:', error)
+  } catch (err) {
+    console.error('[auth] loadCurrentUserProfile:', err)
   }
 }
 
-/**
- * Registra usuario y crea perfil extendido
- * @param {string} email
- * @param {string} password
- * @param {string} firstName
- * @param {string} lastName
- */
-export async function register (email, password, firstName, lastName) {
+/* ------------------------------------------------------------------ */
+/* Registro                                                            */
+/* ------------------------------------------------------------------ */
+export async function register (email, password, first, last) {
   const { data, error } = await supabase.auth.signUp({ email, password })
   if (error) throw error
 
-  // perfil extendido
-  try {
-    await addUserProfile({
-      id         : data.user.id,
-      email,
-      first_name : firstName,
-      last_name  : lastName
-    })
-  } catch (err) {
-    console.error('[auth register] Error al crear perfil:', err)
-  }
-
-  // actualizar cache local (incluye nombres)
-  updateUser({
-    id         : data.user.id,
-    email      : data.user.email,
-    first_name : firstName,
-    last_name  : lastName
-  })
-
-  return data.user
-}
-
-/**
- * Inicia sesión con email y contraseña.
- * Carga los datos del perfil extendido tras autenticarse.
- * 
- * @param {string} email - Correo electrónico.
- * @param {string} password - Contraseña.
- * @returns {Promise} - Usuario autenticado.
- */
-export async function login(email, password) {
-  const { data, error } = await supabase.auth.signInWithPassword({
+  await addUserProfile({
+    id: data.user.id,
     email,
-    password
+    first_name: first,
+    last_name : last
   })
 
-  if (error) {
-    console.error('[auth.js login] Error al iniciar sesión:', error)
-    throw error
-  }
-
-  // Actualizamos los datos básicos
   updateUser({
     id: data.user.id,
-    email: data.user.email
+    email: data.user.email,
+    first_name: first,
+    last_name : last
   })
-
-  // Cargamos el resto del perfil
-  loadCurrentUserProfile()
 
   return data.user
 }
-/**
- * 
- * Cierra la sesión del usuario actual y borra los datos del perfil en memoria y localStorage.
- * 
- * @returns {Promise}
- */
-export async function logout() {
-  supabase.auth.signOut()
 
-  // Vaciamos el usuario.
+/* ------------------------------------------------------------------ */
+/* Login / Logout                                                      */
+/* ------------------------------------------------------------------ */
+export async function login (email, password) {
+  const { data, error } =
+    await supabase.auth.signInWithPassword({ email, password })
+  if (error) throw error
+
+  updateUser({ id: data.user.id, email: data.user.email })
+  await loadCurrentUserProfile()
+  return data.user
+}
+
+export async function logout () {
+  await supabase.auth.signOut()
   updateUser({
     id: null,
     email: null,
     first_name: null,
     last_name: null,
     bio: null,
-    bike_model: null,
-    avatar_url: null
+    avatar_url: null,
+    active_bike_id: null
   })
 }
 
-/**
- * Actualiza el perfil del usuario autenticado en Firestore y en memoria local.
- * 
- * @param data - Campos a actualizar (nombre, bio, moto, etc.).
- * @returns {Promise}
- */
-export async function updateAuthProfile(data) {
+/* ------------------------------------------------------------------ */
+/* Perfil: update (sin bike_model)                                     */
+/* ------------------------------------------------------------------ */
+export async function updateAuthProfile (data) {
   try {
-    await updateUserProfile(user.id, { ...data })
+    await updateUserProfile(user.id, data)
     updateUser(data)
-  } catch (error) {
-    console.error('[auth.js updateAuthProfile] Error al actualizar el perfil del usuario autenticado:', error)
-    throw error
+  } catch (err) {
+    console.error('[auth] updateAuthProfile:', err)
+    throw err
   }
 }
 
-/*--------------------------------------------------------------------
-| Métodos del observer
-+---------------------------------------------------------------------*/
-
-/**
- * Registra un "observer" que será notificado con los datos del usuario cada vez que el estado de autenticación, o los
- * datos del usuario, cambien.
- * 
- * @param {(user: typeof user) => void} callback 
- */
-export async function subscribeToAuth(callback) {
-  // Guardamos el observer en el array.
-  observers.push(callback)
-
-  // Notificamos al observer de los datos actuales.
-  notify(callback)
-}
-
-/**
- * Ejecuta un "observer" para notificarle el estado del usuario actual.
- * 
- * @param {(user: typeof user) => void} callback 
- */
-function notify(callback) {
-  // Invocamos el observer, y le pasamos una copia de los datos del objeto "user".
-  callback({ ...user })
-}
-
-/**
- * Notifica a todos los observers del estado actual del "user".
- * La idea es que cada vez que "user" cambie, se notifique a todos los observers.
- */
-function notifyAll() {
-  observers.forEach(callback => notify(callback))
-}
-
-/**
- * Actualiza la data del usuario con la info provista, y notifica a todos los observers.
- * 
- * @param {Partial} data 
- */
-function updateUser(data) {
-  user = {
-    ...user,
-    ...data
-  }
-
-  if (user.id !== null) {
-    localStorage.setItem('user', JSON.stringify(user))
-  } else {
-    localStorage.removeItem('user')
-  }
-
-  notifyAll()
+/* ------------------------------------------------------------------ */
+/* Observer                                                            */
+/* ------------------------------------------------------------------ */
+export async function subscribeToAuth (cb) {
+  observers.push(cb)
+  notify(cb)
 }
