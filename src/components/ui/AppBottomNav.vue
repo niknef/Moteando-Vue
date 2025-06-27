@@ -12,7 +12,7 @@ const items = [
   { to: '/events',      icon: 'CalendarClock', label: 'Eventos' },
   { to: '/map',         icon: 'MapPinned',     label: 'Mapa'    },
   { to: '/profile/me',  icon: 'UserCircle',    label: 'Perfil'  },
-  { to: '/settings',    icon: 'Settings',      label: 'Ajustes' }
+  { to: '/my-bikes',    icon: 'Warehouse',      label: 'Garage' }
 ]
 </script>
 

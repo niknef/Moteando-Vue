@@ -1,10 +1,12 @@
 <script setup>
 /* ────────── imports ────────── */
 import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter }      from 'vue-router'
+
 import IconLucide     from '@/components/ui/IconLucide.vue'
 import BaseHeading1   from '@/components/ui/BaseHeading1.vue'
 import BaseButton     from '@/components/ui/BaseButton.vue'
+
 import { subscribeToAuth, logout } from '@/services/auth'
 import { listBikes, setActiveBike } from '@/services/bikes'
 
@@ -21,22 +23,20 @@ const profile = ref({
 const bikes = ref([])
 
 /* ────────── cargar datos ────────── */
-onMounted(async () => {
+onMounted(() => {
   subscribeToAuth(async u => {
     if (!u.id) return
     profile.value = { ...profile.value, ...u }
-
-    // lista de motos del usuario
-    bikes.value = await listBikes()
+    bikes.value   = await listBikes()
   })
 })
 
 /* ────────── acciones ────────── */
 const router = useRouter()
 
-function handleLogout () {
-  logout()
-  router.push('/login')
+async function handleLogout () {
+  await logout()             // espera a que se limpie currentUser
+  router.replace('/login')   // redirige una vez deslogueado
 }
 
 async function activate (id) {
@@ -49,6 +49,7 @@ async function activate (id) {
 <template>
   <div class="min-h-screen flex items-center justify-center bg-black/95">
     <section class="w-full max-w-xl bg-neutral-800 text-white p-8 sm:rounded-lg shadow-md">
+      <!-- Título -->
       <BaseHeading1 class="text-center">Mi perfil</BaseHeading1>
 
       <!-- Avatar -->
@@ -103,9 +104,10 @@ async function activate (id) {
         </div>
       </div>
 
-      <!-- Listado de motos (máx 5) -->
-      <div class="space-y-3 mb-6" v-if="bikes.length">
+      <!-- Listado de motos -->
+      <div v-if="bikes.length" class="space-y-3 mb-6">
         <h2 class="text-gray-300 font-semibold mb-1">Mis motos</h2>
+
         <div
           v-for="b in bikes"
           :key="b.id"
@@ -133,20 +135,15 @@ async function activate (id) {
         </div>
       </div>
 
-      <!-- Botones -->
-      <div class="flex flex-col sm:flex-row justify-center gap-4">
-
-        <!-- Mis motos -->
+      <!-- Botonera -->
+      <div class="flex justify-center sm:justify-end gap-4 items-center mt-4">
         <router-link to="/my-bikes">
           <BaseButton type="gray">
-            <template #icon>
-              <IconLucide name="Warehouse" :size="20" />
-            </template>
+            <template #icon><IconLucide name="Warehouse" :size="20" /></template>
             Mis motos
           </BaseButton>
         </router-link>
 
-        <!-- Editar perfil (ya existente) -->
         <router-link to="/profile/edit">
           <BaseButton type="orange">
             <template #icon><IconLucide name="PencilLine" :size="20" /></template>
@@ -155,7 +152,7 @@ async function activate (id) {
         </router-link>
       </div>
 
-      <!-- Cerrar sesión como link -->
+      <!-- Cerrar sesión -->
       <p class="mt-4 text-center">
         <button
           class="text-red-400 hover:text-red-500 underline"
@@ -164,7 +161,6 @@ async function activate (id) {
           Cerrar sesión
         </button>
       </p>
-
     </section>
   </div>
 </template>

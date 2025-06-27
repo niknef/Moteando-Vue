@@ -17,7 +17,7 @@ const Events       = () => import('@/pages/Events.vue')
 
 const MyProfile    = () => import('@/pages/MyProfile.vue')
 const EditProfile  = () => import('@/pages/MyProfileEdit.vue')
-const Settings     = () => import('@/pages/Settings.vue')
+
 
 /* ────────── nuevas vistas de motos ────────── */
 const MyBikes      = () => import('@/pages/MyBikes.vue')
@@ -52,7 +52,7 @@ const routes = [
       { path: 'my-bikes/new',          component: NewBike },
       { path: 'my-bikes/:id/edit',     component: EditBike },
 
-      { path: 'settings',       component: Settings }
+      
     ]
   },
 

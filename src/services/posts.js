@@ -49,8 +49,7 @@ export async function getLastPosts (limit = 20) {
         first_name,
         last_name,
         avatar_url,
-        bio,
-        bike_model
+        bio
       )
     `)
     .order('created_at', { ascending: false })
