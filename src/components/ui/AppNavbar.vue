@@ -71,12 +71,7 @@ function handleLogout () {       // <- ya no se usa aquí, pero lo dejamos para 
             Perfil
           </router-link>
         </li>
-        <form @submit.prevent="handleLogout">
-        <BaseButton type="error" htmlType="submit">
-          <template #icon><IconLucide name="LogOut" :size="20" /></template>
-          Cerrar sesión
-        </BaseButton>
-      </form>
+        
       </ul>
     </template>
   </nav>

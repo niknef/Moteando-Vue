@@ -18,7 +18,7 @@ const IconComp = computed(() => lucide[props.name])
     :size="props.size"
     stroke-width="1.5"
     :class="[
-      props.active ? 'text-orange-400' : 'text-gray-400',  // color base
+      props.active ? 'text-orange-400' : 'text-white',  // color base
       attrs.class                                         // permite hover override
     ]"
   />
