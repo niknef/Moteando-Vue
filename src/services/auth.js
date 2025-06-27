@@ -64,35 +64,34 @@ async function loadCurrentUserProfile() {
 }
 
 /**
- * Registra un nuevo usuario con email y password.
- * También crea un perfil asociado en la base de datos.
- * 
- * @param {string} email - Correo electrónico del usuario.
- * @param {string} password - Contraseña del usuario.
- * @returns {Promise} - Objeto del usuario creado.
+ * Registra usuario y crea perfil extendido
+ * @param {string} email
+ * @param {string} password
+ * @param {string} firstName
+ * @param {string} lastName
  */
-export async function register(email, password) {
+export async function register (email, password, firstName, lastName) {
   const { data, error } = await supabase.auth.signUp({ email, password })
+  if (error) throw error
 
-  if (error) {
-    console.error('[auth.js register] Error al registrarse:', error)
-    throw error
-  }
-
-  // Creamos el perfil del usuario
+  // perfil extendido
   try {
     await addUserProfile({
-      id: data.user.id,
-      email
+      id         : data.user.id,
+      email,
+      first_name : firstName,
+      last_name  : lastName
     })
-  } catch (error) {
-    console.error('[auth.js register] Error al crear el perfil del usuario:', error)
+  } catch (err) {
+    console.error('[auth register] Error al crear perfil:', err)
   }
 
-  // Actualizamos los datos del usuario, y notificamos a los observers.
+  // actualizar cache local (incluye nombres)
   updateUser({
-    id: data.user.id,
-    email: data.user.email
+    id         : data.user.id,
+    email      : data.user.email,
+    first_name : firstName,
+    last_name  : lastName
   })
 
   return data.user
