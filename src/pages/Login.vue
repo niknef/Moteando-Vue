@@ -11,6 +11,7 @@ import Loader         from '@/components/ui/Loader.vue'
 import BaseAlert      from '@/components/ui/BaseAlert.vue'
 import { login }      from '@/services/auth'
 
+
 defineOptions({ name: 'Login' })   // Esto aunque es opcional en api composition, lo pongo para ayudar a identificar el componente
 
 /* ────────── estado reactivo ────────── */
@@ -50,7 +51,8 @@ async function handleSubmit () {
 </script>
 
 <template>
-  <section class="max-w-md mx-auto bg-neutral-800 text-gray-100 p-8 sm:rounded-lg shadow-md mt-8">
+  <div class="min-h-screen flex items-center justify-center bg-black/95">
+  <section class="w-full max-w-md bg-neutral-800 text-gray-100 p-8 sm:rounded-lg shadow-md">
     <BaseHeading1>Iniciar sesión</BaseHeading1>
 
     <form @submit.prevent="handleSubmit" class="flex flex-col gap-4 mt-4">
@@ -104,4 +106,6 @@ async function handleSubmit () {
       <BaseAlert :message="error" type="error" />
     </form>
   </section>
+  </div>
+  
 </template>

@@ -62,7 +62,8 @@ async function handleSubmit () {
 </script>
 
 <template>
-  <section class="max-w-md mx-auto bg-neutral-800 text-gray-100 p-8 sm:rounded-lg shadow-md mt-8">
+  <div class="min-h-screen flex items-center justify-center bg-black/95">
+  <section class="w-full max-w-md bg-neutral-800 text-gray-100 p-8 sm:rounded-lg shadow-md">
     <BaseHeading1>Crear cuenta</BaseHeading1>
 
     <form @submit.prevent="handleSubmit" class="flex flex-col gap-4 mt-4">
@@ -130,4 +131,5 @@ async function handleSubmit () {
       <BaseAlert :message="error" type="error" />
     </form>
   </section>
+  </div>
 </template>

@@ -90,7 +90,7 @@ export default {
 
     <!-- Botón editar -->
     <div class="mt-6 text-center">
-      <router-link to="/my-profile/edit">
+      <router-link to="/profile/edit">
         <BaseButton type="orange">Editar perfil</BaseButton>
       </router-link>
     </div>

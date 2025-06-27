@@ -1,54 +1,79 @@
-import {createRouter, createWebHistory} from 'vue-router'
-import { subscribeToAuth } from '../services/auth';
-import Home from '../pages/Home.vue'
-import Register from '../pages/Register.vue'
-import Login from '../pages/Login.vue'
-import MyProfile from '../pages/MyProfile.vue'
-import MyProfileEdit from '../pages/MyProfileEdit.vue'
-import CreatePost from '../pages/CreatePost.vue'
-import Posts from '../pages/PostList.vue'
-import UserProfile from '../pages/UserProfile.vue'
-import PostsDetail from '../pages/PostDetail.vue'
-import MapView from '../pages/MapView.vue'
+import { createRouter, createWebHistory } from 'vue-router'
+import { subscribeToAuth } from '@/services/auth'
 
+/* ────────── vistas públicas ────────── */
+const Login    = () => import('@/pages/Login.vue')
+const Register = () => import('@/pages/Register.vue')
 
-//Rutas -> 
+/* ────────── layout y vistas privadas ────────── */
+const AppShell   = () => import('@/components/layout/AppShell.vue')  // incluye AppNavbar + AppBottomNav
+const HomeMap    = () => import('@/pages/HomeMap.vue')     // antiguo MapView
+const PostList   = () => import('@/pages/PostList.vue')
+const PostDetail = () => import('@/pages/PostDetail.vue')
+const CreatePost = () => import('@/pages/CreatePost.vue')
+const Events     = () => import('@/pages/Events.vue')      // (placeholder)
+const MyProfile  = () => import('@/pages/MyProfile.vue')
+const EditProfile= () => import('@/pages/MyProfileEdit.vue')
+const Settings   = () => import('@/pages/Settings.vue')    // (opcional)
 
+/* ────────── definición de rutas ────────── */
 const routes = [
-    {path: '/', component: Home},
-    {path: '/register', component: Register},
-    {path: '/login', component: Login},
-    {path: '/my-profile', component: MyProfile, meta: {requiresAuth: true}},
-    {path: '/my-profile/edit', component: MyProfileEdit, meta: {requiresAuth: true}},
-    {path: '/create-post', component: CreatePost, meta: {requiresAuth: true}},
-    {path: '/post', component: Posts, meta: {requiresAuth: true}},
-    {path: '/usuario/:id', component: UserProfile, meta: {requiresAuth: true}},
-    {path: '/post/:id', component: PostsDetail, meta: {requiresAuth: true}},
-    {path: '/map', component: MapView, meta: {requiresAuth: true}},
-];
+  /* públicas */
+  { path: '/login',    component: Login },
+  { path: '/register', component: Register },
 
-//Creamos el router
+  /* privadas envueltas en AppShell */
+  {
+    path: '/',
+    component: AppShell,
+    meta: { requiresAuth: true },
+    children: [
+      { path: '', redirect: '/map' },           // @ '/'
+      { path: 'map',     component: HomeMap },
+      { path: 'posts',   component: PostList },
+      { path: 'posts/create', component: CreatePost },
+      { path: 'posts/:id',    component: PostDetail },
+      { path: 'events',  component: Events },
+      { path: 'profile/me',       component: MyProfile },
+      { path: 'profile/edit',     component: EditProfile },
+      { path: 'settings',         component: Settings }
+    ]
+  },
+
+  /* fallback */
+  { path: '/:pathMatch(.*)*', redirect: '/map' }
+]
+
+/* ────────── creación del router ────────── */
 const router = createRouter({
-    history: createWebHistory(),
-    routes
-});
+  history: createWebHistory(),
+  routes,
+ scrollBehavior(to, from, savedPosition) {
+  
+   if (to.hash) {
+     return { el: to.hash }
+   }
+  
+   if (savedPosition) {
+     return savedPosition
+   }
+   
+   return { top: 0 }
+ }
+})
 
-// Nos suscribimos a la autenticación.
-let user = {
-    id: null,
-    email: null,
-}
-subscribeToAuth(newUserData => user = newUserData);
+/* ────────── estado de auth reactivo ────────── */
+let currentUser = { id: null, email: null }
+subscribeToAuth(u => { currentUser = u })
 
+/* ────────── guard global ────────── */
+router.beforeEach((to) => {
+  if (to.meta.requiresAuth && !currentUser.id) {
+    return { path: '/login', query: { redirect: to.fullPath } }
+  }
+  if ((to.path === '/login' || to.path === '/register') && currentUser.id) {
+    return '/map'                // ya logueado: evita volver a login
+  }
+})
 
-// Agregamos un "guard" global para nuestro router.
-router.beforeEach((to, from) => {
-    
-    // Si la ruta requiere que el usuario esté autenticado, y no lo está, entonces lo "pateamos" al login.
-    if(to.meta.requiresAuth && user.id === null) {
-        // Retornamos la URL a donde lo queremos mandar.
-        return '/login';
-    }
-});
-//Exportamos el router
-export default router;
+export default router

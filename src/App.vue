@@ -1,26 +1,22 @@
-<script>
-import AppNavbar from './components/layout/AppNavbar.vue'
-import AppFooter from './components/layout/AppFooter.vue'
+<script setup>
+import { useRoute } from 'vue-router'
+import AppFooter from '@/components/layout/AppFooter.vue'
 
-export default {
-  name: 'App',
-  components: {
-    AppNavbar,
-    AppFooter
-  }
-}
+const route = useRoute()
+
+/* Ocultar footer en pantallas móviles siempre que exista el bottom-nav
+   (todas las rutas privadas) */
+const hideFooter = () => route.path !== '/login' && route.path !== '/register'
 </script>
 
 <template>
-  
   <div class="flex flex-col min-h-screen bg-black/95 text-gray-100">
-    <AppNavbar />
-
-    
-    <main class="flex-grow container mx-auto">
+    <main class="flex-1 overflow-y-auto pb-[4rem] lg:pb-0">
+      <!-- 4 rem = altura del bottom-nav -->
       <router-view />
     </main>
 
-    <AppFooter />
+    <!-- footer solo ≥ lg -->
+    <AppFooter v-if="hideFooter()" class="hidden lg:block" />
   </div>
 </template>
