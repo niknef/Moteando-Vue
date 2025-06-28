@@ -1,106 +1,134 @@
-<script>
-//componente de detalle de un post en especifico 
+<script setup>
+import { ref, onMounted, nextTick, onBeforeUnmount } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
-import { getPostById } from '@/services/posts'  // Importo el método para obtener un post por id
-import { getCommentsByPost, createComment, subscribeToNewComments } from '@/services/comments' // Importo los métodos para obtener y crear comentarios
+import { getPostById, likePost, unlikePost } from '@/services/posts'
+import { getCommentsByPost, createComment, subscribeToNewComments } from '@/services/comments'
+import { subscribeToAuth } from '@/services/auth'
 
-import { subscribeToAuth } from '@/services/auth' // Importo el método para subscribirme a los cambios de auth
-import BaseHeading1 from '@/components/ui/BaseHeading1.vue' // h1
-import Loader from '@/components/ui/Loader.vue' // Loader
-import BaseAlert from '@/components/ui/BaseAlert.vue' // Alertas
-import { ArrowLeftIcon } from '@heroicons/vue/24/outline' // Iconos
-import { nextTick } from 'vue' // Importo nextTick para hacer scroll al final de la lista de comentarios - chat global 
+import BaseHeading1 from '@/components/ui/BaseHeading1.vue'
+import Loader from '@/components/ui/Loader.vue'
+import BaseAlert from '@/components/ui/BaseAlert.vue'
+import IconLucide from '@/components/ui/IconLucide.vue'
+import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 
-export default {
-  name: 'PostDetail',
-  components: {
-    BaseHeading1,
-    Loader,
-    BaseAlert,
-    ArrowLeftIcon
-  },
-  data() {
-    return {
-      post: null,
-      comments: [], // Array de comentarios
-      newComment: '',
-      loading: true,
-      error: null,
-      commentLoading: false,
-      commentSuccess: false,
-      commentError: null,
-      userId: null,
-    }
-  },
-  async mounted() {
-    try {
-      // En el mounted llamo a la función subscribeToAuth para subscribirme a los cambios de auth
-      subscribeToAuth(user => {
-        this.userId = user.id
-      })
+const route = useRoute()
+const router = useRouter()
 
-      // Obtengo el id del post de la ruta
-      const id = this.$route.params.id
-      this.post = await getPostById(id) // Llamo al método getPostById para obtener el post por id
-      this.comments = await getCommentsByPost(id) // Llamo al método getCommentsByPost para obtener los comentarios del post
+const post = ref(null)
+const comments = ref([])
+const newComment = ref('')
 
-      await nextTick()
-      this.scrollToBottom() // Hago scroll al final de la lista de comentarios
+const loading = ref(true)
+const error = ref(null)
 
-      // Subscribo a los nuevos comentarios para el manejo en real time
-      subscribeToNewComments(id, async comment => {
-        this.comments.push(comment)
-        await nextTick()
-        this.scrollToBottom()
-      })
-    } catch (e) {
-      this.error = 'No se pudo cargar el post.'
-      console.error('[PostDetail] Error:', e)
-    } finally {
-      this.loading = false
-    }
-  },
-  methods: {
-    async submitComment() {
-      if (!this.newComment.trim()) return // Valido que el comentario no esté vacío
+const commentLoading = ref(false)
+const commentSuccess = ref(false)
+const commentError = ref(null)
 
-      this.commentLoading = true
-      this.commentSuccess = false
-      this.commentError = null
+const userId = ref(null)
+const commentsContainer = ref(null)
 
-      try {
-        await createComment({ // Llamo al método createComment para crear un nuevo comentario donde le pasamos el id del post y el contenido del comentario
-          post_id: this.post.id,
-          content: this.newComment.trim()
-        })
+let channel = null
 
-        this.newComment = '' // Reinicio el campo de comentario
-        this.commentSuccess = true
-        setTimeout(() => this.commentSuccess = false, 2000) // Oculto el mensaje de éxito después de 2 segundos
-      } catch (e) {
-        this.commentError = 'No se pudo enviar el comentario.'
-        console.error('[submitComment] Error:', e)
-      } finally {
-        this.commentLoading = false
-      }
-    },
-    scrollToBottom() {
-      const el = this.$refs.commentsContainer
-      if (el) {
-        el.scrollTo({
-          top: el.scrollHeight,
-          behavior: 'smooth'
-        })
-      }
-    }
+function formatDuration(duration) {
+  if (!duration) return '-'
+  const parts = duration.split(':')
+  const hours = parseInt(parts[0])
+  const minutes = parseInt(parts[1])
+
+  let result = ''
+  if (hours > 0) result += `${hours} h `
+  if (minutes > 0) result += `${minutes} min`
+  if (result === '') result = 'Menos de 1 min'
+  return result.trim()
+}
+
+function scrollToBottom() {
+  if (commentsContainer.value) {
+    commentsContainer.value.scrollTo({
+      top: commentsContainer.value.scrollHeight,
+      behavior: 'smooth'
+    })
   }
 }
+
+async function submitComment() {
+  if (!newComment.value.trim()) return
+
+  commentLoading.value = true
+  commentSuccess.value = false
+  commentError.value = null
+
+  try {
+    await createComment({
+      post_id: post.value.id,
+      content: newComment.value.trim()
+    })
+
+    newComment.value = ''
+    commentSuccess.value = true
+    setTimeout(() => commentSuccess.value = false, 2000)
+  } catch (e) {
+    commentError.value = 'No se pudo enviar el comentario.'
+    console.error('[submitComment] Error:', e)
+  } finally {
+    commentLoading.value = false
+  }
+}
+
+function copyRoute() {
+  const texto = `Origen: ${post.value.start_point} - Destino: ${post.value.end_point}`
+  navigator.clipboard.writeText(texto)
+    .then(() => console.log('Ruta copiada:', texto))
+    .catch(err => console.error('Error al copiar', err))
+}
+
+async function toggleLike() {
+  try {
+    if (post.value.liked_by_me) {
+      await unlikePost(post.value.id)
+      post.value.likes--; post.value.liked_by_me = false
+    } else {
+      await likePost(post.value.id)
+      post.value.likes++; post.value.liked_by_me = true
+    }
+  } catch (e) { console.error('[toggleLike]', e) }
+}
+
+onMounted(async () => {
+  try {
+    subscribeToAuth(user => { userId.value = user.id })
+
+    const id = route.params.id
+    post.value = await getPostById(id)
+    comments.value = await getCommentsByPost(id)
+
+    await nextTick()
+    scrollToBottom()
+
+    // ✅ Suscripción real-time corregida
+    channel = subscribeToNewComments(id, async comment => {
+      comments.value.push(comment)
+      await nextTick()
+      scrollToBottom()
+    })
+  } catch (e) {
+    error.value = 'No se pudo cargar el post.'
+    console.error('[PostDetail] Error:', e)
+  } finally {
+    loading.value = false
+  }
+})
+
+onBeforeUnmount(() => {
+  channel?.unsubscribe()
+})
 </script>
 
 <template>
   <section class="max-w-4xl mx-auto mt-8 px-4 text-white">
     <div class="mb-6 flex justify-between items-center">
-      
       <BaseHeading1>Detalle del Post</BaseHeading1>
     </div>
 
@@ -110,7 +138,10 @@ export default {
 
     <div v-else-if="error" class="text-red-400 text-center">{{ error }}</div>
 
-    <div v-else class="bg-neutral-800 p-6 rounded-lg shadow">
+    <div v-else class="bg-neutral-800 p-6 rounded-lg shadow space-y-4">
+
+      
+
       <!-- Usuario -->
       <div class="flex items-center gap-4 mb-3">
         <img :src="post.user_profiles?.avatar_url || '/assets/user.jpg'" alt="Avatar"
@@ -123,18 +154,46 @@ export default {
           <p class="text-sm text-gray-400">{{ new Date(post.created_at).toLocaleDateString() }}</p>
         </div>
       </div>
+      <!-- Nombre de la ruta -->
+      <h2 class="text-2xl font-bold text-orange-400 mb-4">{{ post.route_name }}</h2>
 
-      <hr class="border-t border-neutral-700 mb-4" />
+      <!-- Info + Imagen -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+        <div class="md:col-span-2 space-y-2">
+          <p class="text-orange-400 font-semibold flex items-center gap-2">
+            <IconLucide name="MapPin" :size="18" /> Coordenadas de origen: {{ post.start_point }}
+          </p>
+          <p class="text-orange-400 font-semibold flex items-center gap-2">
+            <IconLucide name="MapPin" :size="18" /> Coordenadas de llegada: {{ post.end_point }}
+          </p>
+          <p class="text-sm text-gray-300 flex items-center gap-2">
+            <IconLucide name="Clock" :size="18" /> {{ formatDuration(post.duration) }}
+          </p>
+          <p class="text-sm text-gray-300 flex items-center gap-2">
+            <IconLucide name="Star" :size="18" class="text-yellow-400" /> {{ post.rating }}/5
+          </p>
+          <p class="bg-neutral-700 text-white p-3 rounded-md border-l-4 border-orange-500 italic shadow-sm">
+            {{ post.description }}
+          </p>
+        </div>
 
-      <p class="text-orange-400 font-semibold mb-1 flex items-center gap-2">
-        Desde: {{ post.start_point }} → {{ post.end_point }}
-      </p>
-      <p class="text-sm text-gray-300 mb-2">Duración: {{ post.duration }}</p>
-      <p class="text-gray-200 mb-2">Puntaje: {{ post.rating }}/5</p>
-      <p class="bg-neutral-700 text-white p-3 rounded-md border-l-4 border-orange-500 italic shadow-sm mb-6">
-        {{ post.description }}
-      </p>
-      <hr class="border-t border-neutral-700 mb-4" />
+        <div v-if="post.image_url" class="flex justify-center">
+          <img :src="post.image_url" alt="Imagen de la ruta" class="max-h-80 rounded border" />
+        </div>
+      </div>
+
+      <!-- Acciones -->
+      <div class="flex flex-wrap gap-4 justify-end text-sm mb-4">
+        <button @click="copyRoute" class="flex items-center gap-1 hover:underline">
+          <IconLucide name="Copy" :size="16" /> Copiar ruta
+        </button>
+
+        <button class="flex items-center gap-1" :class="post.liked_by_me ? 'text-rose-400' : 'text-gray-400'"
+          @click="toggleLike">
+          <IconLucide :name="post.liked_by_me ? 'Heart' : 'Heart'" :size="16" />
+          {{ post.likes }}
+        </button>
+      </div>
 
       <!-- Comentarios -->
       <h2 class="text-xl font-semibold text-orange-400 mb-4">Comentarios</h2>
@@ -160,10 +219,10 @@ export default {
       <div>
         <textarea v-model="newComment" class="w-full p-3 bg-neutral-700 rounded text-white"
           placeholder="Escribí tu comentario..."></textarea>
-        <div class="flex justify-end gap-4 ">
-          <a href="/post" class="flex items-center gap-2 text-sm bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded">
-        <ArrowLeftIcon class="w-5 h-5" /> Volver
-      </a>
+        <div class="flex justify-end gap-4 mt-2">
+          <a href="/posts" class="flex items-center gap-2 text-sm bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded">
+            <ArrowLeftIcon class="w-5 h-5" /> Volver
+          </a>
           <button @click="submitComment" :disabled="commentLoading"
             class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded text-sm transition">
             <template v-if="commentLoading">

@@ -17,12 +17,12 @@ const Events       = () => import('@/pages/Events.vue')
 
 const MyProfile    = () => import('@/pages/MyProfile.vue')
 const EditProfile  = () => import('@/pages/MyProfileEdit.vue')
-
+const UserProfile  = () => import('@/pages/UserProfile.vue') 
 
 /* ────────── nuevas vistas de motos ────────── */
 const MyBikes      = () => import('@/pages/MyBikes.vue')
-const NewBike      = () => import('@/pages/BikeFormNew.vue')      // mismo form, modo “new”
-const EditBike     = () => import('@/pages/BikeFormEdit.vue')      // mismo form, modo “edit”
+const NewBike      = () => import('@/pages/BikeFormNew.vue')
+const EditBike     = () => import('@/pages/BikeFormEdit.vue')
 
 /* ────────── rutas ────────── */
 const routes = [
@@ -48,11 +48,11 @@ const routes = [
       { path: 'profile/me',     component: MyProfile },
       { path: 'profile/edit',   component: EditProfile },
 
-      { path: 'my-bikes',              component: MyBikes },
-      { path: 'my-bikes/new',          component: NewBike },
-      { path: 'my-bikes/:id/edit',     component: EditBike },
+      { path: 'usuario/:id',    component: UserProfile }, 
 
-      
+      { path: 'my-bikes',       component: MyBikes },
+      { path: 'my-bikes/new',   component: NewBike },
+      { path: 'my-bikes/:id/edit', component: EditBike }
     ]
   },
 

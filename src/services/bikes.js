@@ -149,3 +149,14 @@ export async function hasReachedBikeLimit () {
   if (error) throw error
   return count >= 5
 }
+
+export async function getBikeById(bikeId) {
+  const { data, error } = await supabase
+    .from('user_bikes') // ← nombre correcto
+    .select('*')
+    .eq('id', bikeId)
+    .single()
+
+  if (error) throw error
+  return data
+}

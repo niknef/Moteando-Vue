@@ -136,7 +136,7 @@ async function activate (id) {
       </div>
 
       <!-- Botonera -->
-      <div class="flex justify-center sm:justify-end gap-4 items-center mt-4">
+      <div class="flex justify-center gap-4 items-center mt-4">
         <router-link to="/my-bikes">
           <BaseButton type="gray">
             <template #icon><IconLucide name="Warehouse" :size="20" /></template>
