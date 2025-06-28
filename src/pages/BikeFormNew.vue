@@ -115,21 +115,24 @@ async function handleSubmit () {
       <!-- alertas -->
       <BaseAlert v-if="success" message="¡Moto guardada correctamente!" type="success" />
       <BaseAlert v-if="error"   :message="error"                      type="error"   />
+<!-- Botonera -->
+<div class="flex flex-col sm:flex-row justify-center gap-4 mt-4">
+  <BaseButton type="gray" class="w-full sm:w-auto flex justify-center items-center gap-2" @click="goBack">
+    <IconLucide name="ArrowLeft" :size="18" />
+    Volver
+  </BaseButton>
 
-      <!-- Botonera -->
-      <div class="flex flex-col sm:flex-row justify-center sm:justify-end gap-4 mt-4">
-        <BaseButton type="gray" class="w-full sm:w-auto" @click="goBack">
-          <template #icon><IconLucide name="ArrowLeft" :size="18" /></template>
-          Volver
-        </BaseButton>
+  <BaseButton type="orange" htmlType="submit" :disabled="loading" class="w-full sm:w-auto flex justify-center items-center gap-2">
+    <template v-if="loading">
+      <Loader class="w-5 h-5 border-2" />
+      Guardando…
+    </template>
+    <template v-else>
+      Guardar moto
+    </template>
+  </BaseButton>
+</div>
 
-        <BaseButton type="orange" htmlType="submit" :disabled="loading">
-          <template #icon>
-            <Loader v-if="loading" class="w-5 h-5 border-2" />
-          </template>
-          {{ loading ? 'Guardando…' : 'Guardar moto' }}
-        </BaseButton>
-      </div>
     </form>
   </section>
 </template>

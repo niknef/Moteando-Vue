@@ -118,20 +118,26 @@ async function confirmDelete () {
 
         <!-- botonera inferior -->
         <div class="flex justify-center sm:justify-end gap-4 items-center mt-4">
-          <BaseButton type="gray" class="w-full sm:w-auto" @click="goBack">
-            <template #icon><IconLucide name="ArrowLeft" :size="18" /></template>
+          <BaseButton
+            type="gray"
+            class="w-full sm:w-auto flex justify-center items-center gap-2"
+            @click="goBack"
+          >
+            <IconLucide name="ArrowLeft" :size="18" />
             Volver
           </BaseButton>
 
           <BaseButton
             type="orange"
             :disabled="bikes.length >= 5"
-            class="w-full sm:w-auto"
-            @click="gotoAdd">
-            <template #icon><IconLucide name="Plus" :size="18" /></template>
+            class="w-full sm:w-auto flex justify-center items-center gap-2"
+            @click="gotoAdd"
+          >
+            <IconLucide name="Plus" :size="18" />
             Nueva
           </BaseButton>
         </div>
+
       </div>
     </section>
 
