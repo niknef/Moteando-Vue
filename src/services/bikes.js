@@ -9,14 +9,10 @@ const BUCKET = 'bikes'                         // bucket de Storage
 /* --------------------------- UTILIDADES --------------------------- */
 
 /**
- * Devuelve un UUID v4 (browser o Node).
+ * Genera un UUID v4 (navegadores modernos).
  */
-function uuid () {
-  return (crypto?.randomUUID)                 // navegador moderno
-    ? crypto.randomUUID()
-    : ([1e7]+-1e3+-4e3+-8e3+-1e11)            // fallback
-        .replace(/[018]/g, c =>
-          (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16))
+function uuid() {
+  return crypto.randomUUID()
 }
 
 /**
@@ -24,18 +20,18 @@ function uuid () {
  * @param {File} file  – imagen seleccionada por el usuario
  * @returns {Promise<string>}  URL pública
  */
-export async function uploadBikePhoto (file) {
-  const uid      = (await supabase.auth.getUser()).data.user.id
-  const ext      = file.name.split('.').pop()
+export async function uploadBikePhoto(file) {
+  const uid = (await supabase.auth.getUser()).data.user.id
+  const ext = file.name.split('.').pop()
   const filename = `${uuid()}.${ext}`
-  const path     = `${uid}/${filename}`               // 👈 folder del usuario
+  const path = `${uid}/${filename}` // carpeta por usuario
 
   const { error } = await supabase
     .storage
     .from(BUCKET)
     .upload(path, file, {
       contentType: file.type,
-      upsert     : false
+      upsert: false
     })
 
   if (error) throw new Error('No se pudo subir la imagen: ' + error.message)
@@ -51,7 +47,7 @@ export async function uploadBikePhoto (file) {
 /**
  * Añade una moto a la tabla `user_bikes`.
  */
-export async function addBike (bike) {
+export async function addBike(bike) {
   const { error } = await supabase.from('user_bikes').insert(bike)
   if (error) throw new Error('No se pudo guardar la moto: ' + error.message)
 }
@@ -59,7 +55,7 @@ export async function addBike (bike) {
 /**
  * Lista todas las motos ordenadas (máx 5).
  */
-export async function listBikes () {
+export async function listBikes() {
   const { data, error } = await supabase
     .from('user_bikes')
     .select('*')
@@ -72,15 +68,14 @@ export async function listBikes () {
 /**
  * Obtiene la moto activa o null.
  */
-export async function getActiveBike () {
+export async function getActiveBike() {
   const { data, error } = await supabase
     .from('user_bikes')
     .select('*')
     .eq('is_active', true)
-    .single()
+    .maybeSingle()
 
-  if (error && error.code !== 'PGRST116')   // 116 = no rows
-    throw new Error(error.message)
+  if (error) throw new Error('Error al obtener la moto activa: ' + error.message)
 
   return data ?? null
 }
@@ -88,7 +83,7 @@ export async function getActiveBike () {
 /**
  * Actualiza una moto.
  */
-export async function updateBike (bikeId, data) {
+export async function updateBike(bikeId, data) {
   const { error } = await supabase
     .from('user_bikes')
     .update(data)
@@ -100,7 +95,7 @@ export async function updateBike (bikeId, data) {
 /**
  * Elimina una moto.
  */
-export async function deleteBike (bikeId) {
+export async function deleteBike(bikeId) {
   const { error } = await supabase
     .from('user_bikes')
     .delete()
@@ -114,17 +109,17 @@ export async function deleteBike (bikeId) {
 /**
  * Marca la moto `bikeId` como activa y desactiva la anterior.
  */
-export async function setActiveBike (bikeId) {
+export async function setActiveBike(bikeId) {
   const uid = (await supabase.auth.getUser()).data.user.id
 
-  // 1) desactivar la actual
+  // 1) Desactivar la moto actual
   await supabase
     .from('user_bikes')
     .update({ is_active: false })
     .eq('user_id', uid)
     .eq('is_active', true)
 
-  // 2) activar la elegida
+  // 2) Activar la moto elegida
   const { error } = await supabase
     .from('user_bikes')
     .update({ is_active: true })
@@ -132,7 +127,7 @@ export async function setActiveBike (bikeId) {
 
   if (error) throw new Error('No se pudo activar la moto: ' + error.message)
 
-  // 3) guardar referencia en el perfil
+  // 3) Guardar referencia en el perfil
   await supabase
     .from('user_profiles')
     .update({ active_bike_id: bikeId })
@@ -141,7 +136,7 @@ export async function setActiveBike (bikeId) {
 
 /* ------------------------ LÍMITE (5 MOTOS) ----------------------- */
 
-export async function hasReachedBikeLimit () {
+export async function hasReachedBikeLimit() {
   const { count, error } = await supabase
     .from('user_bikes')
     .select('*', { count: 'exact', head: true })
@@ -150,13 +145,19 @@ export async function hasReachedBikeLimit () {
   return count >= 5
 }
 
+/**
+ * Busca una moto por ID y devuelve null si no existe.
+ */
 export async function getBikeById(bikeId) {
   const { data, error } = await supabase
-    .from('user_bikes') // ← nombre correcto
+    .from('user_bikes')
     .select('*')
     .eq('id', bikeId)
-    .single()
+    .maybeSingle()
 
-  if (error) throw error
+  if (error) throw new Error('Error al obtener la moto: ' + error.message)
+
+  if (!data) return null
+
   return data
 }
