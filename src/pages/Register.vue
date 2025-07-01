@@ -10,6 +10,7 @@ import Loader         from '@/components/ui/Loader.vue'
 import BaseAlert      from '@/components/ui/BaseAlert.vue'
 import { register }   from '@/services/auth'
 import IconLucide from '@/components/ui/IconLucide.vue'
+import Logo from '@/assets/moteando.svg'
 
 defineOptions({ name: 'Register' })   // opcional para DevTools
 
@@ -62,8 +63,9 @@ async function handleSubmit () {
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-black/95">
-  <section class="w-full max-w-md bg-neutral-800 text-gray-100 p-8 sm:rounded-lg shadow-md">
+  <div class="min-h-screen flex flex-col items-center justify-center bg-black/95 p-4">
+    <img :src="Logo" alt="Moteando" class="h-16 mb-10" />
+  <section class="w-full max-w-md bg-neutral-800 text-gray-100 p-8 sm:rounded-lg shadow-md flex flex-col items-center">
     <BaseHeading1>Crear cuenta</BaseHeading1>
 
     <form @submit.prevent="handleSubmit" class="flex flex-col gap-4 mt-4">

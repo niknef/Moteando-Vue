@@ -10,6 +10,7 @@ import BaseLabel      from '@/components/ui/BaseLabel.vue'
 import Loader         from '@/components/ui/Loader.vue'
 import BaseAlert      from '@/components/ui/BaseAlert.vue'
 import { login }      from '@/services/auth'
+import Logo           from '@/assets/moteando.svg'
 
 
 defineOptions({ name: 'Login' })   // Esto aunque es opcional en api composition, lo pongo para ayudar a identificar el componente
@@ -51,61 +52,65 @@ async function handleSubmit () {
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-black/95">
-  <section class="w-full max-w-md bg-neutral-800 text-gray-100 p-8 sm:rounded-lg shadow-md">
-    <BaseHeading1>Iniciar sesión</BaseHeading1>
+  <div class="min-h-screen flex flex-col items-center justify-center bg-black/95 p-4">
+ 
+    <img :src="Logo" alt="Moteando" class="h-16 mb-10" />
 
-    <form @submit.prevent="handleSubmit" class="flex flex-col gap-4 mt-4">
-      <!-- Email -->
-      <div>
-        <BaseLabel for="email">Email</BaseLabel>
-        <BaseInput
-          v-model="user.email"
-          id="email"
-          type="email"
-          autocomplete="email"
-          placeholder="ejemplo@email.com"
-          required
-        />
-      </div>
 
-      <!-- Password -->
-      <div>
-        <BaseLabel for="password">Contraseña</BaseLabel>
-        <BaseInput
-          v-model="user.password"
-          id="password"
-          type="password"
-          autocomplete="current-password"
-          placeholder="••••••••"
-          required
-        />
-      </div>
+    <section class="w-full max-w-md bg-neutral-800 text-gray-100 p-8 sm:rounded-lg shadow-md flex flex-col items-center">
+   
+      <BaseHeading1>Iniciar sesión</BaseHeading1>
 
-      <!-- Submit -->
-      <div class="flex items-center justify-center mt-4">
-        <BaseButton type="orange" htmlType="submit" :disabled="loading">
-          <template #icon>
-            <Loader v-if="loading" class="w-5 h-5 border-2" />
-            <!-- Icono Lucide cuando no está cargando -->
-            <IconLucide v-else name="LogIn" :size="20" />
-          </template>
-          {{ loading ? 'Ingresando…' : 'Ingresar' }}
-        </BaseButton>
-      </div>
+      <form @submit.prevent="handleSubmit" class="flex flex-col gap-4 mt-4 w-full">
+        <!-- Email -->
+        <div>
+          <BaseLabel for="email">Email</BaseLabel>
+          <BaseInput
+            v-model="user.email"
+            id="email"
+            type="email"
+            autocomplete="email"
+            placeholder="ejemplo@email.com"
+            required
+          />
+        </div>
 
-      <!-- Link a register -->
-      <router-link
-        to="/register"
-        class="text-orange-500 underline text-center hover:text-orange-600"
-      >
-        ¿No tenés cuenta? Registrate
-      </router-link>
+        <!-- Password -->
+        <div>
+          <BaseLabel for="password">Contraseña</BaseLabel>
+          <BaseInput
+            v-model="user.password"
+            id="password"
+            type="password"
+            autocomplete="current-password"
+            placeholder="••••••••"
+            required
+          />
+        </div>
 
-      <!-- Error global -->
-      <BaseAlert :message="error" type="error" />
-    </form>
-  </section>
+        <!-- Submit -->
+        <div class="flex items-center justify-center mt-4">
+          <BaseButton type="orange" htmlType="submit" :disabled="loading">
+            <template #icon>
+              <Loader v-if="loading" class="w-5 h-5 border-2" />
+              <IconLucide v-else name="LogIn" :size="20" />
+            </template>
+            {{ loading ? 'Ingresando…' : 'Ingresar' }}
+          </BaseButton>
+        </div>
+
+        <!-- Link a register -->
+        <router-link
+          to="/register"
+          class="text-orange-500 underline text-center hover:text-orange-600"
+        >
+          ¿No tenés cuenta? Registrate
+        </router-link>
+
+        <!-- Error global -->
+        <BaseAlert :message="error" type="error" />
+      </form>
+    </section>
   </div>
-  
 </template>
+
