@@ -95,26 +95,3 @@ export async function deleteComment(commentId) {
     throw error
   }
 }
-
-/**
- * Obtiene la cantidad de comentarios por post.
- * @returns {Promise} - Objeto con claves como post_id y valores como cantidad.
- */
-export async function getCommentCounts() {
-  const { data, error } = await supabase
-    .from('comments')
-    .select('post_id', { count: 'exact', head: false })
-
-  if (error) {
-    console.error('[comments.js getCommentCounts] Error:', error)
-    throw error
-  }
-
-  const counts = {}
-
-  data.forEach((row) => {
-    counts[row.post_id] = (counts[row.post_id] || 0) + 1
-  })
-
-  return counts
-}

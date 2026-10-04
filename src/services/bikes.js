@@ -60,21 +60,6 @@ export async function listBikes() {
 }
 
 /**
- * Obtiene la moto activa o null.
- */
-export async function getActiveBike() {
-  const { data, error } = await supabase
-    .from('user_bikes')
-    .select('*')
-    .eq('is_active', true)
-    .maybeSingle()
-
-  if (error) throw new Error('Error al obtener la moto activa: ' + error.message)
-
-  return data ?? null
-}
-
-/**
  * Actualiza una moto.
  */
 export async function updateBike(bikeId, data) {
@@ -114,17 +99,6 @@ export async function setActiveBike(bikeId) {
 
   // 3) Guardar referencia en el perfil
   await supabase.from('user_profiles').update({ active_bike_id: bikeId }).eq('id', uid)
-}
-
-/* ------------------------ LÍMITE (5 MOTOS) ----------------------- */
-
-export async function hasReachedBikeLimit() {
-  const { count, error } = await supabase
-    .from('user_bikes')
-    .select('*', { count: 'exact', head: true })
-
-  if (error) throw error
-  return count >= 5
 }
 
 /**

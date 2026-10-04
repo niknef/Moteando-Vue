@@ -5,7 +5,7 @@ import BaseInput from '@/components/ui/BaseInput.vue'
 import BaseLabel from '@/components/ui/BaseLabel.vue'
 import Loader from '@/components/ui/Loader.vue'
 import BaseAlert from '@/components/ui/BaseAlert.vue'
-import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
+import IconLucide from '@/components/ui/IconLucide.vue'
 
 import { createPost, uploadPostPhoto } from '@/services/posts'
 import { useAuthStore } from '@/stores/auth'
@@ -18,7 +18,7 @@ export default {
     BaseInput,
     BaseLabel,
     Loader,
-    ArrowLeftIcon,
+    IconLucide,
     BaseAlert,
   },
   data() {
@@ -184,7 +184,7 @@ export default {
       <div class="flex justify-end gap-4">
         <router-link to="/posts">
           <BaseButton type="gray">
-            <template #icon><ArrowLeftIcon class="w-5 h-5" /></template>
+            <template #icon><IconLucide name="ArrowLeft" :size="20" /></template>
             Volver
           </BaseButton>
         </router-link>

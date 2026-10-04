@@ -9,7 +9,6 @@ import BaseHeading1 from '@/components/ui/BaseHeading1.vue'
 import Loader from '@/components/ui/Loader.vue'
 import BaseAlert from '@/components/ui/BaseAlert.vue'
 import IconLucide from '@/components/ui/IconLucide.vue'
-import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 
 const route = useRoute()
 
@@ -240,7 +239,7 @@ onBeforeUnmount(() => {
             href="/posts"
             class="flex items-center gap-2 text-sm bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded"
           >
-            <ArrowLeftIcon class="w-5 h-5" /> Volver
+            <IconLucide name="ArrowLeft" :size="20" /> Volver
           </a>
           <button
             :disabled="commentLoading"
