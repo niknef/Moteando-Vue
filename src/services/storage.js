@@ -3,17 +3,28 @@ import supabase from './supabase'
 const MAX_SIZE_MB = 1 // defatul max size for images
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'] //default allowed types for images
 
+// Para el atributo accept de los <input type="file">
+export const IMAGE_ACCEPT = ALLOWED_TYPES.join(',')
+
+/**
+ * Valida tipo y tamaño. Lanza un Error con el mensaje para el usuario.
+ * Se exporta para que los formularios avisen apenas se elige el archivo.
+ */
+export function validateImage(file) {
+  if (!ALLOWED_TYPES.includes(file.type)) {
+    throw new Error('La imagen debe ser JPG, PNG o WebP.')
+  }
+  if (file.size > MAX_SIZE_MB * 1024 * 1024) {
+    throw new Error(`La imagen debe pesar menos de ${MAX_SIZE_MB} MB.`)
+  }
+}
+
 /**
  * Valida y sube una img a {uid}/{uuid}.{ext} dentro del bucket
  * devuelve la url publica
  */
 export async function uploadImage(bucket, file) {
-  if (!ALLOWED_TYPES.includes(file.type)) {
-    throw new Error('La imagen debe ser JPG, PNG O Webp.')
-  }
-  if (file.size > MAX_SIZE_MB * 1024 * 1024) {
-    throw new Error(`La imagen debe pesar menos de ${MAX_SIZE_MB}MB.`)
-  }
+  validateImage(file)
 
   const { data } = await supabase.auth.getUser()
   const ext = file.name.split('.').pop() // obtiene la extension del archivo

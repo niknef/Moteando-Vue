@@ -11,7 +11,7 @@ import BaseAlert from '@/components/ui/BaseAlert.vue'
 import Loader from '@/components/ui/Loader.vue'
 import IconLucide from '@/components/ui/IconLucide.vue'
 
-import supabase from '@/services/supabase'
+import { uploadImage, deleteImageByUrl, validateImage, IMAGE_ACCEPT } from '@/services/storage'
 import { useAuthStore } from '@/stores/auth'
 
 /* ────────── constantes ────────── */
@@ -20,7 +20,6 @@ const router = useRouter()
 const auth = useAuthStore()
 
 /* ────────── estado ────────── */
-const userId = ref(null) // uid del usuario autenticado
 const email = ref('')
 
 const form = ref({
@@ -35,12 +34,11 @@ const preview = ref('') // url de previsualización
 const error = ref('')
 const success = ref(false)
 const loading = ref(false)
-const oldPath = ref(null) // ruta de avatar antiguo en Storage
+const savedAvatar = ref('') // avatar guardado en la base (se borra recién al reemplazarlo)
 
 /* ────────── cargar datos del perfil ────────── */
 onMounted(() => {
   const p = auth.profile ?? {}
-  userId.value = auth.user.id
   email.value = auth.user.email
   form.value = {
     first_name: p.first_name ?? '',
@@ -48,13 +46,8 @@ onMounted(() => {
     bio: p.bio ?? '',
     avatar_url: p.avatar_url ?? '',
   }
+  savedAvatar.value = form.value.avatar_url
   preview.value = form.value.avatar_url || defaultAvatar
-
-  /* guardar oldPath para eliminar si se cambia */
-  if (p.avatar_url) {
-    const [, path] = p.avatar_url.split('/storage/v1/object/public/avatars/')
-    oldPath.value = path || null
-  }
 })
 
 /* ────────── watcher de archivo → genera preview ────────── */
@@ -73,25 +66,22 @@ function handleFile(e) {
   const f = e.target.files[0]
   if (!f) return
 
-  /* validaciones */
-  const isImage = f.type.startsWith('image/')
-  const maxSizeMB = 1
-  if (!isImage) return (error.value = 'El archivo debe ser una imagen.')
-  if (f.size > maxSizeMB * 1024 * 1024)
-    return (error.value = `La imagen debe pesar menos de ${maxSizeMB} MB.`)
+  try {
+    validateImage(f)
+  } catch (err) {
+    error.value = err.message
+    return
+  }
 
   error.value = ''
   file.value = f
 }
 
-async function removeAvatar() {
-  /* quita preview + borra del storage si existía */
-  if (oldPath.value) await supabase.storage.from('avatars').remove([oldPath.value])
-
+function removeAvatar() {
+  /* solo cambia el formulario: el archivo se borra recién al guardar */
   file.value = null
   form.value.avatar_url = ''
   preview.value = defaultAvatar
-  oldPath.value = null
 }
 
 /* ────────── submit ────────── */
@@ -104,37 +94,31 @@ async function handleSubmit() {
   try {
     let newUrl = form.value.avatar_url
 
-    /* subir nueva imagen si corresponde */
+    /* 1. subir la imagen nueva, si eligió una */
     if (file.value) {
-      const ext = file.value.name.split('.').pop()
-      const filePath = `${userId.value}/avatar-${Date.now()}.${ext}`
-
-      const { error: upErr } = await supabase.storage
-        .from('avatars')
-        .upload(filePath, file.value, { upsert: true })
-      if (upErr) throw upErr
-
-      newUrl = supabase.storage.from('avatars').getPublicUrl(filePath).data.publicUrl
-
-      /* eliminar anterior si existía */
-      if (oldPath.value) await supabase.storage.from('avatars').remove([oldPath.value])
-
-      oldPath.value = filePath
-      file.value = null
+      newUrl = await uploadImage('avatars', file.value)
     }
 
-    /* actualizar tabla user_profiles */
+    /* 2. guardar el perfil apuntando a la imagen nueva (o a ninguna) */
     await auth.updateProfile({
       first_name: form.value.first_name.trim(),
       last_name: form.value.last_name.trim(),
       bio: form.value.bio.trim(),
-      avatar_url: newUrl,
+      avatar_url: newUrl || null,
     })
 
+    /* 3. recién ahora, si cambió, borrar la imagen anterior */
+    if (savedAvatar.value && savedAvatar.value !== newUrl) {
+      await deleteImageByUrl('avatars', savedAvatar.value)
+    }
+
+    savedAvatar.value = newUrl
+    form.value.avatar_url = newUrl
+    file.value = null
     success.value = true
   } catch (err) {
     console.error('[MyProfileEdit]', err)
-    error.value = 'Hubo un error al actualizar tu perfil.'
+    error.value = err.message || 'Hubo un error al actualizar tu perfil.'
   } finally {
     loading.value = false
   }
@@ -191,7 +175,7 @@ const goBack = () => router.back()
             >
               <IconLucide name="Image" :size="20" />
               Seleccionar
-              <input type="file" accept="image/*" class="hidden" @change="handleFile" />
+              <input type="file" :accept="IMAGE_ACCEPT" class="hidden" @change="handleFile" />
             </label>
 
             <!-- quitar -->

@@ -13,7 +13,7 @@ import IconLucide from '@/components/ui/IconLucide.vue'
 
 /* servicios */
 import { updateBike, listBikes } from '@/services/bikes'
-import { uploadImage, deleteImageByUrl } from '@/services/storage'
+import { uploadImage, deleteImageByUrl, IMAGE_ACCEPT } from '@/services/storage'
 
 /* router */
 const router = useRouter()
@@ -153,7 +153,7 @@ async function handleSubmit() {
         <BaseLabel>Foto</BaseLabel>
         <input
           type="file"
-          accept="image/*"
+          :accept="IMAGE_ACCEPT"
           class="mt-1 block w-full file:mr-3 file:px-4 file:py-2 file:border-0 file:rounded file:bg-amber-800/90 file:text-sm hover:file:bg-amber-700"
           @change="handleFile"
         />

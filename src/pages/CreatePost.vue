@@ -7,7 +7,8 @@ import Loader from '@/components/ui/Loader.vue'
 import BaseAlert from '@/components/ui/BaseAlert.vue'
 import IconLucide from '@/components/ui/IconLucide.vue'
 
-import { createPost, uploadPostPhoto } from '@/services/posts'
+import { createPost } from '@/services/posts'
+import { uploadImage, validateImage, IMAGE_ACCEPT } from '@/services/storage'
 import { useAuthStore } from '@/stores/auth'
 
 export default {
@@ -40,6 +41,7 @@ export default {
 
       file: null,
       preview: '',
+      imageAccept: IMAGE_ACCEPT,
       success: false,
       error: null,
       loading: false,
@@ -49,15 +51,13 @@ export default {
     handleFile(e) {
       const f = e.target.files[0]
       if (!f) return
-      if (!f.type.startsWith('image/')) {
-        this.error = 'El archivo debe ser una imagen.'
+      try {
+        validateImage(f)
+      } catch (err) {
+        this.error = err.message
         return
       }
-      const maxSizeMB = 1
-      if (f.size > maxSizeMB * 1024 * 1024) {
-        this.error = `La imagen debe pesar menos de ${maxSizeMB} MB.`
-        return
-      }
+      this.error = null
       this.file = f
       this.preview = URL.createObjectURL(f)
     },
@@ -77,7 +77,7 @@ export default {
 
       try {
         if (this.file) {
-          this.post.image_url = await uploadPostPhoto(this.file)
+          this.post.image_url = await uploadImage('posts', this.file)
         }
 
         await createPost({
@@ -174,7 +174,7 @@ export default {
       <!-- Imagen -->
       <div>
         <BaseLabel>Imagen</BaseLabel>
-        <input type="file" accept="image/*" class="text-sm mt-1" @change="handleFile" />
+        <input type="file" :accept="imageAccept" class="text-sm mt-1" @change="handleFile" />
         <div v-if="preview" class="mt-4 flex justify-center">
           <img :src="preview" class="w-48 h-48 object-cover rounded border border-gray-500" />
         </div>

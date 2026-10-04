@@ -3,21 +3,6 @@
 /* ------------------------------------------------------------------ */
 import supabase from './supabase'
 
-/* ---------- subida de imagen al bucket `posts` -------------------- */
-const BUCKET = 'posts'
-
-export async function uploadPostPhoto(file) {
-  const uid = (await supabase.auth.getUser()).data.user.id
-  const ext = file.name.split('.').pop() ?? 'jpg'
-  const name = `${crypto.randomUUID()}.${ext}`
-  const path = `${uid}/${name}`
-
-  const { error } = await supabase.storage.from(BUCKET).upload(path, file)
-  if (error) throw error
-
-  return supabase.storage.from(BUCKET).getPublicUrl(path).data.publicUrl
-}
-
 /* -------------------------- CRUD post ----------------------------- */
 export async function createPost(payload) {
   const { error } = await supabase.from('posts').insert(payload)
