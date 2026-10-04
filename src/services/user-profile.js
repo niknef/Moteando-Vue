@@ -1,23 +1,4 @@
 import supabase from "./supabase";
-/**
- * Agrega un nuevo perfil de usuario a la tabla "profiles"
- * 
- * @param {{id: string, email: string}} data 
- * @returns {Promise<void>}
- */
-export async function addUserProfile(data) {
-  // Esta función se encargará de crear el perfil extendido al momento del registro
-  const { error } = await supabase
-    .from('user_profiles')
-    .insert({
-      ...data
-    });
-
-  if (error) {
-    console.error('[user-profile.js addUserProfile] No se pudo crear el perfi: ', error);
-    throw new Error('No se pudo crear el perfil' + error );
-  }
-}
 
 /**
  * Obtiene el perfil extendido del usuario por su ID
@@ -30,7 +11,7 @@ export async function getUserProfileByPK(id) {
     .from('user_profiles')
     .select('*')
     .eq('id', id)
-    .maybeSingle() // ⚡ ESTA ES LA CLAVE
+    .maybeSingle() 
 
   if (error) {
     console.error('[user-profile.js getUserProfileByPK] Error al traer el perfil:', error)

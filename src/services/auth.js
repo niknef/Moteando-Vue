@@ -1,6 +1,5 @@
 import supabase from './supabase'
 import {
-  addUserProfile,
   getUserProfileByPK,
   updateUserProfile
 } from './user-profile'
@@ -64,15 +63,18 @@ async function loadCurrentUserProfile () {
 /* Registro                                                            */
 /* ------------------------------------------------------------------ */
 export async function register (email, password, first, last) {
-  const { data, error } = await supabase.auth.signUp({ email, password })
+  const { data, error } = await supabase.auth.signUp({ 
+    email,
+    password,
+    options: {
+      data: {
+        first_name: first,
+        last_name: last
+      }
+    }
+  })
   if (error) throw error
 
-  await addUserProfile({
-    id: data.user.id,
-    email,
-    first_name: first,
-    last_name : last
-  })
 
   updateUser({
     id: data.user.id,
