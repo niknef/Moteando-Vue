@@ -1,25 +1,24 @@
 <!-- src/components/ui/AppBottomNav.vue -->
 <script setup>
 import { useRoute } from 'vue-router'
-import IconLucide   from '@/components/ui/IconLucide.vue'
+import IconLucide from '@/components/ui/IconLucide.vue'
 
 const route = useRoute()
-const isActive = p => route.path.startsWith(p)
+const isActive = (p) => route.path.startsWith(p)
 
 /* ítems de izquierda a derecha */
 const items = [
-  { to: '/posts',       icon: 'Newspaper',     label: 'Posts'   },
-  { to: '/events',      icon: 'CalendarClock', label: 'Eventos' },
-  { to: '/map',         icon: 'MapPinned',     label: 'Mapa'    },
-  { to: '/profile/me',  icon: 'UserCircle',    label: 'Perfil'  },
-  { to: '/my-bikes',    icon: 'Warehouse',      label: 'Garage' }
+  { to: '/posts', icon: 'Newspaper', label: 'Posts' },
+  { to: '/events', icon: 'CalendarClock', label: 'Eventos' },
+  { to: '/map', icon: 'MapPinned', label: 'Mapa' },
+  { to: '/profile/me', icon: 'UserCircle', label: 'Perfil' },
+  { to: '/my-bikes', icon: 'Warehouse', label: 'Garage' },
 ]
 </script>
 
 <template>
   <nav
-    class="lg:hidden fixed bottom-0 inset-x-0 bg-[#1c1c1c] border-t border-neutral-800
-           h-16 flex justify-around items-center shadow-lg z-50"
+    class="lg:hidden fixed bottom-0 inset-x-0 bg-[#1c1c1c] border-t border-neutral-800 h-16 flex justify-around items-center shadow-lg z-50"
     :style="{ paddingBottom: 'env(safe-area-inset-bottom)' }"
   >
     <RouterLink

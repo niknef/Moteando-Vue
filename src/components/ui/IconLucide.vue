@@ -3,12 +3,12 @@ import { computed, useAttrs } from 'vue'
 import * as lucide from 'lucide-vue-next'
 
 const props = defineProps({
-  name:  String,
-  size:  { type: [Number, String], default: 24 },
-  active:Boolean
+  name: { type: String, required: true },
+  size: { type: [Number, String], default: 24 },
+  active: Boolean,
 })
 
-const attrs = useAttrs()                       // clases externas
+const attrs = useAttrs() // clases externas
 const IconComp = computed(() => lucide[props.name])
 </script>
 
@@ -18,8 +18,8 @@ const IconComp = computed(() => lucide[props.name])
     :size="props.size"
     stroke-width="1.5"
     :class="[
-      props.active ? 'text-orange-400' : 'text-white',  // color base
-      attrs.class                                         // permite hover override
+      props.active ? 'text-orange-400' : 'text-white', // color base
+      attrs.class, // permite hover override
     ]"
   />
 </template>

@@ -19,7 +19,7 @@ const profile = ref({
   last_name: '',
   avatar_url: '',
   bio: '',
-  active_bike_id: null // 👉 necesario para buscar la moto activa
+  active_bike_id: null, // 👉 necesario para buscar la moto activa
 })
 
 const activeBike = ref(null)
@@ -62,7 +62,9 @@ const goBack = () => router.back()
 </script>
 
 <template>
-  <section class="max-w-xl mx-auto sm:mt-8 bg-neutral-800 text-white p-6 sm:rounded-lg shadow-md mb-6">
+  <section
+    class="max-w-xl mx-auto sm:mt-8 bg-neutral-800 text-white p-6 sm:rounded-lg shadow-md mb-6"
+  >
     <!-- loader -->
     <div v-if="loading" class="flex justify-center my-16">
       <Loader class="w-12 h-12 border-4" />
@@ -74,14 +76,16 @@ const goBack = () => router.back()
     <!-- contenido -->
     <template v-else>
       <!-- cabecera -->
-        <BaseHeading1>Perfil de {{ profile.first_name }} {{ profile.last_name }}</BaseHeading1>
-
+      <BaseHeading1>Perfil de {{ profile.first_name }} {{ profile.last_name }}</BaseHeading1>
 
       <hr class="border-t border-gray-600 mb-6" />
 
       <!-- avatar -->
       <div class="flex justify-center mb-6">
-        <img :src="profile.avatar_url || '/assets/user.jpg'" class="w-32 h-32 object-cover rounded-full border border-gray-600" />
+        <img
+          :src="profile.avatar_url || '/assets/user.jpg'"
+          class="w-32 h-32 object-cover rounded-full border border-gray-600"
+        />
       </div>
 
       <!-- nombre -->
@@ -95,7 +99,10 @@ const goBack = () => router.back()
       </p>
 
       <!-- moto activa -->
-      <div v-if="activeBike" class="bg-neutral-700 p-4 rounded-md border-l-4 border-orange-500 flex items-center gap-2 text-white mb-6">
+      <div
+        v-if="activeBike"
+        class="bg-neutral-700 p-4 rounded-md border-l-4 border-orange-500 flex items-center gap-2 text-white mb-6"
+      >
         <IconLucide name="Bike" :size="20" class="text-orange-400" />
         <span>Moto activa: {{ activeBike.brand }} {{ activeBike.model }}</span>
       </div>
@@ -106,8 +113,7 @@ const goBack = () => router.back()
       </div>
 
       <div class="flex justify-end gap-4 mt-6">
-        
-      <BaseButton type="gray" size="sm" @click="goBack">
+        <BaseButton type="gray" size="sm" @click="goBack">
           <template #icon><IconLucide name="ArrowLeft" :size="18" /></template>
           Volver
         </BaseButton>

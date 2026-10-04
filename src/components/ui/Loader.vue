@@ -9,20 +9,20 @@ export default {
     size: {
       type: String,
       default: 'md', // sm, md, lg
-    }
+    },
   },
   computed: {
     sizeClass() {
       switch (this.size) {
         case 'sm':
-          return 'w-4 h-4 border-2';
+          return 'w-4 h-4 border-2'
         case 'lg':
-          return 'w-10 h-10 border-4';
+          return 'w-10 h-10 border-4'
         default:
-          return 'w-6 h-6 border-4';
+          return 'w-6 h-6 border-4'
       }
-    }
-  }
+    },
+  },
 }
 </script>
 

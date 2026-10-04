@@ -5,10 +5,11 @@ import BaseInput from '@/components/ui/BaseInput.vue'
 import BaseLabel from '@/components/ui/BaseLabel.vue'
 import Loader from '@/components/ui/Loader.vue'
 import BaseAlert from '@/components/ui/BaseAlert.vue'
-import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
+import IconLucide from '@/components/ui/IconLucide.vue'
 
-import { createPost, uploadPostPhoto } from '@/services/posts'
-import { subscribeToAuth } from '@/services/auth'
+import { createPost } from '@/services/posts'
+import { uploadImage, validateImage, IMAGE_ACCEPT } from '@/services/storage'
+import { useAuthStore } from '@/stores/auth'
 
 export default {
   name: 'CreatePost',
@@ -18,12 +19,11 @@ export default {
     BaseInput,
     BaseLabel,
     Loader,
-    ArrowLeftIcon,
-    BaseAlert
+    IconLucide,
+    BaseAlert,
   },
   data() {
     return {
-      userId: null,
       post: {
         route_name: '',
         start_point: this.$route.query.start_point || '',
@@ -34,41 +34,36 @@ export default {
         duration: '', // Se va a armar antes de enviar
         rating: 3,
         description: '',
-        image_url: ''
+        image_url: '',
       },
       durationHours: 0,
       durationMinutes: 0,
 
       file: null,
       preview: '',
+      imageAccept: IMAGE_ACCEPT,
       success: false,
       error: null,
-      loading: false
+      loading: false,
     }
-  },
-  mounted() {
-    subscribeToAuth(user => {
-      this.userId = user.id
-    })
   },
   methods: {
     handleFile(e) {
       const f = e.target.files[0]
       if (!f) return
-      if (!f.type.startsWith('image/')) {
-        this.error = 'El archivo debe ser una imagen.'
+      try {
+        validateImage(f)
+      } catch (err) {
+        this.error = err.message
         return
       }
-      const maxSizeMB = 1
-      if (f.size > maxSizeMB * 1024 * 1024) {
-        this.error = `La imagen debe pesar menos de ${maxSizeMB} MB.`
-        return
-      }
+      this.error = null
       this.file = f
       this.preview = URL.createObjectURL(f)
     },
     async handleSubmit() {
-      if (!this.userId) {
+      const userId = useAuthStore().user?.id
+      if (!userId) {
         this.error = 'Usuario no autenticado'
         return
       }
@@ -82,12 +77,12 @@ export default {
 
       try {
         if (this.file) {
-          this.post.image_url = await uploadPostPhoto(this.file)
+          this.post.image_url = await uploadImage('posts', this.file)
         }
 
         await createPost({
           ...this.post,
-          user_id: this.userId
+          user_id: userId,
         })
 
         this.success = true
@@ -98,8 +93,8 @@ export default {
       } finally {
         this.loading = false
       }
-    }
-  }
+    },
+  },
 }
 </script>
 
@@ -109,11 +104,16 @@ export default {
       <BaseHeading1>Crear publicación</BaseHeading1>
     </div>
 
-    <form @submit.prevent="handleSubmit" class="flex flex-col gap-4 mt-4">
+    <form class="flex flex-col gap-4 mt-4" @submit.prevent="handleSubmit">
       <!-- Nombre de la ruta -->
       <div>
         <BaseLabel for="route_name">Nombre de la ruta</BaseLabel>
-        <BaseInput id="route_name" v-model="post.route_name" required placeholder="Ej: Paseo por Palermo" />
+        <BaseInput
+          id="route_name"
+          v-model="post.route_name"
+          required
+          placeholder="Ej: Paseo por Palermo"
+        />
       </div>
 
       <!-- Punto de inicio -->
@@ -162,14 +162,19 @@ export default {
       <!-- Descripción -->
       <div>
         <BaseLabel for="description">Descripción</BaseLabel>
-        <textarea id="description" v-model="post.description" required class="w-full px-4 py-2 bg-neutral-600 rounded"
-          placeholder="Contanos cómo fue el recorrido, si lo hiciste solo o en grupo..."></textarea>
+        <textarea
+          id="description"
+          v-model="post.description"
+          required
+          class="w-full px-4 py-2 bg-neutral-600 rounded"
+          placeholder="Contanos cómo fue el recorrido, si lo hiciste solo o en grupo..."
+        ></textarea>
       </div>
 
       <!-- Imagen -->
       <div>
         <BaseLabel>Imagen</BaseLabel>
-        <input type="file" accept="image/*" @change="handleFile" class="text-sm mt-1" />
+        <input type="file" :accept="imageAccept" class="text-sm mt-1" @change="handleFile" />
         <div v-if="preview" class="mt-4 flex justify-center">
           <img :src="preview" class="w-48 h-48 object-cover rounded border border-gray-500" />
         </div>
@@ -179,7 +184,7 @@ export default {
       <div class="flex justify-end gap-4">
         <router-link to="/posts">
           <BaseButton type="gray">
-            <template #icon><ArrowLeftIcon class="w-5 h-5" /></template>
+            <template #icon><IconLucide name="ArrowLeft" :size="20" /></template>
             Volver
           </BaseButton>
         </router-link>
@@ -190,7 +195,7 @@ export default {
           </BaseButton>
         </template>
         <template v-else>
-          <BaseButton type="orange" htmlType="submit">Publicar</BaseButton>
+          <BaseButton type="orange" html-type="submit">Publicar</BaseButton>
         </template>
       </div>
 

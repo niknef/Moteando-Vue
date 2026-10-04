@@ -8,10 +8,12 @@ import supabase from './supabase'
 export async function getCommentsByPost(postId) {
   const { data, error } = await supabase
     .from('comments')
-    .select(`
+    .select(
+      `
       *,
       user_profiles:user_id ( id, first_name, last_name, avatar_url )
-    `)
+    `,
+    )
     .eq('post_id', postId)
     .order('created_at', { ascending: true })
 
@@ -39,7 +41,7 @@ export async function createComment({ post_id, content }) {
   const { error } = await supabase.from('comments').insert({
     post_id,
     content,
-    user_id: user.id
+    user_id: user.id,
   })
 
   if (error) {
@@ -60,7 +62,7 @@ export function subscribeToNewComments(postId, callback) {
     .on(
       'postgres_changes',
       { schema: 'public', table: 'comments', event: 'INSERT', filter: `post_id=eq.${postId}` },
-      async payload => {
+      async (payload) => {
         const { data, error } = await supabase
           .from('comments')
           .select(`*, user_profiles:user_id ( id, first_name, last_name, avatar_url )`)
@@ -73,13 +75,12 @@ export function subscribeToNewComments(postId, callback) {
         }
 
         callback(data)
-      }
+      },
     )
     .subscribe()
 
-  return channel 
+  return channel
 }
-
 
 /**
  * Elimina un comentario si pertenece al usuario actual.
@@ -87,36 +88,10 @@ export function subscribeToNewComments(postId, callback) {
  * @returns {Promise}
  */
 export async function deleteComment(commentId) {
-  const { error } = await supabase
-    .from('comments')
-    .delete()
-    .eq('id', commentId)
+  const { error } = await supabase.from('comments').delete().eq('id', commentId)
 
   if (error) {
     console.error('[comments.js deleteComment] Error al eliminar comentario:', error)
     throw error
   }
-}
-
-/**
- * Obtiene la cantidad de comentarios por post.
- * @returns {Promise} - Objeto con claves como post_id y valores como cantidad.
- */
-export async function getCommentCounts() {
-  const { data, error } = await supabase
-    .from('comments')
-    .select('post_id', { count: 'exact', head: false })
-
-  if (error) {
-    console.error('[comments.js getCommentCounts] Error:', error)
-    throw error
-  }
-
-  const counts = {}
-
-  data.forEach(row => {
-    counts[row.post_id] = (counts[row.post_id] || 0) + 1
-  })
-
-  return counts
 }

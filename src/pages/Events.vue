@@ -6,11 +6,10 @@
 
     <BaseHeading1>Eventos</BaseHeading1>
     <p class="text-lg text-gray-600 mb-6 max-w-md">
-      Estamos trabajando en esta funcionalidad. Muy pronto vas a poder encontrar y participar de eventos moteros organizados por la comunidad.
+      Estamos trabajando en esta funcionalidad. Muy pronto vas a poder encontrar y participar de
+      eventos moteros organizados por la comunidad.
     </p>
-    <BaseButton type="orange" @click="$router.push('/')">
-      Volver al inicio
-    </BaseButton>
+    <BaseButton type="orange" @click="$router.push('/')"> Volver al inicio </BaseButton>
   </div>
 </template>
 
@@ -24,7 +23,7 @@ export default {
   components: {
     BaseHeading1,
     BaseButton,
-    HammerIcon
-  }
+    HammerIcon,
+  },
 }
 </script>
