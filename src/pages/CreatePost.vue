@@ -8,7 +8,7 @@ import BaseAlert from '@/components/ui/BaseAlert.vue'
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 
 import { createPost, uploadPostPhoto } from '@/services/posts'
-import { subscribeToAuth } from '@/services/auth'
+import { useAuthStore } from '@/stores/auth'
 
 export default {
   name: 'CreatePost',
@@ -23,7 +23,6 @@ export default {
   },
   data() {
     return {
-      userId: null,
       post: {
         route_name: '',
         start_point: this.$route.query.start_point || '',
@@ -46,11 +45,6 @@ export default {
       loading: false,
     }
   },
-  mounted() {
-    subscribeToAuth((user) => {
-      this.userId = user.id
-    })
-  },
   methods: {
     handleFile(e) {
       const f = e.target.files[0]
@@ -68,7 +62,8 @@ export default {
       this.preview = URL.createObjectURL(f)
     },
     async handleSubmit() {
-      if (!this.userId) {
+      const userId = useAuthStore().user?.id
+      if (!userId) {
         this.error = 'Usuario no autenticado'
         return
       }
@@ -87,7 +82,7 @@ export default {
 
         await createPost({
           ...this.post,
-          user_id: this.userId,
+          user_id: userId,
         })
 
         this.success = true

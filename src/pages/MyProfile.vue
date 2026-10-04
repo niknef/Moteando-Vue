@@ -1,47 +1,38 @@
 <script setup>
 /* ────────── imports ────────── */
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
 import IconLucide from '@/components/ui/IconLucide.vue'
 import BaseHeading1 from '@/components/ui/BaseHeading1.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
 
-import { subscribeToAuth, logout } from '@/services/auth'
+import { useAuthStore } from '@/stores/auth'
 import { listBikes, setActiveBike } from '@/services/bikes'
 
 /* ────────── estado ────────── */
-const profile = ref({
-  id: null,
-  email: null,
-  first_name: '',
-  last_name: '',
-  bio: '',
-  avatar_url: '',
-  active_bike_id: null,
-})
+const auth = useAuthStore()
+
+// El email sale de la sesión de Auth, el resto del perfil
+const profile = computed(() => ({ ...auth.profile, email: auth.user?.email }))
 const bikes = ref([])
 
 /* ────────── cargar datos ────────── */
-onMounted(() => {
-  subscribeToAuth(async (u) => {
-    if (!u.id) return
-    profile.value = { ...profile.value, ...u }
-    bikes.value = await listBikes()
-  })
+onMounted(async () => {
+  bikes.value = await listBikes()
 })
 
 /* ────────── acciones ────────── */
 const router = useRouter()
 
 async function handleLogout() {
-  await logout() // espera a que se limpie currentUser
-  router.replace('/login') // redirige una vez deslogueado
+  await auth.logout()
+  router.replace('/login')
 }
 
 async function activate(id) {
   await setActiveBike(id)
-  profile.value.active_bike_id = id
+  await auth.loadProfile() // trae el active_bike_id actualizado
   bikes.value = await listBikes()
 }
 </script>

@@ -12,11 +12,12 @@ import Loader from '@/components/ui/Loader.vue'
 import IconLucide from '@/components/ui/IconLucide.vue'
 
 import supabase from '@/services/supabase'
-import { subscribeToAuth, updateAuthProfile } from '@/services/auth'
+import { useAuthStore } from '@/stores/auth'
 
 /* ────────── constantes ────────── */
 const defaultAvatar = '/assets/user.jpg'
 const router = useRouter()
+const auth = useAuthStore()
 
 /* ────────── estado ────────── */
 const userId = ref(null) // uid del usuario autenticado
@@ -38,24 +39,22 @@ const oldPath = ref(null) // ruta de avatar antiguo en Storage
 
 /* ────────── cargar datos del perfil ────────── */
 onMounted(() => {
-  subscribeToAuth((u) => {
-    if (!u.id) return
-    userId.value = u.id
-    email.value = u.email
-    form.value = {
-      first_name: u.first_name ?? '',
-      last_name: u.last_name ?? '',
-      bio: u.bio ?? '',
-      avatar_url: u.avatar_url ?? '',
-    }
-    preview.value = form.value.avatar_url || defaultAvatar
+  const p = auth.profile ?? {}
+  userId.value = auth.user.id
+  email.value = auth.user.email
+  form.value = {
+    first_name: p.first_name ?? '',
+    last_name: p.last_name ?? '',
+    bio: p.bio ?? '',
+    avatar_url: p.avatar_url ?? '',
+  }
+  preview.value = form.value.avatar_url || defaultAvatar
 
-    /* guardar oldPath para eliminar si se cambia */
-    if (u.avatar_url) {
-      const [, path] = u.avatar_url.split('/storage/v1/object/public/avatars/')
-      oldPath.value = path || null
-    }
-  })
+  /* guardar oldPath para eliminar si se cambia */
+  if (p.avatar_url) {
+    const [, path] = p.avatar_url.split('/storage/v1/object/public/avatars/')
+    oldPath.value = path || null
+  }
 })
 
 /* ────────── watcher de archivo → genera preview ────────── */
@@ -125,7 +124,7 @@ async function handleSubmit() {
     }
 
     /* actualizar tabla user_profiles */
-    await updateAuthProfile({
+    await auth.updateProfile({
       first_name: form.value.first_name.trim(),
       last_name: form.value.last_name.trim(),
       bio: form.value.bio.trim(),

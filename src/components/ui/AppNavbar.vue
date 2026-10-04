@@ -1,17 +1,10 @@
 <script setup>
-import { ref, onMounted } from 'vue'
 import IconLucide from '@/components/ui/IconLucide.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
 import Logo from '@/assets/moteando.svg'
-import { subscribeToAuth } from '@/services/auth'
+import { useAuthStore } from '@/stores/auth'
 
-const user = ref({ id: null, email: null })
-
-onMounted(() => {
-  subscribeToAuth((u) => {
-    user.value = u
-  })
-})
+const auth = useAuthStore()
 </script>
 
 <template>
@@ -23,7 +16,7 @@ onMounted(() => {
     </router-link>
 
     <!-- Contenido cuando NO hay sesión -->
-    <template v-if="!user.id">
+    <template v-if="!auth.isLoggedIn">
       <div class="flex ml-auto gap-4">
         <router-link to="/login">
           <BaseButton type="orange">

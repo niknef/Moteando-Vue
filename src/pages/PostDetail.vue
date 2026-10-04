@@ -4,7 +4,6 @@ import { useRoute } from 'vue-router'
 
 import { getPostById, likePost, unlikePost } from '@/services/posts'
 import { getCommentsByPost, createComment, subscribeToNewComments } from '@/services/comments'
-import { subscribeToAuth } from '@/services/auth'
 
 import BaseHeading1 from '@/components/ui/BaseHeading1.vue'
 import Loader from '@/components/ui/Loader.vue'
@@ -25,7 +24,6 @@ const commentLoading = ref(false)
 const commentSuccess = ref(false)
 const commentError = ref(null)
 
-const userId = ref(null)
 const commentsContainer = ref(null)
 
 let channel = null
@@ -102,10 +100,6 @@ async function toggleLike() {
 
 onMounted(async () => {
   try {
-    subscribeToAuth((user) => {
-      userId.value = user.id
-    })
-
     const id = route.params.id
     post.value = await getPostById(id)
     comments.value = await getCommentsByPost(id)

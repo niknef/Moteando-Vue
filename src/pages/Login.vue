@@ -1,7 +1,7 @@
 <script setup>
 /* ────────── imports ────────── */
 import { ref, reactive } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import IconLucide from '@/components/ui/IconLucide.vue'
 import BaseHeading1 from '@/components/ui/BaseHeading1.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
@@ -9,7 +9,7 @@ import BaseInput from '@/components/ui/BaseInput.vue'
 import BaseLabel from '@/components/ui/BaseLabel.vue'
 import Loader from '@/components/ui/Loader.vue'
 import BaseAlert from '@/components/ui/BaseAlert.vue'
-import { login } from '@/services/auth'
+import { useAuthStore } from '@/stores/auth'
 import Logo from '@/assets/moteando.svg'
 
 defineOptions({ name: 'Login' }) // Esto aunque es opcional en api composition, lo pongo para ayudar a identificar el componente
@@ -24,6 +24,8 @@ const loading = ref(false)
 
 /* ────────── router ────────── */
 const router = useRouter()
+const route = useRoute()
+const auth = useAuthStore()
 
 /* ────────── acciones ────────── */
 async function handleSubmit() {
@@ -31,8 +33,9 @@ async function handleSubmit() {
   loading.value = true
 
   try {
-    await login(user.email, user.password)
-    router.push('/map') // redirección a la pantalla principal -> que ahora es el mapa
+    await auth.login(user.email, user.password)
+    // Si el guard nos mandó acá desde otra página, volvemos a ella
+    router.push(route.query.redirect || '/map')
   } catch (err) {
     const msg = err.message
     if (msg.includes('Invalid login credentials')) {

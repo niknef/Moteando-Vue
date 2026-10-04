@@ -8,7 +8,7 @@ import BaseInput from '@/components/ui/BaseInput.vue'
 import BaseLabel from '@/components/ui/BaseLabel.vue'
 import Loader from '@/components/ui/Loader.vue'
 import BaseAlert from '@/components/ui/BaseAlert.vue'
-import { register } from '@/services/auth'
+import { useAuthStore } from '@/stores/auth'
 import IconLucide from '@/components/ui/IconLucide.vue'
 import Logo from '@/assets/moteando.svg'
 
@@ -26,6 +26,7 @@ const loading = ref(false)
 
 /* ────────── router ────────── */
 const router = useRouter()
+const auth = useAuthStore()
 
 /* ────────── helpers ────────── */
 function validate() {
@@ -44,7 +45,7 @@ async function handleSubmit() {
   loading.value = true
   try {
     const { firstName, lastName, email, password } = user
-    await register(email, password, firstName, lastName)
+    await auth.register(email, password, firstName, lastName)
     router.push('/map') // nueva home
   } catch (err) {
     const msg = err.message
