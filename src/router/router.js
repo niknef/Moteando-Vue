@@ -1,6 +1,6 @@
 // src/router/index.js
 import { createRouter, createWebHistory } from 'vue-router'
-import { subscribeToAuth } from '@/services/auth'
+import { useAuthStore } from '@/stores/auth'
 
 /* ────────── vistas públicas ────────── */
 const Login = () => import('@/pages/Login.vue')
@@ -72,16 +72,15 @@ const router = createRouter({
 })
 
 /* ────────── guard auth ────────── */
-let currentUser = { id: null }
-subscribeToAuth((u) => {
-  currentUser = u
-})
+router.beforeEach(async (to) => {
+  // El store se pide acá adentro: cuando se importa este archivo, Pinia todavía no está registrado
+  const auth = useAuthStore()
+  await auth.init()
 
-router.beforeEach((to) => {
-  if (to.meta.requiresAuth && !currentUser.id) {
+  if (to.meta.requiresAuth && !auth.isLoggedIn) {
     return { path: '/login', query: { redirect: to.fullPath } }
   }
-  if ((to.path === '/login' || to.path === '/register') && currentUser.id) {
+  if ((to.path === '/login' || to.path === '/register') && auth.isLoggedIn) {
     return '/map'
   }
 })
