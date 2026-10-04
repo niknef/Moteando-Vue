@@ -6,6 +6,7 @@ import path from 'path'
 export default {
     // Agregamos el plugin de Vue.
     plugins: [vue(), tailwindcss()],
+    worker: { format: 'es' },
     resolve: {
         // Configuramos los alias para las rutas.
         alias: {

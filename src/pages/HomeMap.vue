@@ -1,5 +1,5 @@
 <script setup>
-import maplibregl from 'maplibre-gl'
+import { Marker } from 'maplibre-gl'
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
@@ -37,7 +37,7 @@ const reverseGeocode = ([lng, lat]) => `${lat.toFixed(5)}, ${lng.toFixed(5)}`
 
 function addDraggableMarker(coord, type) {
   const color = type === 'origin' ? '#40777A' : '#E86E1B'
-  const m = new maplibregl.Marker({ color, draggable: true })
+  const m = new Marker({ color, draggable: true })
     .setLngLat(coord)
     .addTo(map.value)
 

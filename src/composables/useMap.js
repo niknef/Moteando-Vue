@@ -1,4 +1,8 @@
-import maplibregl from 'maplibre-gl'
+import { MapLibreMap, Marker, setWorkerUrl } from 'maplibre-gl'
+import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
+
+setWorkerUrl(workerUrl)
+
 import { ref, onBeforeUnmount } from 'vue'
 
 const map     = ref(null)
@@ -10,7 +14,7 @@ export function useMap () {
     if (isInitialized || !containerEl) return
     isInitialized = true
 
-    map.value = new maplibregl.Map({
+    map.value = new MapLibreMap({
       container: containerEl,
       style: 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json',
       center: [-58.3816, -34.6037],
@@ -23,7 +27,7 @@ export function useMap () {
   }
 
   const addMarker = (lngLat) => {
-    const m = new maplibregl.Marker({ color: '#E86E1B' })
+    const m = new Marker({ color: '#E86E1B' })
       .setLngLat(lngLat)
       .addTo(map.value)
     markers.value.push(m)
