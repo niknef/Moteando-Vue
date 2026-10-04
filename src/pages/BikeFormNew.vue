@@ -12,7 +12,8 @@ import Loader from '@/components/ui/Loader.vue'
 import IconLucide from '@/components/ui/IconLucide.vue'
 
 /* servicios */
-import { uploadBikePhoto, addBike } from '@/services/bikes'
+import { addBike } from '@/services/bikes'
+import { uploadImage } from '@/services/storage'
 
 /* router & helpers */
 const router = useRouter()
@@ -50,7 +51,7 @@ async function handleSubmit() {
 
   loading.value = true
   try {
-    const photoUrl = await uploadBikePhoto(form.value.photoFile)
+    const photoUrl = await uploadImage('bikes', form.value.photoFile)
 
     await addBike({
       brand: form.value.brand.trim(),

@@ -12,7 +12,8 @@ import Loader from '@/components/ui/Loader.vue'
 import IconLucide from '@/components/ui/IconLucide.vue'
 
 /* servicios */
-import { uploadBikePhoto, updateBike, listBikes } from '@/services/bikes'
+import { updateBike, listBikes } from '@/services/bikes'
+import { uploadImage, deleteImageByUrl } from '@/services/storage'
 
 /* router */
 const router = useRouter()
@@ -92,7 +93,7 @@ async function handleSubmit() {
     let newPhotoUrl = originalPhoto.value
 
     if (form.value.photoFile) {
-      newPhotoUrl = await uploadBikePhoto(form.value.photoFile)
+      newPhotoUrl = await uploadImage('bikes', form.value.photoFile)
     }
 
     await updateBike(bikeId, {
@@ -103,6 +104,9 @@ async function handleSubmit() {
       photo_url: newPhotoUrl,
     })
 
+    if (newPhotoUrl !== originalPhoto.value) {
+      await deleteImageByUrl('bikes', originalPhoto.value)
+    }
     success.value = true
     setTimeout(() => router.push('/my-bikes'), 1000)
   } catch (e) {

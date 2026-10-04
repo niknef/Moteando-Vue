@@ -47,7 +47,7 @@ function onDeleteClick(bike) {
 
 /* confirmar eliminación */
 async function confirmDelete() {
-  await deleteBike(bikeToErase.value.id)
+  await deleteBike(bikeToErase.value)
   bikes.value = await listBikes()
   showModal.value = false
   bikeToErase.value = null
