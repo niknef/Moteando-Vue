@@ -1,97 +1,117 @@
-<script>
+<script setup>
+/* ────────── imports ────────── */
+import { ref, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+
 import BaseHeading1 from '@/components/ui/BaseHeading1.vue'
+import BaseButton from '@/components/ui/BaseButton.vue'
+import BaseAlert from '@/components/ui/BaseAlert.vue'
 import Loader from '@/components/ui/Loader.vue'
+import IconLucide from '@/components/ui/IconLucide.vue'
+
 import { getUserProfileByPK } from '@/services/user-profile'
-import { ArrowLeftIcon, Cog8ToothIcon } from '@heroicons/vue/24/outline'
+import { getBikeById } from '@/services/bikes' // 👉 asegurate de tener este método
 
+/* ────────── estado ────────── */
+const profile = ref({
+  id: null,
+  first_name: '',
+  last_name: '',
+  avatar_url: '',
+  bio: '',
+  active_bike_id: null // 👉 necesario para buscar la moto activa
+})
 
-export default {
-  name: 'UserProfile',
-  components: {
-  BaseHeading1,
-  Loader,
-  ArrowLeftIcon,
-  Cog8ToothIcon
-    },
-  data() {
-    return {
-      user: {
-        id: null,
-        first_name: '',
-        last_name: '',
-        avatar_url: '',
-        bio: '',
-        bike_model: ''
-      },
-      loading: true,
-      error: null
-    }
-  },
-  async mounted() {
-    const id = this.$route.params.id
+const activeBike = ref(null)
+const loading = ref(true)
+const error = ref('')
 
-    if (!id) {
-      this.error = 'No se proporcionó un ID válido.'
-      return
-    }
+/* ────────── cargar perfil ────────── */
+const { params } = useRoute()
+const router = useRouter()
 
-    try {
-      this.user = await getUserProfileByPK(id)
-    } catch (error) {
-      this.error = 'No se pudo cargar el perfil.'
-      console.error('[UserProfile] Error:', error)
-    } finally {
-      this.loading = false
-    }
+onMounted(async () => {
+  if (!params.id) {
+    error.value = 'Ruta inválida — falta ID de usuario.'
+    loading.value = false
+    return
   }
-}
+
+  try {
+    const data = await getUserProfileByPK(params.id)
+    if (!data) {
+      error.value = 'Usuario no encontrado.'
+    } else {
+      profile.value = data
+
+      // Si tiene moto activa, la traemos
+      if (data.active_bike_id) {
+        activeBike.value = await getBikeById(data.active_bike_id)
+      }
+    }
+  } catch (e) {
+    console.error('[UserProfile]', e)
+    error.value = 'No se pudo cargar el perfil.'
+  } finally {
+    loading.value = false
+  }
+})
+
+/* ────────── navegación ────────── */
+const goBack = () => router.back()
 </script>
 
 <template>
-  <section class="max-w-xl mx-auto mt-8 bg-neutral-800 text-white p-6 rounded-lg shadow-md mb-6">
-
-
-    <div v-if="loading" class="flex items-center justify-center min-h-screen">
-      <Loader class="w-16 h-16 border-4" />
+  <section class="max-w-xl mx-auto sm:mt-8 bg-neutral-800 text-white p-6 sm:rounded-lg shadow-md mb-6">
+    <!-- loader -->
+    <div v-if="loading" class="flex justify-center my-16">
+      <Loader class="w-12 h-12 border-4" />
     </div>
 
-    <div v-else>
-    <div class="flex items-center justify-between mb-4">
-      <!-- volver -->
-      <router-link to="/post">
-        <button class="flex items-center gap-1 bg-gray-700 hover:bg-gray-600 text-white font-semibold px-4 py-2 rounded text-sm transition mb-4">
-            <ArrowLeftIcon class="w-5 h-5" />
-            Volver
-        </button>
-        </router-link>
- 
+    <!-- errores -->
+    <BaseAlert v-else-if="error" :message="error" type="error" />
 
-      
-      <BaseHeading1 class="text-left">Perfil de {{ user.first_name }} {{ user.last_name }}</BaseHeading1>
-    </div>
-      <hr class="border-t border-gray-600 mt-2 mb-6" />
+    <!-- contenido -->
+    <template v-else>
+      <!-- cabecera -->
+        <BaseHeading1>Perfil de {{ profile.first_name }} {{ profile.last_name }}</BaseHeading1>
 
-      <!-- Foto -->
+
+      <hr class="border-t border-gray-600 mb-6" />
+
+      <!-- avatar -->
       <div class="flex justify-center mb-6">
-        <img
-          :src="user.avatar_url || '/assets/user.jpg'"
-          alt="Avatar"
-          class="w-32 h-32 rounded-full object-cover border border-gray-600"
-        />
+        <img :src="profile.avatar_url || '/assets/user.jpg'" class="w-32 h-32 object-cover rounded-full border border-gray-600" />
       </div>
 
-      <!-- Bio -->
-      <p class="text-gray-300 text-center mb-6 italic">
-        {{ user.bio || 'Este usuario aún no escribió su biografía.' }}
+      <!-- nombre -->
+
+      <h2 class="text-2xl font-bold text-orange-400 text-center mb-4">
+        {{ profile.first_name }} {{ profile.last_name }}
+      </h2>
+      <!-- bio -->
+      <p class="text-gray-300 text-center italic mb-6 whitespace-pre-wrap">
+        {{ profile.bio || 'Este usuario aún no escribió su biografía.' }}
       </p>
 
-      <!-- Moto -->
-      <div
-        class="bg-neutral-700 p-4 rounded-md border-l-4 border-orange-500 flex items-center gap-2 text-white"
-      >
-        <Cog8ToothIcon class="w-5 h-5 text-orange-400" />
-        <span><strong>Moto:</strong> {{ user.bike_model || 'No especificada' }}</span>
+      <!-- moto activa -->
+      <div v-if="activeBike" class="bg-neutral-700 p-4 rounded-md border-l-4 border-orange-500 flex items-center gap-2 text-white mb-6">
+        <IconLucide name="Bike" :size="20" class="text-orange-400" />
+        <span>Moto activa: {{ activeBike.brand }} {{ activeBike.model }}</span>
       </div>
-    </div>
+
+      <div v-else class="text-center text-gray-400">
+        <IconLucide name="Info" :size="20" class="inline mr-1" />
+        Este usuario no tiene una moto activa.
+      </div>
+
+      <div class="flex justify-end gap-4 mt-6">
+        
+      <BaseButton type="gray" size="sm" @click="goBack">
+          <template #icon><IconLucide name="ArrowLeft" :size="18" /></template>
+          Volver
+        </BaseButton>
+      </div>
+    </template>
   </section>
 </template>

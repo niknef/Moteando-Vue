@@ -1,186 +1,178 @@
-<script>
-// componente para mostrar una lista de los ultimos posteos
+<script setup>
+import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { useRouter } from 'vue-router'
 
-import { getLastPosts, subscribeToNewPosts } from '@/services/posts' // Importo el método para obtener los últimos posteos y subscribirme a nuevos posteos
-import { createComment, getCommentCounts } from '@/services/comments' // Importo los métodos para crear comentarios y obtener los counts de comentarios
 import BaseHeading1 from '@/components/ui/BaseHeading1.vue'
-import Loader from '@/components/ui/Loader.vue'
+import BaseButton from '@/components/ui/BaseButton.vue'
 import BaseAlert from '@/components/ui/BaseAlert.vue'
-import { EyeIcon, MapPinIcon, StarIcon, ClockIcon } from '@heroicons/vue/24/outline'
+import Loader from '@/components/ui/Loader.vue'
+import IconLucide from '@/components/ui/IconLucide.vue'
 
-export default {
-    name: 'PostList',
-    components: {
-        BaseHeading1,
-        Loader,
-        BaseAlert,
-        MapPinIcon,
-        StarIcon,
-        ClockIcon,
-        EyeIcon
-    },
-    data() {
-        return {
-            posts: [], // Array de posteos
-            loading: true,
-            error: null,
-            expandedComments: {}, // Objeto para manejar el estado de los comentarios
-            commentCounts: {}, // Objeto para manejar los counts de comentarios
-            commentTexts: {}, // Objeto para manejar los textos de los comentarios
-            commentLoading: {}, // Objeto para manejar el loading de los comentarios
-            commentSuccess: {}, // Objeto para manejar el éxito de los comentarios
-            commentError: {} // Objeto para manejar el error de los comentarios
-        }
-    },
-    async mounted() {
-        try {
-            const data = await getLastPosts() // Llamo al método getLastPosts para obtener los últimos posteos
-            this.posts = data // Asigno los posteos a la variable posts
-            this.commentCounts = await getCommentCounts() // Llamo al método getCommentCounts para obtener los counts de comentarios
+import {
+  getLastPosts,
+  subscribeToNewPosts,
+  likePost,
+  unlikePost
+} from '@/services/posts'
 
-            // Suscribirse a nuevos posts en real time
-            subscribeToNewPosts(newPost => {
-                this.posts.unshift(newPost)
-                this.commentCounts[newPost.id] = 0
-            })
+const posts = ref([])
+const loading = ref(true)
+const error = ref('')
+let channel = null
 
-        } catch (e) {
-            this.error = 'No se pudieron cargar los posteos.'
-            console.error('[PostList] Error:', e)
-        } finally {
-            this.loading = false
-        }
-    },
-    methods: {
+onMounted(async () => {
+  try {
+    posts.value = await getLastPosts()
+    channel = subscribeToNewPosts(p => posts.value.unshift(p))
+  } catch (e) {
+    console.error('[PostList]', e)
+    error.value = 'No se pudieron cargar las rutas.'
+  } finally { loading.value = false }
+})
 
-        toggleComments(postId) { // Método para alternar la visibilidad de los comentarios
-            this.expandedComments = { // Alterno el estado de los comentarios
-                ...this.expandedComments,
-                [postId]: !this.expandedComments[postId]
-            }
-        },
-        async submitComment(postId) {
-            this.commentLoading[postId] = true
-            this.commentSuccess[postId] = false
-            this.commentError[postId] = null
+onBeforeUnmount(() => channel?.unsubscribe())
 
-            try {
+const router = useRouter()
 
-                await createComment({ // Llamo al método createComment para crear un nuevo comentario
-                    post_id: postId,
-                    content: this.commentTexts[postId] || ''
-                })
+function copyRoute(p) {
+  const [lngA, latA] = p.start_geom.coordinates
+  const [lngB, latB] = p.end_geom.coordinates
 
-                this.commentSuccess[postId] = true
-                this.commentTexts[postId] = ''
+  const texto = `Origen: ${p.start_point} - Destino: ${p.end_point}`
+  navigator.clipboard.writeText(texto)
+    .then(() => console.log('Ruta copiada:', texto))
+    .catch(err => console.error('Error al copiar', err))
 
-                //  Volvemos a consultar los counts actualizados desde la DB
-                const counts = await getCommentCounts()
-                this.commentCounts = counts
-                //Oculta el form y el mensaje de éxito a los 2 segundos
-                setTimeout(() => {
-                    this.expandedComments[postId] = false
-                    this.commentSuccess[postId] = false
-                }, 2000)
-
-            } catch (error) {
-                this.commentError[postId] = 'No se pudo enviar el comentario.'
-                console.error('[submitComment] Error:', error)
-            } finally {
-                this.commentLoading[postId] = false
-            }
-        }
+  router.push({
+    path: '/map',
+    query: {
+      originLat: latA,
+      originLng: lngA,
+      destLat: latB,
+      destLng: lngB
     }
+  })
+}
+
+function formatDuration(duration) {
+  if (!duration) return '-'
+
+  const parts = duration.split(':')
+  const hours = parseInt(parts[0])
+  const minutes = parseInt(parts[1])
+
+  let result = ''
+  if (hours > 0) result += `${hours} h `
+  if (minutes > 0) result += `${minutes} min`
+  if (result === '') result = 'Menos de 1 min'
+  return result.trim()
+}
+
+async function toggleLike(p) {
+  try {
+    if (p.liked_by_me) {
+      await unlikePost(p.id)
+      p.likes--; p.liked_by_me = false
+    } else {
+      await likePost(p.id)
+      p.likes++; p.liked_by_me = true
+    }
+  } catch (e) { console.error('[toggleLike]', e) }
 }
 </script>
 
 <template>
-    <section class="max-w-4xl mx-auto mt-8 px-4">
-        <div class="flex items-center justify-between mb-4">
-            <BaseHeading1>Últimos posteos</BaseHeading1>
-            <router-link to="/create-post">
-                <button
-                    class="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-4 py-2 rounded transition text-sm">
-                    + Nuevo post
-                </button>
-            </router-link>
-        </div>
+  <section class="max-w-4xl mx-auto sm:mt-8 bg-neutral-800 text-white p-6 sm:rounded-lg shadow-md">
+    <!-- encabezado -->
+    <div class="flex justify-between items-center mb-6">
+      <BaseHeading1>Posts recientes</BaseHeading1>
+      <router-link to="/create-post">
+        <BaseButton type="orange" size="sm">
+          <template #icon><IconLucide name="Plus" :size="18" /></template>
+          Nueva
+        </BaseButton>
+      </router-link>
+    </div>
 
-        <div v-if="loading" class="flex justify-center mt-6">
-            <Loader class="w-20 h-20 border-4" />
-        </div>
+    <!-- loader / error -->
+    <Loader v-if="loading" class="w-16 h-16 border-4 mx-auto my-10" />
+    <BaseAlert v-else-if="error" :message="error" type="error" />
 
-        <div v-if="error" class="text-center text-red-400 mt-6">{{ error }}</div>
+    <!-- listado -->
+    <template v-else>
+      <p v-if="!posts.length" class="text-center text-gray-300">Aún no hay rutas.</p>
 
-        <div v-if="!loading && posts.length === 0" class="text-center text-gray-300 mt-6">
-            No hay publicaciones aún.
-        </div>
+      <article v-for="p in posts" :key="p.id"
+        class="bg-neutral-700/40 rounded-lg p-5 mb-6 shadow-md flex flex-col gap-4">
 
-        <div v-for="post in posts" :key="post.id" class="bg-neutral-800 text-white p-6 mt-6 rounded-lg shadow">
-            <div class="flex items-center justify-between gap-4 mb-3">
-                <div class="flex items-center gap-4">
-                    <img :src="post.user_profiles?.avatar_url || '/assets/user.jpg'" alt="Avatar"
-                        class="w-10 h-10 rounded-full object-cover border" />
-                    <div>
-                        <router-link :to="`/usuario/${post.user_profiles?.id}`"
-                            class="font-semibold hover:underline hover:text-orange-400">
-                            {{ post.user_profiles?.first_name || 'Sin nombre' }} {{ post.user_profiles?.last_name || ''
-                            }}
-                        </router-link>
-                        <p class="text-sm text-gray-400">{{ post.created_at.split('T')[0] }}</p>
-                    </div>
-                </div>
-
-                <router-link :to="`/post/${post.id}`"
-                    class="flex items-center gap-1 text-sm bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded text-white transition">
-                    <EyeIcon class="w-5 h-5" />
-                    Ver más
-                </router-link>
+        <!-- Datos del usuario -->
+        <header class="flex items-center justify-between">
+          <div class="flex items-center gap-3 cursor-pointer" @click="router.push(`/usuario/${p.user_profiles?.id}`)">
+            <img :src="p.user_profiles?.avatar_url || '/assets/user.jpg'"
+              class="w-10 h-10 rounded-full object-cover border" />
+            <div>
+              <p class="font-semibold hover:text-orange-400">
+                {{ p.user_profiles?.first_name }} {{ p.user_profiles?.last_name }}
+              </p>
+              <p class="text-xs text-gray-400">
+                {{ new Date(p.created_at).toLocaleDateString() }}
+              </p>
             </div>
-            <hr class="border-t border-neutral-700 mb-4" />
+          </div>
 
-            <p class="text-orange-400 font-semibold mb-1 flex items-center gap-2">
-                <MapPinIcon class="w-5 h-5" />
-                De: {{ post.start_point }} → {{ post.end_point }}
+          <router-link :to="`/posts/${p.id}`">
+            <BaseButton type="gray" size="xs">
+              <template #icon><IconLucide name="Eye" :size="16" /></template>
+              Ver
+            </BaseButton>
+          </router-link>
+        </header>
+
+        <!-- Cuerpo con datos e imagen -->
+        <div class="flex flex-col sm:flex-row sm:gap-6">
+          <!-- Datos de la ruta -->
+          <div class="flex-1">
+            <p class="font-medium text-orange-400 flex items-center gap-1 mb-1">
+              <IconLucide name="MapPinned" :size="18" /> {{ p.route_name }}
             </p>
-            <p class="text-sm text-gray-300 mb-2 flex items-center gap-2">
-                <ClockIcon class="w-5 h-5 text-gray-400" />
-                Duración: {{ post.duration }}
+            <p class="text-sm text-gray-300 flex items-center gap-1 mb-1">
+              <IconLucide name="Clock" :size="18" /> {{ formatDuration(p.duration) }}
             </p>
-            <p class="text-gray-200 mb-2 flex items-center gap-2">
-                <StarIcon class="w-5 h-5 text-yellow-400" />
-                Puntaje: {{ post.rating }}/5
-            </p>
-            <p class="bg-neutral-700 text-white p-3 rounded-md border-l-4 border-orange-500 italic shadow-sm mb-4">
-                {{ post.description }}
+            <p class="text-sm text-gray-300 flex items-center gap-1 mb-3">
+              <IconLucide name="Star" :size="18" class="text-yellow-400" /> {{ p.rating }}/5
             </p>
 
-            <div class="flex gap-4 text-sm justify-end text-orange-400">
-                <button class="hover:underline" @click="toggleComments(post.id)">
-                    💬 Comentar ({{ commentCounts[post.id] || 0 }})
-                </button>
-            </div>
+            <p class="bg-neutral-800/60 p-3 rounded border-l-4 border-orange-500 mb-4">
+              {{ p.description }}
+            </p>
+          </div>
 
-            <div v-if="expandedComments[post.id]" class="mt-4">
-                <textarea v-model="commentTexts[post.id]" class="w-full p-3 bg-neutral-700 rounded text-white"
-                    placeholder="Escribí tu comentario..."></textarea>
-                <div class="text-right mt-2">
-                    <button @click="submitComment(post.id)" :disabled="commentLoading[post.id]"
-                        class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded text-sm transition">
-                        <template v-if="commentLoading[post.id]">
-                            <Loader class="w-4 h-4 border-2 inline" /> Enviando...
-                        </template>
-                        <template v-else>
-                            Enviar
-                        </template>
-                    </button>
-                </div>
-
-                <div class="mt-2">
-                    <BaseAlert v-if="commentSuccess[post.id]" type="success" message="Comentario enviado con éxito." />
-                    <BaseAlert v-if="commentError[post.id]" type="error" :message="commentError[post.id]" />
-                </div>
-            </div>
+          <!-- Imagen de la ruta -->
+          <div v-if="p.image_url" class="sm:w-1/3 flex justify-center sm:justify-end">
+            <img :src="p.image_url" alt="Imagen de la ruta"
+              class="max-h-60 rounded border cursor-pointer hover:opacity-90 transition w-full object-cover"
+              @click="router.push(`/user/${p.user_profiles?.id}`)" />
+          </div>
         </div>
-    </section>
+
+        <!-- Acciones -->
+        <div class="flex flex-wrap justify-end gap-4 text-sm mt-4">
+          <button class="flex items-center gap-1 hover:underline" @click="copyRoute(p)">
+            <IconLucide name="Copy" :size="16" /> Copiar ruta
+          </button>
+
+          <span class="flex items-center gap-1 text-gray-400">
+            <IconLucide name="MessageCircle" :size="16" /> {{ p.comments }}
+          </span>
+
+          <button class="flex items-center gap-1"
+            :class="p.liked_by_me ? 'text-rose-400' : 'text-gray-400'"
+            @click="toggleLike(p)">
+            <IconLucide :name="p.liked_by_me ? 'Heart' : 'Heart'" :size="16" :fill="p.liked_by_me ? 'currentColor' : 'none'" />
+            {{ p.likes }}
+          </button>
+        </div>
+      </article>
+    </template>
+  </section>
 </template>

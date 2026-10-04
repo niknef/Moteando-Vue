@@ -26,20 +26,26 @@ export async function addUserProfile(data) {
  * @returns {Promise<Object>}
  */
 export async function getUserProfileByPK(id) {
-    // Esta función traerá el perfil completo desde Supabase
-    const { data, error } = await supabase
-          .from('user_profiles')
-          .select()
-          .eq('id', id);
+  const { data, error } = await supabase
+    .from('user_profiles')
+    .select('*')
+    .eq('id', id)
+    .maybeSingle() // ⚡ ESTA ES LA CLAVE
 
-      if(error) {
-          console.error('[user-profile.js getUserProfileByPK] No se pudo traer el perfil, ya que hay uno o más errores en el valor recibido.', error);
-          
-          throw new Error('No se pudo traer el perfil, ya que hay uno o más errores en el valor recibido.' + error);
-      }
-      // hard-codeamos la posición 0 del array.
-      return data[0];
+  if (error) {
+    console.error('[user-profile.js getUserProfileByPK] Error al traer el perfil:', error)
+    throw new Error('Error al traer el perfil: ' + error.message)
+  }
+
+  if (!data) {
+    console.warn('[user-profile.js getUserProfileByPK] No se encontró el perfil.')
+    return null
+  }
+
+  return data
 }
+
+
 
 /**
  * Actualiza los campos del perfil extendido del usuario

@@ -10,12 +10,7 @@ export async function getCommentsByPost(postId) {
     .from('comments')
     .select(`
       *,
-      user_profiles:profile_id (
-        id,
-        first_name,
-        last_name,
-        avatar_url
-      )
+      user_profiles:user_id ( id, first_name, last_name, avatar_url )
     `)
     .eq('post_id', postId)
     .order('created_at', { ascending: true })
@@ -29,37 +24,7 @@ export async function getCommentsByPost(postId) {
 }
 
 /**
- * Obtiene todos los comentarios con perfil del autor por ID de post.
- * 
- * @param {string} postId - ID del post.
- * @returns {Promise} - Lista de comentarios.
- */
-export async function getCommentsByPostId(postId) {
-  const { data, error } = await supabase
-    .from('comments')
-    .select(`
-      *,
-      user_profiles (
-        id,
-        first_name,
-        last_name,
-        avatar_url
-      )
-    `)
-    .eq('post_id', postId)
-    .order('created_at', { ascending: true })
-
-  if (error) {
-    console.error('[comments.js getCommentsByPostId] Error:', error)
-    throw error
-  }
-
-  return data
-}
-
-/**
  * Crea un nuevo comentario en Supabase.
- * 
  * @param {Object} comment - Comentario a crear.
  * @param {string} comment.post_id - ID del post relacionado.
  * @param {string} comment.content - Contenido del comentario.
@@ -74,8 +39,7 @@ export async function createComment({ post_id, content }) {
   const { error } = await supabase.from('comments').insert({
     post_id,
     content,
-    user_id: user.id,
-    profile_id: user.id // si usás esto también como FK
+    user_id: user.id
   })
 
   if (error) {
@@ -86,40 +50,25 @@ export async function createComment({ post_id, content }) {
 
 /**
  * Suscribe a eventos de nuevos comentarios en tiempo real.
- * 
  * @param {string} postId - ID del post.
  * @param {(comment: object) => void} callback - Función que se ejecuta cuando llega un nuevo comentario.
  */
+// comments.js
 export function subscribeToNewComments(postId, callback) {
-  const channel = supabase.channel('comments')
-
-  channel
+  const channel = supabase
+    .channel('comments')
     .on(
       'postgres_changes',
-      {
-        schema: 'public',
-        table: 'comments',
-        event: 'INSERT',
-        filter: `post_id=eq.${postId}`
-      },
+      { schema: 'public', table: 'comments', event: 'INSERT', filter: `post_id=eq.${postId}` },
       async payload => {
-        // hacemos una consulta a Supabase para traer el comentario con perfil
         const { data, error } = await supabase
           .from('comments')
-          .select(`
-            *,
-            user_profiles:profile_id (
-              id,
-              first_name,
-              last_name,
-              avatar_url
-            )
-          `)
+          .select(`*, user_profiles:user_id ( id, first_name, last_name, avatar_url )`)
           .eq('id', payload.new.id)
           .single()
 
         if (error) {
-          console.error('[subscribeToNewComments] Error al traer comentario con perfil:', error)
+          console.error('[subscribeToNewComments] Error:', error)
           return
         }
 
@@ -127,11 +76,13 @@ export function subscribeToNewComments(postId, callback) {
       }
     )
     .subscribe()
+
+  return channel 
 }
+
 
 /**
  * Elimina un comentario si pertenece al usuario actual.
- * 
  * @param {string} commentId - ID del comentario.
  * @returns {Promise}
  */
@@ -147,10 +98,8 @@ export async function deleteComment(commentId) {
   }
 }
 
-
 /**
  * Obtiene la cantidad de comentarios por post.
- * 
  * @returns {Promise} - Objeto con claves como post_id y valores como cantidad.
  */
 export async function getCommentCounts() {
@@ -163,7 +112,6 @@ export async function getCommentCounts() {
     throw error
   }
 
-  // Agrupamos las cantidades por post_id
   const counts = {}
 
   data.forEach(row => {

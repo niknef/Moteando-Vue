@@ -1,98 +1,166 @@
-<script>
-//Componente del perfil de usuario
+<script setup>
+/* ────────── imports ────────── */
+import { ref, onMounted } from 'vue'
+import { useRouter }      from 'vue-router'
 
-import BaseHeading1 from '@/components/ui/BaseHeading1.vue' // h1
-import BaseButton from '@/components/ui/BaseButton.vue' // Botón
-import { subscribeToAuth } from '@/services/auth' // Importo el método para subscribirme a los cambios de auth
+import IconLucide     from '@/components/ui/IconLucide.vue'
+import BaseHeading1   from '@/components/ui/BaseHeading1.vue'
+import BaseButton     from '@/components/ui/BaseButton.vue'
 
+import { subscribeToAuth, logout } from '@/services/auth'
+import { listBikes, setActiveBike } from '@/services/bikes'
 
+/* ────────── estado ────────── */
+const profile = ref({
+  id: null,
+  email: null,
+  first_name: '',
+  last_name: '',
+  bio: '',
+  avatar_url: '',
+  active_bike_id: null
+})
+const bikes = ref([])
 
-export default {
-  name: 'MyProfile',
-  components: {
-    BaseHeading1,
-    BaseButton
-  },
-  data() {
-    return {
-      // Defino el objeto user con los campos necesarios
-      user: {
-        id: null,
-        email: null,
-        first_name: '',
-        last_name: '',
-        bio: '',
-        bike_model: '',
-        avatar_url: ''
-      }
-    }
-  },
-  mounted() {
-    subscribeToAuth(userData => {
-      if (userData.id) { // Si el usuario está autenticado
-        this.user = { ...this.user, ...userData } // Actualizo el objeto user con los datos del usuario
-      }
-    })
-  }
+/* ────────── cargar datos ────────── */
+onMounted(() => {
+  subscribeToAuth(async u => {
+    if (!u.id) return
+    profile.value = { ...profile.value, ...u }
+    bikes.value   = await listBikes()
+  })
+})
+
+/* ────────── acciones ────────── */
+const router = useRouter()
+
+async function handleLogout () {
+  await logout()             // espera a que se limpie currentUser
+  router.replace('/login')   // redirige una vez deslogueado
+}
+
+async function activate (id) {
+  await setActiveBike(id)
+  profile.value.active_bike_id = id
+  bikes.value = await listBikes()
 }
 </script>
 
 <template>
-  <section class="max-w-xl mx-auto sm:mt-8 mb-6 px-4 sm:px-10 bg-neutral-800 text-white p-6 sm:rounded-lg shadow-md">
+  <div class="min-h-screen flex items-center justify-center bg-black/95">
+    <section class="w-full max-w-xl bg-neutral-800 text-white p-8 sm:rounded-lg shadow-md">
+      <!-- Título -->
+      <BaseHeading1 class="text-center">Mi perfil</BaseHeading1>
 
-    <BaseHeading1 class="text-center">Mi perfil</BaseHeading1>
-
-    <div class="mt-6 flex flex-col items-center gap-4">
       <!-- Avatar -->
-      <img :src="user.avatar_url || '/assets/user.jpg'" alt="Foto de perfil"
-        class="w-32 h-32 rounded-full object-cover border border-gray-500" />
-    </div>
-
-    <!-- Datos personales -->
-
-    <div class="my-6 flex justify-center">
-      <div class="space-y-4 text-left w-full max-w-md text-sm sm:text-base">
-        <div class="flex flex-col sm:flex-row sm:justify-between gap-4 justify mx-auto">
-          <div class="flex-1 bg-neutral-100/10 p-2 rounded-sm">
-            <h2 class="text-gray-300 font-semibold">Nombre:</h2>
-            <hr class="border-t border-orange-500/20 mb-0" />
-
-            <p class="text-sm text-white/50 mt-1">{{ user.first_name || 'Agregar información en editar perfil' }}</p>
-          </div>
-          <div class="flex-1 bg-neutral-100/10 p-2 rounded-sm">
-            <h2 class="text-gray-300 font-semibold">Apellido:</h2>
-            <hr class="border-t border-orange-500/20 mb-0" />
-            <p class="text-sm text-white/50 mt-1">{{ user.last_name || 'Agregar información en editar perfil' }}</p>
-          </div>
-        </div>
-        <div class="flex flex-col sm:flex-row sm:justify-between gap-4 justify mx-auto">
-          <div class="flex-1 bg-neutral-100/10 p-2 rounded-sm">
-            <h2 class="text-gray-300 font-semibold">Email:</h2>
-            <hr class="border-t border-orange-500/20 mb-0" />
-            <p class="text-sm text-white/50 mt-1">{{ user.email }}</p>
-          </div>
-          <div class="flex-1 bg-neutral-100/10 p-2 rounded-sm">
-            <h2 class="text-gray-300 font-semibold">Moto:</h2>
-            <hr class="border-t border-orange-500/20 mb-0" />
-            <p class="text-sm text-white/50 mt-1">{{ user.bike_model || 'Agregar información en editar perfil' }}</p>
-          </div>
-        </div>
-
-        <div class="bg-neutral-100/10 p-2 rounded-sm">
-          <h2 class="text-gray-300 font-semibold">Biografía:</h2>
-          <hr class="border-t border-orange-500/20 mb-0" />
-          <p class="text-sm text-white/50 mt-1">{{ user.bio || 'Agregar información en editar perfil' }}</p>
-        </div>
-
-
+      <div class="mt-6 flex justify-center">
+        <img
+          :src="profile.avatar_url || '/assets/user.jpg'"
+          class="w-32 h-32 rounded-full object-cover border border-gray-500"
+          alt="Foto de perfil"
+        />
       </div>
-    </div>
 
-    <!-- Botón editar -->
-    <div class="mt-6 text-center">
-      <router-link to="/my-profile/edit">
-        <BaseButton type="orange">Editar perfil</BaseButton>
-      </router-link>
-    </div>
-  </section>
+      <!-- Datos personales -->
+      <div class="my-6 grid gap-4 sm:grid-cols-2 text-sm sm:text-base">
+        <div class="bg-neutral-100/10 p-3 rounded-sm">
+          <h2 class="text-gray-300 font-semibold">Nombre</h2>
+          <p class="text-white/50 mt-1">
+            {{ profile.first_name || 'Agregar en editar perfil' }}
+          </p>
+        </div>
+
+        <div class="bg-neutral-100/10 p-3 rounded-sm">
+          <h2 class="text-gray-300 font-semibold">Apellido</h2>
+          <p class="text-white/50 mt-1">
+            {{ profile.last_name || 'Agregar en editar perfil' }}
+          </p>
+        </div>
+
+        <div class="bg-neutral-100/10 p-3 rounded-sm">
+          <h2 class="text-gray-300 font-semibold">Email</h2>
+          <p class="text-white/50 mt-1">{{ profile.email }}</p>
+        </div>
+
+        <!-- Moto activa -->
+        <div class="bg-neutral-100/10 p-3 rounded-sm">
+          <h2 class="text-gray-300 font-semibold">Moto activa</h2>
+          <p class="text-white/50 mt-1">
+            {{
+              bikes.find(b => b.id === profile.active_bike_id)
+                ? `${bikes.find(b => b.id === profile.active_bike_id).brand}
+                   ${bikes.find(b => b.id === profile.active_bike_id).model}
+                   (${bikes.find(b => b.id === profile.active_bike_id).year})`
+                : 'Seleccioná o cargá una moto'
+            }}
+          </p>
+        </div>
+
+        <div class="sm:col-span-2 bg-neutral-100/10 p-3 rounded-sm">
+          <h2 class="text-gray-300 font-semibold">Biografía</h2>
+          <p class="text-white/50 mt-1 whitespace-pre-wrap">
+            {{ profile.bio || 'Agregar en editar perfil' }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Listado de motos -->
+      <div v-if="bikes.length" class="space-y-3 mb-6">
+        <h2 class="text-gray-300 font-semibold mb-1">Mis motos</h2>
+
+        <div
+          v-for="b in bikes"
+          :key="b.id"
+          class="flex items-center gap-3 p-2 rounded bg-neutral-700/40"
+        >
+          <img :src="b.photo_url" class="w-12 h-12 rounded object-cover" />
+          <div class="flex-1 text-sm">
+            {{ b.brand }} {{ b.model }} ({{ b.year }})
+          </div>
+
+          <IconLucide
+            v-if="b.id === profile.active_bike_id"
+            name="CheckCircle2"
+            :size="20"
+            class="text-orange-400"
+          />
+          <BaseButton
+            v-else
+            size="xs"
+            type="orange"
+            @click="activate(b.id)"
+          >
+            Activar
+          </BaseButton>
+        </div>
+      </div>
+
+      <!-- Botonera -->
+      <div class="flex justify-center gap-4 items-center mt-4">
+        <router-link to="/my-bikes">
+          <BaseButton type="gray">
+            <template #icon><IconLucide name="Warehouse" :size="20" /></template>
+            Mis motos
+          </BaseButton>
+        </router-link>
+
+        <router-link to="/profile/edit">
+          <BaseButton type="orange">
+            <template #icon><IconLucide name="PencilLine" :size="20" /></template>
+            Editar perfil
+          </BaseButton>
+        </router-link>
+      </div>
+
+      <!-- Cerrar sesión -->
+      <p class="mt-4 text-center">
+        <button
+          class="text-red-400 hover:text-red-500 underline"
+          @click="handleLogout"
+        >
+          Cerrar sesión
+        </button>
+      </p>
+    </section>
+  </div>
 </template>

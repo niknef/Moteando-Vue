@@ -9,9 +9,10 @@ export function useGeocoding () {
     if (q.trim().length < 3) return (results.value = [])
 
     const { data } = await axios.get(
-      `${import.meta.env.VITE_NOMINATIM_URL}/search`,
+      `https://nominatim.openstreetmap.org/search`,
       { params: { q, format: 'json', addressdetails: 1, limit: 5 } }
     )
+
     results.value = data
   }, 500)
 

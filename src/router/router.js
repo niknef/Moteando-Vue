@@ -1,54 +1,87 @@
-import {createRouter, createWebHistory} from 'vue-router'
-import { subscribeToAuth } from '../services/auth';
-import Home from '../pages/Home.vue'
-import Register from '../pages/Register.vue'
-import Login from '../pages/Login.vue'
-import MyProfile from '../pages/MyProfile.vue'
-import MyProfileEdit from '../pages/MyProfileEdit.vue'
-import CreatePost from '../pages/CreatePost.vue'
-import Posts from '../pages/PostList.vue'
-import UserProfile from '../pages/UserProfile.vue'
-import PostsDetail from '../pages/PostDetail.vue'
-import MapView from '../pages/MapView.vue'
+// src/router/index.js
+import { createRouter, createWebHistory } from 'vue-router'
+import { subscribeToAuth } from '@/services/auth'
 
+/* ────────── vistas públicas ────────── */
+const Login    = () => import('@/pages/Login.vue')
+const Register = () => import('@/pages/Register.vue')
 
-//Rutas -> 
+/* ────────── layout y vistas privadas ────────── */
+const AppShell     = () => import('@/components/layout/AppShell.vue')
 
+const HomeMap      = () => import('@/pages/HomeMap.vue')
+const PostList     = () => import('@/pages/PostList.vue')
+const PostDetail   = () => import('@/pages/PostDetail.vue')
+const CreatePost   = () => import('@/pages/CreatePost.vue')
+const Events       = () => import('@/pages/Events.vue')
+
+const MyProfile    = () => import('@/pages/MyProfile.vue')
+const EditProfile  = () => import('@/pages/MyProfileEdit.vue')
+const UserProfile  = () => import('@/pages/UserProfile.vue') 
+
+/* ────────── nuevas vistas de motos ────────── */
+const MyBikes      = () => import('@/pages/MyBikes.vue')
+const NewBike      = () => import('@/pages/BikeFormNew.vue')
+const EditBike     = () => import('@/pages/BikeFormEdit.vue')
+
+/* ────────── rutas ────────── */
 const routes = [
-    {path: '/', component: Home},
-    {path: '/register', component: Register},
-    {path: '/login', component: Login},
-    {path: '/my-profile', component: MyProfile, meta: {requiresAuth: true}},
-    {path: '/my-profile/edit', component: MyProfileEdit, meta: {requiresAuth: true}},
-    {path: '/create-post', component: CreatePost, meta: {requiresAuth: true}},
-    {path: '/post', component: Posts, meta: {requiresAuth: true}},
-    {path: '/usuario/:id', component: UserProfile, meta: {requiresAuth: true}},
-    {path: '/post/:id', component: PostsDetail, meta: {requiresAuth: true}},
-    {path: '/map', component: MapView, meta: {requiresAuth: true}},
-];
+  /* públicas */
+  { path: '/login',    component: Login },
+  { path: '/register', component: Register },
 
-//Creamos el router
+  /* privadas envueltas en AppShell */
+  {
+    path: '/',
+    component: AppShell,
+    meta: { requiresAuth: true },
+    children: [
+      { path: '', redirect: '/map' },
+
+      { path: 'map',            component: HomeMap },
+      { path: 'posts',          component: PostList },
+      { path: 'posts/create',   component: CreatePost },
+      { path: 'posts/:id',      component: PostDetail },
+
+      { path: 'events',         component: Events },
+
+      { path: 'profile/me',     component: MyProfile },
+      { path: 'profile/edit',   component: EditProfile },
+
+      { path: 'usuario/:id',    component: UserProfile }, 
+
+      { path: 'my-bikes',       component: MyBikes },
+      { path: 'my-bikes/new',   component: NewBike },
+      { path: 'my-bikes/:id/edit', component: EditBike }
+    ]
+  },
+
+  /* fallback */
+  { path: '/:pathMatch(.*)*', redirect: '/map' }
+]
+
+/* ────────── router ────────── */
 const router = createRouter({
-    history: createWebHistory(),
-    routes
-});
+  history: createWebHistory(),
+  routes,
+  scrollBehavior (to, from, savedPosition) {
+    if (to.hash) return { el: to.hash }
+    if (savedPosition) return savedPosition
+    return { top: 0 }
+  }
+})
 
-// Nos suscribimos a la autenticación.
-let user = {
-    id: null,
-    email: null,
-}
-subscribeToAuth(newUserData => user = newUserData);
+/* ────────── guard auth ────────── */
+let currentUser = { id: null }
+subscribeToAuth(u => { currentUser = u })
 
+router.beforeEach(to => {
+  if (to.meta.requiresAuth && !currentUser.id) {
+    return { path: '/login', query: { redirect: to.fullPath } }
+  }
+  if ((to.path === '/login' || to.path === '/register') && currentUser.id) {
+    return '/map'
+  }
+})
 
-// Agregamos un "guard" global para nuestro router.
-router.beforeEach((to, from) => {
-    
-    // Si la ruta requiere que el usuario esté autenticado, y no lo está, entonces lo "pateamos" al login.
-    if(to.meta.requiresAuth && user.id === null) {
-        // Retornamos la URL a donde lo queremos mandar.
-        return '/login';
-    }
-});
-//Exportamos el router
-export default router;
+export default router

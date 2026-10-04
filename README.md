@@ -1,6 +1,6 @@
 # 🏍️ Moteando - Proyecto Parcial Clientes Web Mobile
 
-Moteando es una red social para motociclistas creada como trabajo práctico para la materia **Clientes Web Mobile** (Escuela Da Vinci). El proyecto simula una comunidad donde los usuarios pueden compartir rutas, comentar publicaciones y personalizar su perfil.
+Moteando es una red social para motociclistas creada como trabajo práctico para la materia **Clientes Web Mobile + Proyecto Final** (Escuela Da Vinci). El proyecto simula una comunidad donde los usuarios pueden compartir rutas, comentar publicaciones y personalizar su perfil.
 
 ---
 
@@ -10,6 +10,8 @@ Moteando es una red social para motociclistas creada como trabajo práctico para
 - **Vite** - Herramienta de build ultrarrápida
 - **Supabase** - Backend como servicio (auth, DB y realtime)
 - **Tailwind CSS** - Framework de estilos utility-first
+- **MapTiler** - Framework de estilos utility-first
+- **OpenRouteService** - Framework de estilos utility-first
 
 ---
 
@@ -42,6 +44,8 @@ El sistema permite:
 - 📝 **Publicaciones**: los usuarios pueden crear rutas (posts) con descripción, duración, puntos de inicio y fin.
 - 💬 **Comentarios en tiempo real**: cada post permite recibir comentarios usando Supabase Realtime.
 - 👤 **Perfiles**: cada usuario puede editar su perfil y ver el de otros.
+- 🏍️ **Garaje**: Cada usuario tiene un garaje con hasta 5 motos.
+- 🗺️ **Mapa**: Mapa para creacion de posts.
 - 🔒 **Protección de rutas**: páginas como Perfil y Editar Perfil están protegidas por autenticación.
 
 ---
@@ -60,3 +64,6 @@ El sistema permite:
 ---
 
 
+## 📲 Contacto
+
+Nicolas.firpo@davinci.edu.ar
