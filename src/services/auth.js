@@ -1,8 +1,5 @@
 import supabase from './supabase'
-import {
-  getUserProfileByPK,
-  updateUserProfile
-} from './user-profile'
+import { getUserProfileByPK, updateUserProfile } from './user-profile'
 
 /* ------------------------------------------------------------------ */
 /* Estado local                                                        */
@@ -14,7 +11,7 @@ let user = {
   last_name: null,
   bio: null,
   avatar_url: null,
-  active_bike_id: null          // ← FK a user_bikes
+  active_bike_id: null, // ← FK a user_bikes
 }
 
 let observers = []
@@ -30,19 +27,22 @@ loadCurrentUser()
 /* ------------------------------------------------------------------ */
 /* Helpers                                                             */
 /* ------------------------------------------------------------------ */
-function notify (cb)     { cb({ ...user }) }
-function notifyAll ()    { observers.forEach(notify) }
-function updateUser (d)  {
+function notify(cb) {
+  cb({ ...user })
+}
+function notifyAll() {
+  observers.forEach(notify)
+}
+function updateUser(d) {
   user = { ...user, ...d }
-  user.id ? localStorage.setItem('user', JSON.stringify(user))
-          : localStorage.removeItem('user')
+  user.id ? localStorage.setItem('user', JSON.stringify(user)) : localStorage.removeItem('user')
   notifyAll()
 }
 
 /* ------------------------------------------------------------------ */
 /* Cargar usuario actual (Auth + perfil)                               */
 /* ------------------------------------------------------------------ */
-async function loadCurrentUser () {
+async function loadCurrentUser() {
   const { data } = await supabase.auth.getUser()
   if (!data?.user) return null
 
@@ -50,7 +50,7 @@ async function loadCurrentUser () {
   await loadCurrentUserProfile()
 }
 
-async function loadCurrentUserProfile () {
+async function loadCurrentUserProfile() {
   try {
     const profile = await getUserProfileByPK(user.id)
     updateUser(profile)
@@ -62,25 +62,24 @@ async function loadCurrentUserProfile () {
 /* ------------------------------------------------------------------ */
 /* Registro                                                            */
 /* ------------------------------------------------------------------ */
-export async function register (email, password, first, last) {
-  const { data, error } = await supabase.auth.signUp({ 
+export async function register(email, password, first, last) {
+  const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
       data: {
         first_name: first,
-        last_name: last
-      }
-    }
+        last_name: last,
+      },
+    },
   })
   if (error) throw error
-
 
   updateUser({
     id: data.user.id,
     email: data.user.email,
     first_name: first,
-    last_name : last
+    last_name: last,
   })
 
   return data.user
@@ -89,9 +88,8 @@ export async function register (email, password, first, last) {
 /* ------------------------------------------------------------------ */
 /* Login / Logout                                                      */
 /* ------------------------------------------------------------------ */
-export async function login (email, password) {
-  const { data, error } =
-    await supabase.auth.signInWithPassword({ email, password })
+export async function login(email, password) {
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password })
   if (error) throw error
 
   updateUser({ id: data.user.id, email: data.user.email })
@@ -99,7 +97,7 @@ export async function login (email, password) {
   return data.user
 }
 
-export async function logout () {
+export async function logout() {
   await supabase.auth.signOut()
   updateUser({
     id: null,
@@ -108,14 +106,14 @@ export async function logout () {
     last_name: null,
     bio: null,
     avatar_url: null,
-    active_bike_id: null
+    active_bike_id: null,
   })
 }
 
 /* ------------------------------------------------------------------ */
 /* Perfil: update (sin bike_model)                                     */
 /* ------------------------------------------------------------------ */
-export async function updateAuthProfile (data) {
+export async function updateAuthProfile(data) {
   try {
     await updateUserProfile(user.id, data)
     updateUser(data)
@@ -128,7 +126,7 @@ export async function updateAuthProfile (data) {
 /* ------------------------------------------------------------------ */
 /* Observer                                                            */
 /* ------------------------------------------------------------------ */
-export async function subscribeToAuth (cb) {
+export async function subscribeToAuth(cb) {
   observers.push(cb)
   notify(cb)
 }

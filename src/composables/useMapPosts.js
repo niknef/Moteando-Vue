@@ -2,7 +2,7 @@
 import { ref, watchEffect } from 'vue'
 import { getPostsBBOX } from '@/services/posts'
 
-export function useMapPosts (mapRef) {
+export function useMapPosts(mapRef) {
   const posts = ref([])
 
   /* cada vez que cambia el BBOX del mapa ⇒ fetch */

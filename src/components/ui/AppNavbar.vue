@@ -1,22 +1,17 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import IconLucide   from '@/components/ui/IconLucide.vue'
-import BaseButton   from '@/components/ui/BaseButton.vue'
-import Logo         from '@/assets/moteando.svg'
-import { logout, subscribeToAuth } from '@/services/auth'
+import IconLucide from '@/components/ui/IconLucide.vue'
+import BaseButton from '@/components/ui/BaseButton.vue'
+import Logo from '@/assets/moteando.svg'
+import { subscribeToAuth } from '@/services/auth'
 
 const user = ref({ id: null, email: null })
-const router = useRouter()
 
 onMounted(() => {
-  subscribeToAuth(u => { user.value = u })
+  subscribeToAuth((u) => {
+    user.value = u
+  })
 })
-
-function handleLogout () {       // <- ya no se usa aquí, pero lo dejamos para perfil
-  logout()
-  router.push('/login')
-}
 </script>
 
 <template>
@@ -37,9 +32,7 @@ function handleLogout () {       // <- ya no se usa aquí, pero lo dejamos para 
           </BaseButton>
         </router-link>
         <router-link to="/register">
-          <BaseButton type="ghost">
-            Registrarse
-          </BaseButton>
+          <BaseButton type="ghost"> Registrarse </BaseButton>
         </router-link>
       </div>
     </template>
@@ -71,7 +64,6 @@ function handleLogout () {       // <- ya no se usa aquí, pero lo dejamos para 
             Perfil
           </router-link>
         </li>
-        
       </ul>
     </template>
   </nav>

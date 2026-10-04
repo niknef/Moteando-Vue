@@ -1,31 +1,36 @@
 <script setup>
-import { ref, onMounted, computed, watch, onUnmounted } from 'vue'
+import { ref, onMounted, watch, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 
 /* UI */
 import BaseHeading1 from '@/components/ui/BaseHeading1.vue'
-import BaseInput    from '@/components/ui/BaseInput.vue'
-import BaseLabel    from '@/components/ui/BaseLabel.vue'
-import BaseButton   from '@/components/ui/BaseButton.vue'
-import BaseAlert    from '@/components/ui/BaseAlert.vue'
-import Loader       from '@/components/ui/Loader.vue'
-import IconLucide   from '@/components/ui/IconLucide.vue'
+import BaseInput from '@/components/ui/BaseInput.vue'
+import BaseLabel from '@/components/ui/BaseLabel.vue'
+import BaseButton from '@/components/ui/BaseButton.vue'
+import BaseAlert from '@/components/ui/BaseAlert.vue'
+import Loader from '@/components/ui/Loader.vue'
+import IconLucide from '@/components/ui/IconLucide.vue'
 
 /* servicios */
 import { uploadBikePhoto, updateBike, listBikes } from '@/services/bikes'
 
 /* router */
-const router  = useRouter()
-const goBack  = () => router.push('/my-bikes')
+const router = useRouter()
+const goBack = () => router.push('/my-bikes')
 const { params } = useRoute()
-const bikeId  = params.id
+const bikeId = params.id
 
 /* -------- estado ---------- */
 const form = ref({
-  brand:'', model:'', year:'', color:'', photo_url:'', photoFile:null
+  brand: '',
+  model: '',
+  year: '',
+  color: '',
+  photo_url: '',
+  photoFile: null,
 })
 const originalPhoto = ref('')
-const error   = ref('')
+const error = ref('')
 const success = ref(false)
 const loading = ref(false)
 
@@ -36,7 +41,7 @@ watch(
   (file, old) => {
     if (old) URL.revokeObjectURL(previewUrl.value)
     previewUrl.value = file ? URL.createObjectURL(file) : form.value.photo_url
-  }
+  },
 )
 
 /* liberar al salir */
@@ -47,34 +52,34 @@ onUnmounted(() => {
 /* -------- cargar datos ---------- */
 onMounted(async () => {
   const all = await listBikes()
-  const current = all.find(b => b.id === bikeId)
+  const current = all.find((b) => b.id === bikeId)
   if (!current) return router.push('/my-bikes')
 
   form.value = {
-    brand : current.brand,
-    model : current.model,
-    year  : String(current.year),
-    color : current.color,
+    brand: current.brand,
+    model: current.model,
+    year: String(current.year),
+    color: current.color,
     photo_url: current.photo_url,
-    photoFile: null
+    photoFile: null,
   }
   originalPhoto.value = current.photo_url
-  previewUrl.value    = current.photo_url          // ◆ inicial
+  previewUrl.value = current.photo_url // ◆ inicial
 })
 
 /* -------- helpers ---------- */
-function handleFile (e) {
+function handleFile(e) {
   form.value.photoFile = e.target.files[0] ?? null
 }
-function validYear (y) {
+function validYear(y) {
   const n = Number(y)
   const yr = new Date().getFullYear() + 1
   return n >= 1900 && n <= yr
 }
 
 /* -------- submit ---------- */
-async function handleSubmit () {
-  error.value   = ''
+async function handleSubmit() {
+  error.value = ''
   success.value = false
 
   if (!validYear(form.value.year)) {
@@ -91,11 +96,11 @@ async function handleSubmit () {
     }
 
     await updateBike(bikeId, {
-      brand : form.value.brand.trim(),
-      model : form.value.model.trim(),
-      year  : +form.value.year,
-      color : form.value.color.trim(),
-      photo_url : newPhotoUrl
+      brand: form.value.brand.trim(),
+      model: form.value.model.trim(),
+      year: +form.value.year,
+      color: form.value.color.trim(),
+      photo_url: newPhotoUrl,
     })
 
     success.value = true
@@ -110,10 +115,11 @@ async function handleSubmit () {
 
 <template>
   <section
-    class="max-w-lg mx-auto sm:mt-8 bg-neutral-800 text-white p-6 sm:rounded-lg shadow-md mb-6">
+    class="max-w-lg mx-auto sm:mt-8 bg-neutral-800 text-white p-6 sm:rounded-lg shadow-md mb-6"
+  >
     <BaseHeading1>Editar moto</BaseHeading1>
 
-    <form @submit.prevent="handleSubmit" class="flex flex-col gap-4 mt-4">
+    <form class="flex flex-col gap-4 mt-4" @submit.prevent="handleSubmit">
       <!-- Marca / Modelo -->
       <div class="flex flex-col sm:flex-row gap-4">
         <div class="flex-1">
@@ -141,17 +147,19 @@ async function handleSubmit () {
       <!-- Foto -->
       <div>
         <BaseLabel>Foto</BaseLabel>
-        <input type="file" accept="image/*" @change="handleFile"
-               class="mt-1 block w-full file:mr-3 file:px-4 file:py-2 file:border-0
-                      file:rounded file:bg-amber-800/90 file:text-sm
-                      hover:file:bg-amber-700" />
+        <input
+          type="file"
+          accept="image/*"
+          class="mt-1 block w-full file:mr-3 file:px-4 file:py-2 file:border-0 file:rounded file:bg-amber-800/90 file:text-sm hover:file:bg-amber-700"
+          @change="handleFile"
+        />
         <!-- ◆ usa previewUrl -->
         <img :src="previewUrl" class="w-32 h-32 object-cover rounded mt-4" />
       </div>
 
       <!-- alertas -->
       <BaseAlert v-if="success" message="¡Moto actualizada!" type="success" />
-      <BaseAlert v-if="error"   :message="error"            type="error"   />
+      <BaseAlert v-if="error" :message="error" type="error" />
 
       <!-- Botonera -->
       <div class="flex flex-col sm:flex-row justify-center sm:justify-end gap-4 mt-4">
@@ -160,7 +168,7 @@ async function handleSubmit () {
           Volver
         </BaseButton>
 
-        <BaseButton type="orange" htmlType="submit" :disabled="loading">
+        <BaseButton type="orange" html-type="submit" :disabled="loading">
           <template #icon>
             <Loader v-if="loading" class="w-5 h-5 border-2" />
           </template>

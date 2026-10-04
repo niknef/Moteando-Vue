@@ -8,12 +8,7 @@ import BaseAlert from '@/components/ui/BaseAlert.vue'
 import Loader from '@/components/ui/Loader.vue'
 import IconLucide from '@/components/ui/IconLucide.vue'
 
-import {
-  getLastPosts,
-  subscribeToNewPosts,
-  likePost,
-  unlikePost
-} from '@/services/posts'
+import { getLastPosts, subscribeToNewPosts, likePost, unlikePost } from '@/services/posts'
 
 const posts = ref([])
 const loading = ref(true)
@@ -23,11 +18,13 @@ let channel = null
 onMounted(async () => {
   try {
     posts.value = await getLastPosts()
-    channel = subscribeToNewPosts(p => posts.value.unshift(p))
+    channel = subscribeToNewPosts((p) => posts.value.unshift(p))
   } catch (e) {
     console.error('[PostList]', e)
     error.value = 'No se pudieron cargar las rutas.'
-  } finally { loading.value = false }
+  } finally {
+    loading.value = false
+  }
 })
 
 onBeforeUnmount(() => channel?.unsubscribe())
@@ -39,9 +36,10 @@ function copyRoute(p) {
   const [lngB, latB] = p.end_geom.coordinates
 
   const texto = `Origen: ${p.start_point} - Destino: ${p.end_point}`
-  navigator.clipboard.writeText(texto)
+  navigator.clipboard
+    .writeText(texto)
     .then(() => console.log('Ruta copiada:', texto))
-    .catch(err => console.error('Error al copiar', err))
+    .catch((err) => console.error('Error al copiar', err))
 
   router.push({
     path: '/map',
@@ -49,8 +47,8 @@ function copyRoute(p) {
       originLat: latA,
       originLng: lngA,
       destLat: latB,
-      destLng: lngB
-    }
+      destLng: lngB,
+    },
   })
 }
 
@@ -72,12 +70,16 @@ async function toggleLike(p) {
   try {
     if (p.liked_by_me) {
       await unlikePost(p.id)
-      p.likes--; p.liked_by_me = false
+      p.likes--
+      p.liked_by_me = false
     } else {
       await likePost(p.id)
-      p.likes++; p.liked_by_me = true
+      p.likes++
+      p.liked_by_me = true
     }
-  } catch (e) { console.error('[toggleLike]', e) }
+  } catch (e) {
+    console.error('[toggleLike]', e)
+  }
 }
 </script>
 
@@ -102,14 +104,21 @@ async function toggleLike(p) {
     <template v-else>
       <p v-if="!posts.length" class="text-center text-gray-300">Aún no hay rutas.</p>
 
-      <article v-for="p in posts" :key="p.id"
-        class="bg-neutral-700/40 rounded-lg p-5 mb-6 shadow-md flex flex-col gap-4">
-
+      <article
+        v-for="p in posts"
+        :key="p.id"
+        class="bg-neutral-700/40 rounded-lg p-5 mb-6 shadow-md flex flex-col gap-4"
+      >
         <!-- Datos del usuario -->
         <header class="flex items-center justify-between">
-          <div class="flex items-center gap-3 cursor-pointer" @click="router.push(`/usuario/${p.user_profiles?.id}`)">
-            <img :src="p.user_profiles?.avatar_url || '/assets/user.jpg'"
-              class="w-10 h-10 rounded-full object-cover border" />
+          <div
+            class="flex items-center gap-3 cursor-pointer"
+            @click="router.push(`/usuario/${p.user_profiles?.id}`)"
+          >
+            <img
+              :src="p.user_profiles?.avatar_url || '/assets/user.jpg'"
+              class="w-10 h-10 rounded-full object-cover border"
+            />
             <div>
               <p class="font-semibold hover:text-orange-400">
                 {{ p.user_profiles?.first_name }} {{ p.user_profiles?.last_name }}
@@ -149,9 +158,12 @@ async function toggleLike(p) {
 
           <!-- Imagen de la ruta -->
           <div v-if="p.image_url" class="sm:w-1/3 flex justify-center sm:justify-end">
-            <img :src="p.image_url" alt="Imagen de la ruta"
+            <img
+              :src="p.image_url"
+              alt="Imagen de la ruta"
               class="max-h-60 rounded border cursor-pointer hover:opacity-90 transition w-full object-cover"
-              @click="router.push(`/user/${p.user_profiles?.id}`)" />
+              @click="router.push(`/user/${p.user_profiles?.id}`)"
+            />
           </div>
         </div>
 
@@ -165,10 +177,16 @@ async function toggleLike(p) {
             <IconLucide name="MessageCircle" :size="16" /> {{ p.comments }}
           </span>
 
-          <button class="flex items-center gap-1"
+          <button
+            class="flex items-center gap-1"
             :class="p.liked_by_me ? 'text-rose-400' : 'text-gray-400'"
-            @click="toggleLike(p)">
-            <IconLucide :name="p.liked_by_me ? 'Heart' : 'Heart'" :size="16" :fill="p.liked_by_me ? 'currentColor' : 'none'" />
+            @click="toggleLike(p)"
+          >
+            <IconLucide
+              :name="p.liked_by_me ? 'Heart' : 'Heart'"
+              :size="16"
+              :fill="p.liked_by_me ? 'currentColor' : 'none'"
+            />
             {{ p.likes }}
           </button>
         </div>

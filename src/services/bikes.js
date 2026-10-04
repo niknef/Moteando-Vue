@@ -4,7 +4,7 @@
 import supabase from './supabase'
 
 /* --------------------------- CONSTANTES --------------------------- */
-const BUCKET = 'bikes'                         // bucket de Storage
+const BUCKET = 'bikes' // bucket de Storage
 
 /* --------------------------- UTILIDADES --------------------------- */
 
@@ -26,20 +26,14 @@ export async function uploadBikePhoto(file) {
   const filename = `${uuid()}.${ext}`
   const path = `${uid}/${filename}` // carpeta por usuario
 
-  const { error } = await supabase
-    .storage
-    .from(BUCKET)
-    .upload(path, file, {
-      contentType: file.type,
-      upsert: false
-    })
+  const { error } = await supabase.storage.from(BUCKET).upload(path, file, {
+    contentType: file.type,
+    upsert: false,
+  })
 
   if (error) throw new Error('No se pudo subir la imagen: ' + error.message)
 
-  return supabase
-    .storage
-    .from(BUCKET)
-    .getPublicUrl(path).data.publicUrl
+  return supabase.storage.from(BUCKET).getPublicUrl(path).data.publicUrl
 }
 
 /* --------------------------- CRUD MOTOS --------------------------- */
@@ -84,10 +78,7 @@ export async function getActiveBike() {
  * Actualiza una moto.
  */
 export async function updateBike(bikeId, data) {
-  const { error } = await supabase
-    .from('user_bikes')
-    .update(data)
-    .eq('id', bikeId)
+  const { error } = await supabase.from('user_bikes').update(data).eq('id', bikeId)
 
   if (error) throw new Error('No se pudo actualizar la moto: ' + error.message)
 }
@@ -96,10 +87,7 @@ export async function updateBike(bikeId, data) {
  * Elimina una moto.
  */
 export async function deleteBike(bikeId) {
-  const { error } = await supabase
-    .from('user_bikes')
-    .delete()
-    .eq('id', bikeId)
+  const { error } = await supabase.from('user_bikes').delete().eq('id', bikeId)
 
   if (error) throw new Error('No se pudo eliminar la moto: ' + error.message)
 }
@@ -120,18 +108,12 @@ export async function setActiveBike(bikeId) {
     .eq('is_active', true)
 
   // 2) Activar la moto elegida
-  const { error } = await supabase
-    .from('user_bikes')
-    .update({ is_active: true })
-    .eq('id', bikeId)
+  const { error } = await supabase.from('user_bikes').update({ is_active: true }).eq('id', bikeId)
 
   if (error) throw new Error('No se pudo activar la moto: ' + error.message)
 
   // 3) Guardar referencia en el perfil
-  await supabase
-    .from('user_profiles')
-    .update({ active_bike_id: bikeId })
-    .eq('id', uid)
+  await supabase.from('user_profiles').update({ active_bike_id: bikeId }).eq('id', uid)
 }
 
 /* ------------------------ LÍMITE (5 MOTOS) ----------------------- */

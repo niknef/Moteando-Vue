@@ -6,7 +6,6 @@ import { useRoute, useRouter } from 'vue-router'
 import Loader from '@/components/ui/Loader.vue'
 import BaseInput from '@/components/ui/BaseInput.vue'
 import BaseLabel from '@/components/ui/BaseLabel.vue'
-import BaseButton from '@/components/ui/BaseButton.vue'
 import IconLucide from '@/components/ui/IconLucide.vue'
 import BaseHeding1 from '@/components/ui/BaseHeading1.vue'
 
@@ -37,11 +36,9 @@ const reverseGeocode = ([lng, lat]) => `${lat.toFixed(5)}, ${lng.toFixed(5)}`
 
 function addDraggableMarker(coord, type) {
   const color = type === 'origin' ? '#40777A' : '#E86E1B'
-  const m = new Marker({ color, draggable: true })
-    .setLngLat(coord)
-    .addTo(map.value)
+  const m = new Marker({ color, draggable: true }).setLngLat(coord).addTo(map.value)
 
-  m.getElement().addEventListener('contextmenu', e => {
+  m.getElement().addEventListener('contextmenu', (e) => {
     e.preventDefault()
     removeMarker(type)
   })
@@ -68,10 +65,16 @@ function removeMarker(type) {
 }
 
 function clearRoutes() {
-  ['fastest', 'shortest'].forEach(id => {
+  ;['fastest', 'shortest'].forEach((id) => {
     if (map.value.getLayer(`${id}-line`)) map.value.removeLayer(`${id}-line`)
     if (map.value.getSource(id)) map.value.removeSource(id)
   })
+}
+
+function resetPoints() {
+  removeMarker('dest')
+  removeMarker('origin')
+  clearRoutes()
 }
 
 function handleMapClick(e) {
@@ -98,13 +101,13 @@ function addOrUpdate(id, geojson, color) {
       id: `${id}-line`,
       type: 'line',
       source: id,
-      paint: { 'line-width': 4, 'line-color': color, 'line-opacity': 0.8 }
+      paint: { 'line-width': 4, 'line-color': color, 'line-opacity': 0.8 },
     })
   }
 }
 
 function highlight(id) {
-  ['fastest', 'shortest'].forEach(i => {
+  ;['fastest', 'shortest'].forEach((i) => {
     map.value.setPaintProperty(`${i}-line`, 'line-width', i === id ? 6 : 3)
     map.value.setPaintProperty(`${i}-line`, 'line-opacity', i === id ? 1 : 0.3)
   })
@@ -112,18 +115,23 @@ function highlight(id) {
 }
 
 async function recalcRoute() {
-  if (waypoints.value.filter(Boolean).length < 2) { clearRoutes(); return }
+  if (waypoints.value.filter(Boolean).length < 2) {
+    clearRoutes()
+    return
+  }
   loadingRoute.value = true
   selectedRoute.value = null
 
   try {
     const [fastest, shortest] = await Promise.all([
       getRouteGeoJSON(waypoints.value, 'driving-car', 'fastest'),
-      getRouteGeoJSON(waypoints.value, 'driving-car', 'shortest')
+      getRouteGeoJSON(waypoints.value, 'driving-car', 'shortest'),
     ])
     addOrUpdate('fastest', fastest, '#40777A')
     addOrUpdate('shortest', shortest, '#E86E1B')
-  } catch (e) { console.error(e) }
+  } catch (e) {
+    console.error(e)
+  }
   loadingRoute.value = false
 }
 
@@ -136,15 +144,14 @@ function selectPlace(item, type) {
   const coord = [+item.lon, +item.lat]
   if (type === 'origin') {
     removeMarker('origin')
-    originRes.value = [] 
+    originRes.value = []
   } else {
     removeMarker('dest')
-    destRes.value = [] 
+    destRes.value = []
   }
 
   handleMapClick({ lngLat: { lng: coord[0], lat: coord[1] } })
 }
-
 
 function goToCreatePost() {
   if (!selectedRoute.value) return
@@ -154,7 +161,7 @@ function goToCreatePost() {
     end_point: destQuery.value,
     start_geom: `POINT (${waypoints.value[0][0]} ${waypoints.value[0][1]})`,
     end_geom: `POINT (${waypoints.value[1][0]} ${waypoints.value[1][1]})`,
-    route_type: selectedRoute.value
+    route_type: selectedRoute.value,
   }
 
   router.push({ path: '/posts/create', query: routeData })
@@ -170,7 +177,12 @@ onMounted(() => {
       clearInterval(interval)
 
       // 🔥 Si venimos desde PostList con coordenadas
-      if (route.query.originLat && route.query.originLng && route.query.destLat && route.query.destLng) {
+      if (
+        route.query.originLat &&
+        route.query.originLng &&
+        route.query.destLat &&
+        route.query.destLng
+      ) {
         const originCoord = [parseFloat(route.query.originLng), parseFloat(route.query.originLat)]
         const destCoord = [parseFloat(route.query.destLng), parseFloat(route.query.destLat)]
 
@@ -191,7 +203,6 @@ onMounted(() => {
 onBeforeUnmount(() => map.value?.off('click', handleMapClick))
 </script>
 
-
 <template>
   <div class="flex flex-col sm:flex-row h-screen">
     <!-- Sidebar -->
@@ -201,10 +212,22 @@ onBeforeUnmount(() => map.value?.off('click', handleMapClick))
       <!-- ORIGEN -->
       <div>
         <BaseLabel for="origin">Desde…</BaseLabel>
-        <BaseInput id="origin" v-model="originQuery" @input="sO(originQuery)" placeholder="Buscar origen" />
-        <ul v-if="originRes.length" class="bg-white text-black rounded shadow max-h-40 overflow-auto mt-2">
-          <li v-for="o in originRes" :key="o.place_id" @click="selectPlace(o, 'origin')"
-            class="px-3 py-2 hover:bg-slate-100 cursor-pointer">
+        <BaseInput
+          id="origin"
+          v-model="originQuery"
+          placeholder="Buscar origen"
+          @input="sO(originQuery)"
+        />
+        <ul
+          v-if="originRes.length"
+          class="bg-white text-black rounded shadow max-h-40 overflow-auto mt-2"
+        >
+          <li
+            v-for="o in originRes"
+            :key="o.place_id"
+            class="px-3 py-2 hover:bg-slate-100 cursor-pointer"
+            @click="selectPlace(o, 'origin')"
+          >
             {{ o.display_name }}
           </li>
         </ul>
@@ -213,10 +236,22 @@ onBeforeUnmount(() => map.value?.off('click', handleMapClick))
       <!-- DESTINO -->
       <div>
         <BaseLabel for="dest">Hasta…</BaseLabel>
-        <BaseInput id="dest" v-model="destQuery" @input="sD(destQuery)" placeholder="Buscar destino" />
-        <ul v-if="destRes.length" class="bg-white text-black rounded shadow max-h-40 overflow-auto mt-2">
-          <li v-for="d in destRes" :key="d.place_id" @click="selectPlace(d, 'dest')"
-            class="px-3 py-2 hover:bg-slate-100 cursor-pointer">
+        <BaseInput
+          id="dest"
+          v-model="destQuery"
+          placeholder="Buscar destino"
+          @input="sD(destQuery)"
+        />
+        <ul
+          v-if="destRes.length"
+          class="bg-white text-black rounded shadow max-h-40 overflow-auto mt-2"
+        >
+          <li
+            v-for="d in destRes"
+            :key="d.place_id"
+            class="px-3 py-2 hover:bg-slate-100 cursor-pointer"
+            @click="selectPlace(d, 'dest')"
+          >
             {{ d.display_name }}
           </li>
         </ul>
@@ -234,40 +269,55 @@ onBeforeUnmount(() => map.value?.off('click', handleMapClick))
       </button>
 
       <!-- Opciones de ruta -->
-      <div v-if="!loadingRoute && waypoints.filter(Boolean).length === 2" class="flex flex-col gap-2">
+      <div
+        v-if="!loadingRoute && waypoints.filter(Boolean).length === 2"
+        class="flex flex-col gap-2"
+      >
         <h3 class="text-sm mb-1">Seleccioná el tipo de ruta:</h3>
         <div class="flex flex-col sm:flex-row gap-2">
           <!-- Botón rápida -->
-          <button @click="highlight('fastest')"
-            :class="selectedRoute === 'fastest' 
-            ? 'bg-[#40777A] text-white border-2 border-[#305d61]' 
-            : 'bg-neutral-700 text-white hover:bg-neutral-600'"
-            class="flex-1 py-2 rounded text-center transition">
+          <button
+            :class="
+              selectedRoute === 'fastest'
+                ? 'bg-[#40777A] text-white border-2 border-[#305d61]'
+                : 'bg-neutral-700 text-white hover:bg-neutral-600'
+            "
+            class="flex-1 py-2 rounded text-center transition"
+            @click="highlight('fastest')"
+          >
             Rápida
           </button>
 
           <!-- Botón corta -->
-          <button @click="highlight('shortest')"
-            :class="selectedRoute === 'shortest' 
-            ? 'bg-[#E86E1B] text-white border-2 border-[#c2510f]' 
-            : 'bg-neutral-700 text-white hover:bg-neutral-600'"
-            class="flex-1 py-2 rounded text-center transition">
+          <button
+            :class="
+              selectedRoute === 'shortest'
+                ? 'bg-[#E86E1B] text-white border-2 border-[#c2510f]'
+                : 'bg-neutral-700 text-white hover:bg-neutral-600'
+            "
+            class="flex-1 py-2 rounded text-center transition"
+            @click="highlight('shortest')"
+          >
             Corta
           </button>
         </div>
       </div>
 
       <!-- Botón crear post -->
-      <button v-if="selectedRoute"
+      <button
+        v-if="selectedRoute"
         class="flex items-center justify-center gap-2 bg-orange-950 hover:bg-orange-900 py-2 rounded w-full"
-        @click="goToCreatePost">
+        @click="goToCreatePost"
+      >
         <IconLucide name="FilePlus" :size="20" /> Crear post
       </button>
 
       <!-- Botón reiniciar -->
-      <button v-if="markers.some(Boolean)"
+      <button
+        v-if="markers.some(Boolean)"
         class="text-xs underline self-start hover:text-red-400 transition mt-2"
-        @click="removeMarker('dest'); removeMarker('origin'); clearRoutes()">
+        @click="resetPoints"
+      >
         Reiniciar puntos
       </button>
     </div>
@@ -275,14 +325,19 @@ onBeforeUnmount(() => map.value?.off('click', handleMapClick))
     <!-- Mapa -->
     <div class="flex-1 relative">
       <div ref="mapContainer" class="absolute inset-0 h-full w-full z-0"></div>
-      <Loader v-if="!mapReady" class="absolute inset-0 flex items-center justify-center bg-black/30 z-20" />
+      <Loader
+        v-if="!mapReady"
+        class="absolute inset-0 flex items-center justify-center bg-black/30 z-20"
+      />
     </div>
   </div>
 </template>
 
 <style>
 @import 'maplibre-gl/dist/maplibre-gl.css';
-html, body, #app {
+html,
+body,
+#app {
   height: 100%;
   margin: 0;
 }

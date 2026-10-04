@@ -1,6 +1,6 @@
 <script>
 export default {
-  name: 'BaseLabel'
+  name: 'BaseLabel',
 }
 </script>
 <template>

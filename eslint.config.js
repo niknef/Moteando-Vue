@@ -12,5 +12,32 @@ export default [
       globals: globals.browser,
     },
   },
+  {
+    files: ['src/pages/**/*.vue'],
+    rules: {
+      'vue/multi-word-component-names': 'off',
+    },
+  },
+  {
+    files: ['*.config.js'],
+    languageOptions: {
+      globals: globals.node,
+    },
+  },
+
+  {
+    // Las páginas las usa el router, no se usan como etiqueta.
+    // Loader se reemplaza cuando migremos a shadcn-vue.
+    files: ['src/pages/**/*.vue', 'src/components/ui/Loader.vue'],
+    rules: {
+      'vue/multi-word-component-names': 'off',
+    },
+  },
+  {
+    files: ['*.config.js'],
+    languageOptions: {
+      globals: globals.node,
+    },
+  },
   prettier,
 ]

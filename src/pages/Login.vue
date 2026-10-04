@@ -2,39 +2,37 @@
 /* ────────── imports ────────── */
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
-import IconLucide     from '@/components/ui/IconLucide.vue'
-import BaseHeading1   from '@/components/ui/BaseHeading1.vue'
-import BaseButton     from '@/components/ui/BaseButton.vue'
-import BaseInput      from '@/components/ui/BaseInput.vue'
-import BaseLabel      from '@/components/ui/BaseLabel.vue'
-import Loader         from '@/components/ui/Loader.vue'
-import BaseAlert      from '@/components/ui/BaseAlert.vue'
-import { login }      from '@/services/auth'
-import Logo           from '@/assets/moteando.svg'
+import IconLucide from '@/components/ui/IconLucide.vue'
+import BaseHeading1 from '@/components/ui/BaseHeading1.vue'
+import BaseButton from '@/components/ui/BaseButton.vue'
+import BaseInput from '@/components/ui/BaseInput.vue'
+import BaseLabel from '@/components/ui/BaseLabel.vue'
+import Loader from '@/components/ui/Loader.vue'
+import BaseAlert from '@/components/ui/BaseAlert.vue'
+import { login } from '@/services/auth'
+import Logo from '@/assets/moteando.svg'
 
-
-defineOptions({ name: 'Login' })   // Esto aunque es opcional en api composition, lo pongo para ayudar a identificar el componente
+defineOptions({ name: 'Login' }) // Esto aunque es opcional en api composition, lo pongo para ayudar a identificar el componente
 
 /* ────────── estado reactivo ────────── */
 const user = reactive({
-  email    : '',
-  password : ''
+  email: '',
+  password: '',
 })
-const error   = ref(null)
+const error = ref(null)
 const loading = ref(false)
 
 /* ────────── router ────────── */
 const router = useRouter()
 
 /* ────────── acciones ────────── */
-async function handleSubmit () {
-  error.value   = null
+async function handleSubmit() {
+  error.value = null
   loading.value = true
 
   try {
     await login(user.email, user.password)
-    router.push('/map')               // redirección a la pantalla principal -> que ahora es el mapa
-    
+    router.push('/map') // redirección a la pantalla principal -> que ahora es el mapa
   } catch (err) {
     const msg = err.message
     if (msg.includes('Invalid login credentials')) {
@@ -53,21 +51,20 @@ async function handleSubmit () {
 
 <template>
   <div class="min-h-screen flex flex-col items-center justify-center bg-black/95 p-4">
- 
     <img :src="Logo" alt="Moteando" class="h-16 mb-10" />
 
-
-    <section class="w-full max-w-md bg-neutral-800 text-gray-100 p-8 sm:rounded-lg shadow-md flex flex-col items-center">
-   
+    <section
+      class="w-full max-w-md bg-neutral-800 text-gray-100 p-8 sm:rounded-lg shadow-md flex flex-col items-center"
+    >
       <BaseHeading1>Iniciar sesión</BaseHeading1>
 
-      <form @submit.prevent="handleSubmit" class="flex flex-col gap-4 mt-4 w-full">
+      <form class="flex flex-col gap-4 mt-4 w-full" @submit.prevent="handleSubmit">
         <!-- Email -->
         <div>
           <BaseLabel for="email">Email</BaseLabel>
           <BaseInput
-            v-model="user.email"
             id="email"
+            v-model="user.email"
             type="email"
             autocomplete="email"
             placeholder="ejemplo@email.com"
@@ -79,8 +76,8 @@ async function handleSubmit () {
         <div>
           <BaseLabel for="password">Contraseña</BaseLabel>
           <BaseInput
-            v-model="user.password"
             id="password"
+            v-model="user.password"
             type="password"
             autocomplete="current-password"
             placeholder="••••••••"
@@ -90,7 +87,7 @@ async function handleSubmit () {
 
         <!-- Submit -->
         <div class="flex items-center justify-center mt-4">
-          <BaseButton type="orange" htmlType="submit" :disabled="loading">
+          <BaseButton type="orange" html-type="submit" :disabled="loading">
             <template #icon>
               <Loader v-if="loading" class="w-5 h-5 border-2" />
               <IconLucide v-else name="LogIn" :size="20" />
@@ -113,4 +110,3 @@ async function handleSubmit () {
     </section>
   </div>
 </template>
-

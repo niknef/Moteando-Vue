@@ -6,7 +6,6 @@ import BaseButtonOutline from '@/components/ui/BaseButtonOutline.vue' // Botón 
 import { logout, subscribeToAuth } from '@/services/auth' // Importo los métodos de autenticación
 import { UserPlusIcon, ArrowRightOnRectangleIcon, UserIcon } from '@heroicons/vue/24/outline' //iconos
 
-
 export default {
   name: 'Home',
   components: {
@@ -15,50 +14,56 @@ export default {
     BaseButtonOutline,
     UserPlusIcon,
     ArrowRightOnRectangleIcon,
-    UserIcon
+    UserIcon,
   },
   data() {
     return {
       user: {
         id: null,
-        email: null
-      }
+        email: null,
+      },
     }
   },
   mounted() {
     // En el mounted llamo a la función subscribeToAuth para subscribirme a los cambios de auth
-    subscribeToAuth(newUserData => {
+    subscribeToAuth((newUserData) => {
       this.user = newUserData
     })
   },
   methods: {
-    async handleLogout() { // Método para cerrar sesión
+    async handleLogout() {
+      // Método para cerrar sesión
       // Valido que el usuario esté autenticado
       await logout()
       this.$router.push('/login')
-    }
-  }
+    },
+  },
 }
 </script>
 
 <template>
   <section
-    class="relative text-center py-20 overflow-hidden rounded-md shadow-md mt-0 mx-auto sm:w-full sm:mt-6">
+    class="relative text-center py-20 overflow-hidden rounded-md shadow-md mt-0 mx-auto sm:w-full sm:mt-6"
+  >
     <!-- Imagen -->
-    <img src="@/assets/ruta-motos-banner.jpg" alt="Ruta motera"
-      class="absolute inset-0 w-full h-full object-cover opacity-40" />
+    <img
+      src="@/assets/ruta-motos-banner.jpg"
+      alt="Ruta motera"
+      class="absolute inset-0 w-full h-full object-cover opacity-40"
+    />
     <div class="absolute inset-0 bg-black opacity-30"></div>
-
 
     <div class="relative z-10">
       <div v-if="user.id && user.email" class="mb-4 text-xl text-orange-400 font-semibold">
         ¡Hola, {{ user.email }}!
       </div>
-      <BaseHeading1><span class="text-white">Mote</span><span class="font-bold">ando</span>: Motos, amigos y aventuras
+      <BaseHeading1
+        ><span class="text-white">Mote</span><span class="font-bold">ando</span>: Motos, amigos y
+        aventuras
       </BaseHeading1>
       <p class="max-w-2xl mx-auto text-gray-300 text-lg mb-6">
-        Unite a la comunidad motera donde podés compartir rutas, experiencias, y conectarte con otros fanáticos de las
-        dos ruedas.
+        Unite a la comunidad motera donde podés compartir rutas, experiencias, y conectarte con
+        otros fanáticos de las dos ruedas.
       </p>
 
       <div class="flex flex-col sm:flex-row justify-center gap-4 mx-auto aling-items-center">
@@ -82,7 +87,6 @@ export default {
           </router-link>
         </template>
 
-
         <template v-else>
           <router-link to="/my-profile">
             <BaseButton type="orange">
@@ -102,26 +106,36 @@ export default {
     <div class="max-w-5xl mx-auto text-center">
       <h2 class="text-3xl font-bold mb-6 text-orange-400">¿Qué podés hacer en Moteando?</h2>
       <p class="text-gray-300 mb-12">
-        Estas son solo algunas de las funciones que hacen de Moteando la app ideal para tu vida sobre dos ruedas.
+        Estas son solo algunas de las funciones que hacen de Moteando la app ideal para tu vida
+        sobre dos ruedas.
       </p>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10 text-left">
         <div class="bg-neutral-800 p-6 rounded-lg shadow-md hover:shadow-lg transition">
           <h3 class="text-xl font-semibold text-orange-300 mb-2">📍 Crear y compartir rutas</h3>
-          <p class="text-gray-400">Planeá tus recorridos favoritos y compartilos con la comunidad.</p>
+          <p class="text-gray-400">
+            Planeá tus recorridos favoritos y compartilos con la comunidad.
+          </p>
         </div>
         <div class="bg-neutral-800 p-6 rounded-lg shadow-md hover:shadow-lg transition">
           <h3 class="text-xl font-semibold text-orange-300 mb-2">🎉 Participar en eventos</h3>
-          <p class="text-gray-400">Sumate a encuentros moteros en todo el país organizados por otros usuarios.</p>
+          <p class="text-gray-400">
+            Sumate a encuentros moteros en todo el país organizados por otros usuarios.
+          </p>
         </div>
         <div class="bg-neutral-800 p-6 rounded-lg shadow-md hover:shadow-lg transition">
           <h3 class="text-xl font-semibold text-orange-300 mb-2">💬 Conectar con moteros</h3>
-          <p class="text-gray-400">Chateá, hacé amigos y armá grupo para salir a rodar con seguridad.</p>
+          <p class="text-gray-400">
+            Chateá, hacé amigos y armá grupo para salir a rodar con seguridad.
+          </p>
         </div>
       </div>
     </div>
     <div class="mt-12 flex justify-center">
-      <img src="@/assets/moteros-en-ruta.jpg" alt="Grupo de motos en ruta"
-        class="rounded-lg shadow-md max-h-96 w-full object-cover sm:w-2/3" />
+      <img
+        src="@/assets/moteros-en-ruta.jpg"
+        alt="Grupo de motos en ruta"
+        class="rounded-lg shadow-md max-h-96 w-full object-cover sm:w-2/3"
+      />
     </div>
   </section>
 </template>

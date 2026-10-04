@@ -5,11 +5,11 @@ setWorkerUrl(workerUrl)
 
 import { ref, onBeforeUnmount } from 'vue'
 
-const map     = ref(null)
+const map = ref(null)
 const markers = ref([])
 let isInitialized = false
 
-export function useMap () {
+export function useMap() {
   const init = (containerEl) => {
     if (isInitialized || !containerEl) return
     isInitialized = true
@@ -18,7 +18,7 @@ export function useMap () {
       container: containerEl,
       style: 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json',
       center: [-58.3816, -34.6037],
-      zoom: 11
+      zoom: 11,
     })
 
     map.value.on('error', (err) => {
@@ -27,14 +27,12 @@ export function useMap () {
   }
 
   const addMarker = (lngLat) => {
-    const m = new Marker({ color: '#E86E1B' })
-      .setLngLat(lngLat)
-      .addTo(map.value)
+    const m = new Marker({ color: '#E86E1B' }).setLngLat(lngLat).addTo(map.value)
     markers.value.push(m)
   }
 
   const clearMarkers = () => {
-    markers.value.forEach(m => m.remove())
+    markers.value.forEach((m) => m.remove())
     markers.value = []
   }
 

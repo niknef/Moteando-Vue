@@ -1,11 +1,11 @@
 <script setup>
 /* ────────── imports ────────── */
 import { ref, onMounted } from 'vue'
-import { useRouter }      from 'vue-router'
+import { useRouter } from 'vue-router'
 
-import IconLucide     from '@/components/ui/IconLucide.vue'
-import BaseHeading1   from '@/components/ui/BaseHeading1.vue'
-import BaseButton     from '@/components/ui/BaseButton.vue'
+import IconLucide from '@/components/ui/IconLucide.vue'
+import BaseHeading1 from '@/components/ui/BaseHeading1.vue'
+import BaseButton from '@/components/ui/BaseButton.vue'
 
 import { subscribeToAuth, logout } from '@/services/auth'
 import { listBikes, setActiveBike } from '@/services/bikes'
@@ -18,28 +18,28 @@ const profile = ref({
   last_name: '',
   bio: '',
   avatar_url: '',
-  active_bike_id: null
+  active_bike_id: null,
 })
 const bikes = ref([])
 
 /* ────────── cargar datos ────────── */
 onMounted(() => {
-  subscribeToAuth(async u => {
+  subscribeToAuth(async (u) => {
     if (!u.id) return
     profile.value = { ...profile.value, ...u }
-    bikes.value   = await listBikes()
+    bikes.value = await listBikes()
   })
 })
 
 /* ────────── acciones ────────── */
 const router = useRouter()
 
-async function handleLogout () {
-  await logout()             // espera a que se limpie currentUser
-  router.replace('/login')   // redirige una vez deslogueado
+async function handleLogout() {
+  await logout() // espera a que se limpie currentUser
+  router.replace('/login') // redirige una vez deslogueado
 }
 
-async function activate (id) {
+async function activate(id) {
   await setActiveBike(id)
   profile.value.active_bike_id = id
   bikes.value = await listBikes()
@@ -87,10 +87,10 @@ async function activate (id) {
           <h2 class="text-gray-300 font-semibold">Moto activa</h2>
           <p class="text-white/50 mt-1">
             {{
-              bikes.find(b => b.id === profile.active_bike_id)
-                ? `${bikes.find(b => b.id === profile.active_bike_id).brand}
-                   ${bikes.find(b => b.id === profile.active_bike_id).model}
-                   (${bikes.find(b => b.id === profile.active_bike_id).year})`
+              bikes.find((b) => b.id === profile.active_bike_id)
+                ? `${bikes.find((b) => b.id === profile.active_bike_id).brand}
+                   ${bikes.find((b) => b.id === profile.active_bike_id).model}
+                   (${bikes.find((b) => b.id === profile.active_bike_id).year})`
                 : 'Seleccioná o cargá una moto'
             }}
           </p>
@@ -114,9 +114,7 @@ async function activate (id) {
           class="flex items-center gap-3 p-2 rounded bg-neutral-700/40"
         >
           <img :src="b.photo_url" class="w-12 h-12 rounded object-cover" />
-          <div class="flex-1 text-sm">
-            {{ b.brand }} {{ b.model }} ({{ b.year }})
-          </div>
+          <div class="flex-1 text-sm">{{ b.brand }} {{ b.model }} ({{ b.year }})</div>
 
           <IconLucide
             v-if="b.id === profile.active_bike_id"
@@ -124,14 +122,7 @@ async function activate (id) {
             :size="20"
             class="text-orange-400"
           />
-          <BaseButton
-            v-else
-            size="xs"
-            type="orange"
-            @click="activate(b.id)"
-          >
-            Activar
-          </BaseButton>
+          <BaseButton v-else size="xs" type="orange" @click="activate(b.id)"> Activar </BaseButton>
         </div>
       </div>
 
@@ -154,10 +145,7 @@ async function activate (id) {
 
       <!-- Cerrar sesión -->
       <p class="mt-4 text-center">
-        <button
-          class="text-red-400 hover:text-red-500 underline"
-          @click="handleLogout"
-        >
+        <button class="text-red-400 hover:text-red-500 underline" @click="handleLogout">
           Cerrar sesión
         </button>
       </p>

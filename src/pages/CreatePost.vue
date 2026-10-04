@@ -19,7 +19,7 @@ export default {
     BaseLabel,
     Loader,
     ArrowLeftIcon,
-    BaseAlert
+    BaseAlert,
   },
   data() {
     return {
@@ -34,7 +34,7 @@ export default {
         duration: '', // Se va a armar antes de enviar
         rating: 3,
         description: '',
-        image_url: ''
+        image_url: '',
       },
       durationHours: 0,
       durationMinutes: 0,
@@ -43,11 +43,11 @@ export default {
       preview: '',
       success: false,
       error: null,
-      loading: false
+      loading: false,
     }
   },
   mounted() {
-    subscribeToAuth(user => {
+    subscribeToAuth((user) => {
       this.userId = user.id
     })
   },
@@ -87,7 +87,7 @@ export default {
 
         await createPost({
           ...this.post,
-          user_id: this.userId
+          user_id: this.userId,
         })
 
         this.success = true
@@ -98,8 +98,8 @@ export default {
       } finally {
         this.loading = false
       }
-    }
-  }
+    },
+  },
 }
 </script>
 
@@ -109,11 +109,16 @@ export default {
       <BaseHeading1>Crear publicación</BaseHeading1>
     </div>
 
-    <form @submit.prevent="handleSubmit" class="flex flex-col gap-4 mt-4">
+    <form class="flex flex-col gap-4 mt-4" @submit.prevent="handleSubmit">
       <!-- Nombre de la ruta -->
       <div>
         <BaseLabel for="route_name">Nombre de la ruta</BaseLabel>
-        <BaseInput id="route_name" v-model="post.route_name" required placeholder="Ej: Paseo por Palermo" />
+        <BaseInput
+          id="route_name"
+          v-model="post.route_name"
+          required
+          placeholder="Ej: Paseo por Palermo"
+        />
       </div>
 
       <!-- Punto de inicio -->
@@ -162,14 +167,19 @@ export default {
       <!-- Descripción -->
       <div>
         <BaseLabel for="description">Descripción</BaseLabel>
-        <textarea id="description" v-model="post.description" required class="w-full px-4 py-2 bg-neutral-600 rounded"
-          placeholder="Contanos cómo fue el recorrido, si lo hiciste solo o en grupo..."></textarea>
+        <textarea
+          id="description"
+          v-model="post.description"
+          required
+          class="w-full px-4 py-2 bg-neutral-600 rounded"
+          placeholder="Contanos cómo fue el recorrido, si lo hiciste solo o en grupo..."
+        ></textarea>
       </div>
 
       <!-- Imagen -->
       <div>
         <BaseLabel>Imagen</BaseLabel>
-        <input type="file" accept="image/*" @change="handleFile" class="text-sm mt-1" />
+        <input type="file" accept="image/*" class="text-sm mt-1" @change="handleFile" />
         <div v-if="preview" class="mt-4 flex justify-center">
           <img :src="preview" class="w-48 h-48 object-cover rounded border border-gray-500" />
         </div>
@@ -190,7 +200,7 @@ export default {
           </BaseButton>
         </template>
         <template v-else>
-          <BaseButton type="orange" htmlType="submit">Publicar</BaseButton>
+          <BaseButton type="orange" html-type="submit">Publicar</BaseButton>
         </template>
       </div>
 
