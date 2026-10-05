@@ -204,7 +204,7 @@ onBeforeUnmount(() => map.value?.off('click', handleMapClick))
 </script>
 
 <template>
-  <div class="flex flex-col sm:flex-row h-screen">
+  <div class="flex flex-col sm:flex-row h-full">
     <!-- Sidebar -->
     <div class="w-full sm:w-80 bg-neutral-800 text-white p-6 space-y-4 sm:rounded-r-lg">
       <BaseHeding1 class="text-xl font-bold mb-4">Crear ruta</BaseHeding1>

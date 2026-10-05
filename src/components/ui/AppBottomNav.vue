@@ -18,7 +18,7 @@ const items = [
 
 <template>
   <nav
-    class="lg:hidden fixed bottom-0 inset-x-0 bg-[#1c1c1c] border-t border-neutral-800 h-16 flex justify-around items-center shadow-lg z-50"
+    class="shrink-0 bg-[#1c1c1c] border-t border-neutral-800 h-16 flex justify-around items-center"
     :style="{ paddingBottom: 'env(safe-area-inset-bottom)' }"
   >
     <RouterLink
@@ -32,7 +32,6 @@ const items = [
       <IconLucide
         :name="item.icon"
         :size="24"
-        :active="isActive(item.to)"
         class="transition-colors duration-200 group-hover:text-orange-400"
       />
       <span class="text-[10px] mt-0.5">{{ item.label }}</span>

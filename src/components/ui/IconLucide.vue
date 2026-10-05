@@ -1,5 +1,5 @@
 <script setup>
-import { computed, useAttrs } from 'vue'
+import { computed } from 'vue'
 import {
   ArrowLeft,
   Bike,
@@ -61,10 +61,8 @@ const icons = {
 const props = defineProps({
   name: { type: String, required: true },
   size: { type: [Number, String], default: 24 },
-  active: Boolean,
 })
 
-const attrs = useAttrs() // clases externas
 const IconComp = computed(() => {
   const icon = icons[props.name]
   if (!icon) console.warn(`[IconLucide] Ícono "${props.name}" no registrado en IconLucide.vue`)
@@ -72,14 +70,8 @@ const IconComp = computed(() => {
 })
 </script>
 
+<!-- Sin color propio: usa currentColor y hereda el del texto que lo rodea.
+     Para cambiarlo, pasale una clase (text-primary, group-hover:text-primary…). -->
 <template>
-  <component
-    :is="IconComp"
-    :size="props.size"
-    stroke-width="1.5"
-    :class="[
-      props.active ? 'text-orange-400' : 'text-white', // color base
-      attrs.class, // permite hover override
-    ]"
-  />
+  <component :is="IconComp" :size="props.size" stroke-width="1.5" />
 </template>

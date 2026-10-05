@@ -1,6 +1,6 @@
 <!-- src/pages/Events.vue -->
 <template>
-  <div class="flex flex-col items-center justify-center min-h-screen text-center p-6">
+  <div class="flex flex-col items-center justify-center min-h-full text-center p-6">
     <!-- Ícono Lucide -->
     <HammerIcon class="w-24 h-24 text-orange-500 mb-6 animate-pulse" />
 

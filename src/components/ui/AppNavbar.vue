@@ -34,7 +34,10 @@ const auth = useAuthStore()
     <template v-else>
       <ul class="flex items-center gap-6 ml-auto">
         <li>
-          <router-link to="/rutas/nueva" class="group flex items-center gap-1 hover:text-orange-400">
+          <router-link
+            to="/rutas/nueva"
+            class="group flex items-center gap-1 hover:text-orange-400"
+          >
             <IconLucide name="MapPinned" :size="20" class="group-hover:text-orange-400" />
             Mapa
           </router-link>

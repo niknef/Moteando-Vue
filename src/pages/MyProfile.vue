@@ -38,7 +38,7 @@ async function activate(id) {
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-black/95">
+  <div class="min-h-full flex items-center justify-center bg-black/95">
     <section class="w-full max-w-xl bg-neutral-800 text-white p-8 sm:rounded-lg shadow-md">
       <!-- Título -->
       <BaseHeading1 class="text-center">Mi perfil</BaseHeading1>
