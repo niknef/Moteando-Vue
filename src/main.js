@@ -1,4 +1,6 @@
 import './style.css'
+import '@fontsource-variable/archivo'
+
 import { createApp } from 'vue' //Importamos la funcion para crear la app
 import router from './router/router.js' //Importamos el router
 import App from './App.vue' //Importamos el componente App.vue
