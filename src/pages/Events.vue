@@ -16,7 +16,7 @@
 <script>
 import BaseHeading1 from '@/components/ui/BaseHeading1.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
-import { HammerIcon } from 'lucide-vue-next'
+import { Hammer as HammerIcon } from '@lucide/vue'
 
 export default {
   name: 'Events',
