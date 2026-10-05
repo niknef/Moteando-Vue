@@ -8,11 +8,11 @@ const isActive = (p) => route.path.startsWith(p)
 
 /* ítems de izquierda a derecha */
 const items = [
-  { to: '/posts', icon: 'Newspaper', label: 'Posts' },
-  { to: '/events', icon: 'CalendarClock', label: 'Eventos' },
-  { to: '/map', icon: 'MapPinned', label: 'Mapa' },
-  { to: '/profile/me', icon: 'UserCircle', label: 'Perfil' },
-  { to: '/my-bikes', icon: 'Warehouse', label: 'Garage' },
+  { to: '/comunidad', icon: 'Newspaper', label: 'Posts' },
+  { to: '/eventos', icon: 'CalendarClock', label: 'Eventos' },
+  { to: '/rutas/nueva', icon: 'MapPinned', label: 'Mapa' },
+  { to: '/perfil', icon: 'UserCircle', label: 'Perfil' },
+  { to: '/garaje', icon: 'Warehouse', label: 'Garage' },
 ]
 </script>
 

@@ -6,7 +6,7 @@ const route = useRoute()
 
 /* Ocultar footer en pantallas móviles siempre que exista el bottom-nav
    (todas las rutas privadas) */
-const hideFooter = () => route.path !== '/login' && route.path !== '/register'
+const hideFooter = () => route.path !== '/ingresar' && route.path !== '/registro'
 </script>
 
 <template>

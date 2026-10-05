@@ -27,7 +27,7 @@ const router = useRouter()
 
 async function handleLogout() {
   await auth.logout()
-  router.replace('/login')
+  router.replace('/ingresar')
 }
 
 async function activate(id) {
@@ -119,14 +119,14 @@ async function activate(id) {
 
       <!-- Botonera -->
       <div class="flex justify-center gap-4 items-center mt-4">
-        <router-link to="/my-bikes">
+        <router-link to="/garaje">
           <BaseButton type="gray">
             <template #icon><IconLucide name="Warehouse" :size="20" /></template>
             Mis motos
           </BaseButton>
         </router-link>
 
-        <router-link to="/profile/edit">
+        <router-link to="/perfil/editar">
           <BaseButton type="orange">
             <template #icon><IconLucide name="PencilLine" :size="20" /></template>
             Editar perfil

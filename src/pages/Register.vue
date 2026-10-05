@@ -46,7 +46,7 @@ async function handleSubmit() {
   try {
     const { firstName, lastName, email, password } = user
     await auth.register(email, password, firstName, lastName)
-    router.push('/map') // nueva home
+    router.push('/rutas/nueva') // nueva home
   } catch (err) {
     const msg = err.message
     if (msg.includes('User already registered')) {
@@ -136,7 +136,7 @@ async function handleSubmit() {
 
         <!-- Link a login -->
         <router-link
-          to="/login"
+          to="/ingresar"
           class="text-orange-500 underline text-center hover:text-orange-600"
         >
           ¿Ya tenés cuenta? Iniciá sesión

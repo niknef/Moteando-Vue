@@ -35,7 +35,7 @@ async function handleSubmit() {
   try {
     await auth.login(user.email, user.password)
     // Si el guard nos mandó acá desde otra página, volvemos a ella
-    router.push(route.query.redirect || '/map')
+    router.push(route.query.redirect || '/rutas/nueva')
   } catch (err) {
     const msg = err.message
     if (msg.includes('Invalid login credentials')) {
@@ -101,7 +101,7 @@ async function handleSubmit() {
 
         <!-- Link a register -->
         <router-link
-          to="/register"
+          to="/registro"
           class="text-orange-500 underline text-center hover:text-orange-600"
         >
           ¿No tenés cuenta? Registrate

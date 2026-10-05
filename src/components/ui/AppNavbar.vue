@@ -10,7 +10,7 @@ const auth = useAuthStore()
 <template>
   <nav class="hidden lg:flex bg-neutral-900 text-gray-100 h-16 items-center px-8 shadow-md w-full">
     <!-- Logo -->
-    <router-link to="/map" class="flex items-center gap-2 shrink-0">
+    <router-link to="/rutas/nueva" class="flex items-center gap-2 shrink-0">
       <img :src="Logo" alt="Moteando" class="h-9" />
       <span class="sr-only">Moteando</span>
     </router-link>
@@ -18,13 +18,13 @@ const auth = useAuthStore()
     <!-- Contenido cuando NO hay sesión -->
     <template v-if="!auth.isLoggedIn">
       <div class="flex ml-auto gap-4">
-        <router-link to="/login">
+        <router-link to="/ingresar">
           <BaseButton type="orange">
             <template #icon><IconLucide name="LogIn" :size="20" /></template>
             Ingresar
           </BaseButton>
         </router-link>
-        <router-link to="/register">
+        <router-link to="/registro">
           <BaseButton type="ghost"> Registrarse </BaseButton>
         </router-link>
       </div>
@@ -34,25 +34,25 @@ const auth = useAuthStore()
     <template v-else>
       <ul class="flex items-center gap-6 ml-auto">
         <li>
-          <router-link to="/map" class="group flex items-center gap-1 hover:text-orange-400">
+          <router-link to="/rutas/nueva" class="group flex items-center gap-1 hover:text-orange-400">
             <IconLucide name="MapPinned" :size="20" class="group-hover:text-orange-400" />
             Mapa
           </router-link>
         </li>
         <li>
-          <router-link to="/posts" class="group flex items-center gap-1 hover:text-orange-400">
+          <router-link to="/comunidad" class="group flex items-center gap-1 hover:text-orange-400">
             <IconLucide name="Newspaper" :size="20" class="group-hover:text-orange-400" />
             Posts
           </router-link>
         </li>
         <li>
-          <router-link to="/events" class="group flex items-center gap-1 hover:text-orange-400">
+          <router-link to="/eventos" class="group flex items-center gap-1 hover:text-orange-400">
             <IconLucide name="CalendarClock" :size="20" class="group-hover:text-orange-400" />
             Eventos
           </router-link>
         </li>
         <li>
-          <router-link to="/profile/me" class="group flex items-center gap-1 hover:text-orange-400">
+          <router-link to="/perfil" class="group flex items-center gap-1 hover:text-orange-400">
             <IconLucide name="UserCircle" :size="22" class="group-hover:text-orange-400" />
             Perfil
           </router-link>

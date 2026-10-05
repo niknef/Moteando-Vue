@@ -86,7 +86,7 @@ export default {
         })
 
         this.success = true
-        this.$router.push('/posts')
+        this.$router.push('/comunidad')
       } catch (e) {
         this.error = 'No se pudo guardar el post.'
         console.error('[CreatePost] Error al guardar:', e)
@@ -182,7 +182,7 @@ export default {
 
       <!-- Botones -->
       <div class="flex justify-end gap-4">
-        <router-link to="/posts">
+        <router-link to="/comunidad">
           <BaseButton type="gray">
             <template #icon><IconLucide name="ArrowLeft" :size="20" /></template>
             Volver

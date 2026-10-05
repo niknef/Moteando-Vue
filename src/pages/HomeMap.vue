@@ -164,7 +164,7 @@ function goToCreatePost() {
     route_type: selectedRoute.value,
   }
 
-  router.push({ path: '/posts/create', query: routeData })
+  router.push({ path: '/comunidad/publicar', query: routeData })
 }
 
 onMounted(() => {
