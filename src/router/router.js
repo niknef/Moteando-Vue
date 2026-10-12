@@ -5,7 +5,8 @@ import { useAuthStore } from '@/stores/auth'
 /* ────────── vistas públicas ────────── */
 const Login = () => import('@/pages/Login.vue')
 const Register = () => import('@/pages/Register.vue')
-
+const ForgotPassword = () => import('@/pages/ForgotPassword.vue')
+const ResetPassword = () => import('@/pages/ResetPassword.vue')
 /* ────────── layout y vistas privadas ────────── */
 const AppShell = () => import('@/components/layout/AppShell.vue')
 
@@ -29,6 +30,8 @@ const routes = [
   /* públicas */
   { path: '/ingresar', component: Login },
   { path: '/registro', component: Register },
+  { path: '/recuperar', component: ForgotPassword },
+  { path: '/restablecer', component: ResetPassword },
 
   /* privadas envueltas en AppShell */
   {
@@ -85,7 +88,7 @@ const router = createRouter({
   history: createWebHistory(),
   routes,
   scrollBehavior(to, from, savedPosition) {
-    if (to.hash) return { el: to.hash }
+    if (to.hash && !to.hash.includes('access_token')) return { el: to.hash }
     if (savedPosition) return savedPosition
     return { top: 0 }
   },
