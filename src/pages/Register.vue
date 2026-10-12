@@ -2,14 +2,15 @@
 /* ────────── imports ────────── */
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
-import BaseHeading1 from '@/components/ui/BaseHeading1.vue'
-import BaseButton from '@/components/ui/BaseButton.vue'
-import BaseInput from '@/components/ui/BaseInput.vue'
-import BaseLabel from '@/components/ui/BaseLabel.vue'
-import Loader from '@/components/ui/Loader.vue'
-import BaseAlert from '@/components/ui/BaseAlert.vue'
-import { useAuthStore } from '@/stores/auth'
+
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/button'
+import PasswordInput from '@/components/ui/PasswordInput.vue'
+import PasswordStrength from '@/components/ui/PasswordStrength.vue'
 import IconLucide from '@/components/ui/IconLucide.vue'
+
+import { useAuthStore } from '@/stores/auth'
 import Logo from '@/assets/moteando.svg'
 
 defineOptions({ name: 'Register' }) // opcional para DevTools
@@ -45,12 +46,12 @@ async function handleSubmit() {
   loading.value = true
   try {
     const { firstName, lastName, email, password } = user
-    await auth.register(email, password, firstName, lastName)
+    await auth.register(email, password, firstName.trim(), lastName.trim())
     router.push('/rutas/nueva') // nueva home
   } catch (err) {
     const msg = err.message
     if (msg.includes('User already registered')) {
-      error.value = 'Ese correo ya está registrado. Intenta con otro.'
+      error.value = 'Ese email ya tiene una cuenta. Probá iniciar sesión.'
     } else if (msg.includes('Password should be at least 6 characters')) {
       error.value = 'La contraseña debe tener al menos 6 caracteres.'
     } else {
@@ -64,87 +65,92 @@ async function handleSubmit() {
 </script>
 
 <template>
-  <div class="min-h-screen flex flex-col items-center justify-center bg-black/95 p-4">
-    <img :src="Logo" alt="Moteando" class="h-16 mb-10" />
-    <section
-      class="w-full max-w-md bg-neutral-800 text-gray-100 p-8 sm:rounded-lg shadow-md flex flex-col items-center"
+  <!-- Mismos espacios que Ingresar: el logo no salta al pasar de una pantalla a la otra -->
+  <div class="flex min-h-dvh flex-col bg-background px-6 pt-20 pb-10">
+    <img :src="Logo" alt="Moteando" class="h-12 w-auto self-center" />
+    <h1 class="mt-6 text-3xl font-semibold tracking-tight">Creá tu cuenta</h1>
+    <p class="mt-2 text-[17px] text-muted-foreground">Guardá tus rutas y seguí a otros moteros.</p>
+
+    <div
+      v-if="error"
+      role="alert"
+      class="mt-7 flex items-start gap-2.5 rounded-lg border border-destructive bg-card px-3.5 py-3 text-sm"
     >
-      <BaseHeading1>Crear cuenta</BaseHeading1>
+      <IconLucide name="CircleAlert" :size="18" class="mt-px shrink-0 text-destructive" />
+      {{ error }}
+    </div>
 
-      <form class="flex flex-col gap-4 mt-4" @submit.prevent="handleSubmit">
-        <!-- Nombre & Apellido -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <BaseLabel for="firstName">Nombre</BaseLabel>
-            <BaseInput
-              id="firstName"
-              v-model="user.firstName"
-              autocomplete="given-name"
-              placeholder="Nombre"
-              required
-            />
-          </div>
-          <div>
-            <BaseLabel for="lastName">Apellido</BaseLabel>
-            <BaseInput
-              id="lastName"
-              v-model="user.lastName"
-              autocomplete="family-name"
-              placeholder="Apellido"
-              required
-            />
-          </div>
-        </div>
-
-        <!-- Email -->
-        <div>
-          <BaseLabel for="email">Email</BaseLabel>
-          <BaseInput
-            id="email"
-            v-model="user.email"
-            type="email"
-            placeholder="ejemplo@email.com"
-            autocomplete="email"
+    <form
+      class="flex flex-col gap-4"
+      :class="error ? 'mt-4' : 'mt-11'"
+      @submit.prevent="handleSubmit"
+    >
+      <!-- Nombre y apellido lado a lado: entran bien en 390px -->
+      <div class="grid grid-cols-2 gap-3">
+        <div class="flex flex-col gap-4">
+          <Label for="firstName">Nombre</Label>
+          <Input
+            id="firstName"
+            v-model="user.firstName"
+            autocomplete="given-name"
+            placeholder="Martín"
+            class="h-13"
             required
           />
         </div>
-
-        <!-- Password -->
-        <div>
-          <BaseLabel for="password">Contraseña</BaseLabel>
-          <BaseInput
-            id="password"
-            v-model="user.password"
-            type="password"
-            placeholder="••••••••"
-            autocomplete="new-password"
-            minlength="6"
+        <div class="flex flex-col gap-4">
+          <Label for="lastName">Apellido</Label>
+          <Input
+            id="lastName"
+            v-model="user.lastName"
+            autocomplete="family-name"
+            placeholder="Gómez"
+            class="h-13"
             required
           />
         </div>
+      </div>
 
-        <!-- Submit -->
-        <div class="flex items-center justify-center mt-4">
-          <BaseButton type="orange" html-type="submit" :disabled="loading">
-            <template #icon>
-              <Loader v-if="loading" class="w-5 h-5 border-2" />
-              <IconLucide v-else name="UserPlus" :size="20" class="text-white" />
-            </template>
-            {{ loading ? 'Creando cuenta…' : 'Crear cuenta' }}
-          </BaseButton>
-        </div>
+      <div class="mt-3 flex flex-col gap-4">
+        <Label for="email">Email</Label>
+        <Input
+          id="email"
+          v-model="user.email"
+          type="email"
+          autocomplete="email"
+          placeholder="tu@correo.com"
+          class="h-13"
+          required
+        />
+      </div>
 
-        <!-- Link a login -->
-        <router-link
-          to="/ingresar"
-          class="text-orange-500 underline text-center hover:text-orange-600"
-        >
-          ¿Ya tenés cuenta? Iniciá sesión
-        </router-link>
+      <div class="mt-3 flex flex-col gap-4">
+        <Label for="password">Contraseña</Label>
+        <PasswordInput
+          id="password"
+          v-model="user.password"
+          autocomplete="new-password"
+          placeholder="Mínimo 6 caracteres"
+          minlength="6"
+          aria-describedby="password-strength"
+          class="h-13"
+          required
+        />
+        <PasswordStrength :password="user.password" />
+      </div>
 
-        <!-- Error global -->
-        <BaseAlert :message="error" type="error" />
-      </form>
-    </section>
+      <Button
+        type="submit"
+        class="mt-6 h-13 w-full text-base font-semibold hover:bg-primary/90"
+        :disabled="loading"
+      >
+        {{ loading ? 'Creando cuenta…' : 'Crear cuenta' }}
+      </Button>
+    </form>
+
+    <p class="flex justify-center gap-1.5 pt-8 text-[15px] text-muted-foreground">
+      ¿Ya tenés cuenta?
+      <router-link to="/ingresar" class="font-semibold text-primary">Iniciá sesión</router-link>
+    </p>
   </div>
 </template>

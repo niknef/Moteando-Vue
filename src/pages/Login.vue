@@ -2,13 +2,13 @@
 /* ────────── imports ────────── */
 import { ref, reactive } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/button'
+import PasswordInput from '@/components/ui/PasswordInput.vue'
 import IconLucide from '@/components/ui/IconLucide.vue'
-import BaseHeading1 from '@/components/ui/BaseHeading1.vue'
-import BaseButton from '@/components/ui/BaseButton.vue'
-import BaseInput from '@/components/ui/BaseInput.vue'
-import BaseLabel from '@/components/ui/BaseLabel.vue'
-import Loader from '@/components/ui/Loader.vue'
-import BaseAlert from '@/components/ui/BaseAlert.vue'
+
 import { useAuthStore } from '@/stores/auth'
 import Logo from '@/assets/moteando.svg'
 
@@ -39,7 +39,7 @@ async function handleSubmit() {
   } catch (err) {
     const msg = err.message
     if (msg.includes('Invalid login credentials')) {
-      error.value = 'Datos incorrectos. Revisá tu email y contraseña.'
+      error.value = 'Email o contraseña incorrectos. Revisalos e intentá de nuevo.'
     } else if (msg.includes('Email not confirmed')) {
       error.value = 'Confirmá tu email antes de iniciar sesión.'
     } else {
@@ -53,63 +53,69 @@ async function handleSubmit() {
 </script>
 
 <template>
-  <div class="min-h-screen flex flex-col items-center justify-center bg-black/95 p-4">
-    <img :src="Logo" alt="Moteando" class="h-16 mb-10" />
+  <div class="flex min-h-dvh flex-col bg-background px-6 pt-20 pb-10">
+    <img :src="Logo" alt="Moteando" class="h-12 w-auto self-center" />
+    <p class="mt-6 text-[17px] text-muted-foreground">
+      Armá tus rutas en moto y compartilas con la comunidad.
+    </p>
 
-    <section
-      class="w-full max-w-md bg-neutral-800 text-gray-100 p-8 sm:rounded-lg shadow-md flex flex-col items-center"
+    <!-- Error arriba del formulario (pantalla 0C) -->
+    <div
+      v-if="error"
+      role="alert"
+      class="mt-7 flex items-start gap-2.5 rounded-lg border border-destructive bg-card px-3.5 py-3 text-sm"
     >
-      <BaseHeading1>Iniciar sesión</BaseHeading1>
+      <IconLucide name="CircleAlert" :size="18" class="mt-px shrink-0 text-destructive" />
+      {{ error }}
+    </div>
 
-      <form class="flex flex-col gap-4 mt-4 w-full" @submit.prevent="handleSubmit">
-        <!-- Email -->
-        <div>
-          <BaseLabel for="email">Email</BaseLabel>
-          <BaseInput
-            id="email"
-            v-model="user.email"
-            type="email"
-            autocomplete="email"
-            placeholder="ejemplo@email.com"
-            required
-          />
-        </div>
+    <form
+      class="flex flex-col gap-4"
+      :class="error ? 'mt-4' : 'mt-11'"
+      @submit.prevent="handleSubmit"
+    >
+      <div class="flex flex-col gap-4">
+        <Label for="email">Email</Label>
+        <Input
+          id="email"
+          v-model="user.email"
+          type="email"
+          autocomplete="email"
+          placeholder="tu@correo.com"
+          class="h-13"
+          required
+        />
+      </div>
 
-        <!-- Password -->
-        <div>
-          <BaseLabel for="password">Contraseña</BaseLabel>
-          <BaseInput
-            id="password"
-            v-model="user.password"
-            type="password"
-            autocomplete="current-password"
-            placeholder="••••••••"
-            required
-          />
-        </div>
+      <div class="mt-3 flex flex-col gap-4">
+        <Label for="password">Contraseña</Label>
+        <PasswordInput
+          id="password"
+          v-model="user.password"
+          :aria-invalid="!!error"
+          autocomplete="current-password"
+          placeholder="Tu contraseña"
+          class="h-13"
+          required
+        />
+      </div>
 
-        <!-- Submit -->
-        <div class="flex items-center justify-center mt-4">
-          <BaseButton type="orange" html-type="submit" :disabled="loading">
-            <template #icon>
-              <Loader v-if="loading" class="w-5 h-5 border-2" />
-              <IconLucide v-else name="LogIn" :size="20" />
-            </template>
-            {{ loading ? 'Ingresando…' : 'Ingresar' }}
-          </BaseButton>
-        </div>
+      <router-link to="/recuperar" class="self-end py-1.5 text-sm font-medium text-primary">
+        ¿Olvidaste tu contraseña?
+      </router-link>
 
-        <!-- Link a register -->
-        <router-link
-          to="/registro"
-          class="text-orange-500 underline text-center hover:text-orange-600"
-        >
-          ¿No tenés cuenta? Registrate
-        </router-link>
+      <Button
+        type="submit"
+        class="mt-1 h-13 w-full text-base font-semibold hover:bg-primary/90"
+        :disabled="loading"
+      >
+        {{ loading ? 'Ingresando…' : 'Iniciar sesión' }}
+      </Button>
+    </form>
 
-        <!-- Error global -->
-        <BaseAlert :message="error" type="error" />
-      </form>
-    </section>
+    <p class="flex justify-center gap-1.5 pt-8 text-[15px] text-muted-foreground">
+      ¿No tenés cuenta?
+      <router-link to="/registro" class="font-semibold text-primary">Registrate</router-link>
+    </p>
   </div>
 </template>

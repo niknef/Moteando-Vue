@@ -18,11 +18,12 @@ const visible = ref(false) // Estado para controlar la visibilidad de la contras
     <Input v-bind="$attrs" v-model="model" :type="visible ? 'text' : 'password'" class="pr-12" />
     <button
       type="button"
+      :aria-pressed="visible"
       class="absolute right-1 top-1/2 -translate-y-1/2 flex size-11 items-center justify-center text-muted-foreground hover:text-foreground"
       :aria-label="visible ? 'Ocultar contraseña' : 'Mostrar contraseña'"
       @click="visible = !visible"
     >
-      <IconLucide :name="visible ? 'EyeOff' : 'Eye'" size="20" />
+      <IconLucide :name="visible ? 'EyeOff' : 'Eye'" :size="20" />
     </button>
   </div>
 </template>
