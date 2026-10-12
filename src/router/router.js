@@ -11,6 +11,7 @@ const ResetPassword = () => import('@/pages/ResetPassword.vue')
 const AppShell = () => import('@/components/layout/AppShell.vue')
 
 const HomeMap = () => import('@/pages/HomeMap.vue')
+const MyRoutes = () => import('@/pages/MyRoutes.vue')
 const PostList = () => import('@/pages/PostList.vue')
 const PostDetail = () => import('@/pages/PostDetail.vue')
 const CreatePost = () => import('@/pages/CreatePost.vue')
@@ -41,6 +42,7 @@ const routes = [
     children: [
       { path: '', redirect: '/rutas/nueva' },
 
+      { path: 'rutas', component: MyRoutes },
       { path: 'rutas/nueva', component: HomeMap },
 
       { path: 'comunidad', component: PostList },

@@ -6,6 +6,7 @@ import {
   CalendarClock,
   CheckCircle2,
   CircleAlert,
+  CirclePlus,
   Clock,
   Copy,
   Eye,
@@ -16,6 +17,7 @@ import {
   Info,
   LogIn,
   MailCheck,
+  MapIcon, // "Map" a secas taparía el Map de JavaScript
   MapPin,
   MapPinned,
   MessageCircle,
@@ -26,8 +28,10 @@ import {
   Save,
   Star,
   Trash2,
+  User,
   UserCircle,
   UserPlus,
+  Users,
   Warehouse,
 } from '@lucide/vue'
 
@@ -39,6 +43,7 @@ const icons = {
   CalendarClock,
   CheckCircle2,
   CircleAlert,
+  CirclePlus,
   Clock,
   Copy,
   Eye,
@@ -49,6 +54,7 @@ const icons = {
   Info,
   LogIn,
   MailCheck,
+  Map: MapIcon,
   MapPin,
   MapPinned,
   MessageCircle,
@@ -59,8 +65,10 @@ const icons = {
   Save,
   Star,
   Trash2,
+  User,
   UserCircle,
   UserPlus,
+  Users,
   Warehouse,
 }
 
