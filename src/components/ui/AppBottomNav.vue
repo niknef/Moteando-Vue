@@ -1,10 +1,7 @@
 <!-- src/components/ui/AppBottomNav.vue -->
 <script setup>
-import { computed } from 'vue'
-import { useRoute } from 'vue-router'
 import IconLucide from '@/components/ui/IconLucide.vue'
-
-const route = useRoute()
+import { useActiveNav } from '@/composables/useActiveNav'
 
 /* ítems de izquierda a derecha */
 const items = [
@@ -14,15 +11,7 @@ const items = [
   { to: '/perfil', icon: 'User', label: 'Perfil' },
 ]
 
-// Activo = el ítem con la dirección más larga que coincide con el principio de la ruta.
-// Así /rutas/nueva marca "Crear" (no "Mis rutas") y /comunidad/123 sigue marcando "Comunidad".
-const activeTo = computed(
-  () =>
-    items
-      .map((item) => item.to)
-      .filter((to) => route.path === to || route.path.startsWith(to + '/'))
-      .sort((a, b) => b.length - a.length)[0],
-)
+const activeTo = useActiveNav(items.map((item) => item.to))
 </script>
 
 <template>

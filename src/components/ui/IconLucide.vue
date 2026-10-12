@@ -16,6 +16,7 @@ import {
   Image,
   Info,
   LogIn,
+  LogOut,
   MailCheck,
   MapIcon, // "Map" a secas taparía el Map de JavaScript
   MapPin,
@@ -53,6 +54,7 @@ const icons = {
   Image,
   Info,
   LogIn,
+  LogOut,
   MailCheck,
   Map: MapIcon,
   MapPin,

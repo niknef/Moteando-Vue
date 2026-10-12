@@ -21,7 +21,7 @@
   --secondary-foreground: #f5f5f5;
   --muted: #202020;
   --muted-foreground: #9a9a9a;
-  --accent: #2a2a2a;
+  --accent: #333333; /* resaltado de ítems en menús: tiene que contrastar con --popover */
   --accent-foreground: #f5f5f5;
   --destructive: #dc2626;
   --border: #333333;
