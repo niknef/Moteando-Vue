@@ -11,6 +11,14 @@ import BaseAlert from '@/components/ui/BaseAlert.vue'
 import Loader from '@/components/ui/Loader.vue'
 import IconLucide from '@/components/ui/IconLucide.vue'
 import PostRouteCard from '@/components/route/PostRouteCard.vue'
+import PostPhotos from '@/components/route/PostPhotos.vue'
+import { formatShortDate } from '@/lib/format'
+
+// "Salió el 12 nov" si la salida tiene fecha; si no, cuándo se publicó
+const rideDateText = (p) =>
+  p.ride_date
+    ? `Salió el ${formatShortDate(p.ride_date + 'T12:00')}`
+    : formatShortDate(p.created_at)
 
 import { getLastPosts, subscribeToNewPosts, likePost, unlikePost } from '@/services/posts'
 
@@ -134,7 +142,7 @@ async function toggleLike(p) {
                 {{ p.user_profiles?.first_name }} {{ p.user_profiles?.last_name }}
               </p>
               <p class="text-xs text-muted-foreground">
-                {{ new Date(p.created_at).toLocaleDateString() }}
+                {{ rideDateText(p) }}
               </p>
             </div>
           </div>
@@ -154,14 +162,18 @@ async function toggleLike(p) {
         <div class="flex flex-col sm:flex-row sm:gap-6">
           <!-- Datos de la ruta -->
           <div class="flex-1">
-            <p class="font-medium text-primary flex items-center gap-1 mb-1">
-              <IconLucide name="MapPinned" :size="18" /> {{ p.route_name }}
-            </p>
-            <p class="text-sm text-foreground/80 flex items-center gap-1 mb-1">
-              <IconLucide name="Clock" :size="18" /> {{ formatDuration(p.duration) }}
-            </p>
+            <!-- con ruta vinculada, nombre y duración ya están en la tarjeta de la ruta -->
+            <template v-if="!p.routes">
+              <p class="font-medium text-primary flex items-center gap-1 mb-1">
+                <IconLucide name="MapPinned" :size="18" /> {{ p.route_name }}
+              </p>
+              <p class="text-sm text-foreground/80 flex items-center gap-1 mb-1">
+                <IconLucide name="Clock" :size="18" /> {{ formatDuration(p.duration) }}
+              </p>
+            </template>
             <p class="text-sm text-foreground/80 flex items-center gap-1 mb-3">
-              <IconLucide name="Star" :size="18" class="text-rating" /> {{ p.rating }}/5
+              <IconLucide name="Star" :size="18" class="fill-current text-rating" />
+              {{ p.rating }}/5
             </p>
 
             <p class="bg-muted p-3 rounded-r-lg border-l-4 border-primary mb-4">
@@ -169,15 +181,13 @@ async function toggleLike(p) {
             </p>
           </div>
 
-          <!-- Imagen de la ruta -->
-          <div v-if="p.image_url" class="sm:w-1/3 flex justify-center sm:justify-end">
-            <img
-              :src="p.image_url"
-              alt="Imagen de la ruta"
-              class="max-h-60 rounded-lg border cursor-pointer hover:opacity-90 transition w-full object-cover"
-              @click="router.push(`/user/${p.user_profiles?.id}`)"
-            />
-          </div>
+          <!-- Fotos de la salida (antes una sola imagen que llevaba a una página inexistente: B2) -->
+          <PostPhotos
+            :photos="p.photos"
+            :image-url="p.image_url"
+            :alt="`Foto de ${p.route_name}`"
+            class="sm:w-1/2"
+          />
         </div>
 
         <!-- Acciones -->
