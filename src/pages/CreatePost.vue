@@ -80,10 +80,10 @@ export default {
           route_type: route.options?.preference ?? 'fastest',
           description: this.post.description || route.description || '',
         })
-        const minutes = Number(route.duration_min) || 0
+        // el selector va de a 15 minutos: se redondea el total (55 min → 1 h, no 0 h 0 min)
+        const minutes = Math.round((Number(route.duration_min) || 0) / 15) * 15
         this.durationHours = Math.min(Math.floor(minutes / 60), 23)
-        // el selector va de a 15 minutos
-        this.durationMinutes = (Math.round((minutes % 60) / 15) * 15) % 60
+        this.durationMinutes = minutes % 60
       } catch (e) {
         this.error = e.message
       } finally {
