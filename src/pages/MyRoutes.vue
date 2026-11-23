@@ -16,6 +16,7 @@ import RoutePreview from '@/components/route/RoutePreview.vue'
 import { deleteRoute, listMyRoutes } from '@/services/routes'
 import { useRouteDraftStore } from '@/stores/routeDraft'
 import { formatDuration, formatKm, formatShortDate } from '@/lib/format'
+import { downloadGpx, openInGoogleMaps } from '@/lib/share'
 
 defineOptions({ name: 'MyRoutes' })
 
@@ -149,6 +150,14 @@ onMounted(load)
             <DropdownMenuItem @select="openRoute(route)">
               <IconLucide name="PencilLine" :size="16" />
               Editar
+            </DropdownMenuItem>
+            <DropdownMenuItem @select="openInGoogleMaps(route)">
+              <IconLucide name="ExternalLink" :size="16" />
+              Abrir en Google Maps
+            </DropdownMenuItem>
+            <DropdownMenuItem @select="downloadGpx(route)">
+              <IconLucide name="Download" :size="16" />
+              Descargar GPX
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem variant="destructive" @select="removeRoute(route)">
