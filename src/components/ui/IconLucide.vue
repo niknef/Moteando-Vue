@@ -1,7 +1,10 @@
 <script setup>
 import { computed } from 'vue'
 import {
+  ArrowDown,
+  ArrowDownUp,
   ArrowLeft,
+  ArrowUp,
   Bike,
   CalendarClock,
   CheckCircle2,
@@ -9,12 +12,14 @@ import {
   CirclePlus,
   Clock,
   Copy,
+  EllipsisVertical,
   Eye,
   EyeOff,
   FilePlus,
   Heart,
   Image,
   Info,
+  LoaderCircle,
   LogIn,
   LogOut,
   MailCheck,
@@ -27,6 +32,8 @@ import {
   Plus,
   Route,
   Save,
+  Scan,
+  Search,
   Star,
   Trash2,
   User,
@@ -34,12 +41,16 @@ import {
   UserPlus,
   Users,
   Warehouse,
+  X,
 } from '@lucide/vue'
 
 // Solo se registran los íconos que usa la app: importar toda la librería
 // sumaba ~800 KB al bundle. Para usar uno nuevo, agregarlo acá.
 const icons = {
+  ArrowDown,
+  ArrowDownUp,
   ArrowLeft,
+  ArrowUp,
   Bike,
   CalendarClock,
   CheckCircle2,
@@ -47,12 +58,14 @@ const icons = {
   CirclePlus,
   Clock,
   Copy,
+  EllipsisVertical,
   Eye,
   EyeOff,
   FilePlus,
   Heart,
   Image,
   Info,
+  LoaderCircle,
   LogIn,
   LogOut,
   MailCheck,
@@ -65,6 +78,8 @@ const icons = {
   Plus,
   Route,
   Save,
+  Scan,
+  Search,
   Star,
   Trash2,
   User,
@@ -72,6 +87,7 @@ const icons = {
   UserPlus,
   Users,
   Warehouse,
+  X,
 }
 
 const props = defineProps({

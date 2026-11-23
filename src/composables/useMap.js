@@ -16,7 +16,7 @@ export function useMap() {
 
     map.value = new MapLibreMap({
       container: containerEl,
-      style: 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json',
+      style: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
       center: [-58.3816, -34.6037],
       zoom: 11,
     })
