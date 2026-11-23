@@ -18,9 +18,14 @@ const props = defineProps({
   canPublish: { type: Boolean, default: false },
 })
 // link-shared: { status, madePublic } · error: mensaje
-const emit = defineEmits(['publish', 'link-shared', 'error'])
+// need-save: la ruta no está guardada; el padre la guarda y después ofrece el link
+const emit = defineEmits(['publish', 'link-shared', 'error', 'need-save'])
 
 async function shareLink() {
+  if (!props.route.id) {
+    emit('need-save')
+    return
+  }
   try {
     emit('link-shared', await shareRouteWithLink(props.route))
   } catch (e) {
@@ -35,11 +40,13 @@ async function shareLink() {
       <slot />
     </DropdownMenuTrigger>
     <DropdownMenuContent align="end" class="min-w-56">
-      <DropdownMenuItem :disabled="!route.id" @select="shareLink">
+      <DropdownMenuItem @select="shareLink">
         <IconLucide name="Share2" :size="16" />
         <span class="flex flex-col">
           Compartir link
-          <span v-if="!route.id" class="text-xs text-muted-foreground">Guardala primero</span>
+          <span v-if="!route.id" class="text-xs text-muted-foreground"
+            >Se guarda y se comparte</span
+          >
         </span>
       </DropdownMenuItem>
       <DropdownMenuSeparator />

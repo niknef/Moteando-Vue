@@ -9,6 +9,9 @@ import { reverseGeocode } from '@/composables/useGeocoding'
 
 export const MAX_WAYPOINTS = 25
 export const AVOID_OPTIONS = ['highways', 'tollways', 'ferries']
+// Una ruta nueva evita autopistas: es lo que busca la mayoría para pasear (y lo que más
+// asusta a quien recién empieza). Se puede apagar en Opciones.
+const DEFAULT_AVOID = ['highways']
 
 const KEY = 'moteando:route-draft:'
 const newId = () => crypto.randomUUID()
@@ -21,7 +24,7 @@ export const useRouteDraftStore = defineStore('routeDraft', () => {
   const description = useLocalStorage(`${KEY}description`, '')
   const isPublic = useLocalStorage(`${KEY}isPublic`, false)
   const waypoints = useLocalStorage(`${KEY}waypoints`, []) // [{ id, lng, lat, label }]
-  const avoid = useLocalStorage(`${KEY}avoid`, []) // subconjunto de AVOID_OPTIONS
+  const avoid = useLocalStorage(`${KEY}avoid`, [...DEFAULT_AVOID]) // subconjunto de AVOID_OPTIONS
   const preference = useLocalStorage(`${KEY}preference`, 'fastest') // 'fastest' | 'shortest'
   // { geometry, distanceKm, durationMin }. Con default null hay que decirle que es un objeto
   const result = useLocalStorage(`${KEY}result`, null, { serializer: StorageSerializers.object })
@@ -111,6 +114,8 @@ export const useRouteDraftStore = defineStore('routeDraft', () => {
         geometry: feature.geometry,
         distanceKm: Math.round(distance / 100) / 10,
         durationMin: Math.round(duration / 60),
+        // km de cada tramo (punto i → i + 1); las rutas cargadas de la base no lo traen
+        legsKm: (feature.properties.segments ?? []).map((s) => Math.round(s.distance / 100) / 10),
       }
     } catch (e) {
       if (id !== requestId) return
@@ -153,7 +158,7 @@ export const useRouteDraftStore = defineStore('routeDraft', () => {
     description.value = ''
     isPublic.value = false
     waypoints.value = []
-    avoid.value = []
+    avoid.value = [...DEFAULT_AVOID]
     preference.value = 'fastest'
     result.value = null
     loading.value = false

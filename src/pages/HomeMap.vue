@@ -14,6 +14,7 @@ import { boundsOf, setRouteLine, waypointMarkerElement } from '@/lib/map-route'
 import { useRouteDraftStore } from '@/stores/routeDraft'
 import { useAuthStore } from '@/stores/auth'
 import { getRouteById, updateRoute } from '@/services/routes'
+import { linkShareMessage, shareRouteLink } from '@/lib/share'
 
 // Diseñador de rutas: el mapa ocupa toda la pantalla y el borrador vive en el store.
 
@@ -141,8 +142,8 @@ const mapCenter = () => map.value?.getCenter() ?? null
 async function goToCreatePost() {
   notice.value = ''
   if (!routeId.value) {
-    notice.value = 'Guardá la ruta para poder publicarla'
-    saveOpen.value = true
+    // se guarda primero (como pública) y al terminar se sigue al formulario del post
+    openSave('publish')
     return
   }
   if (!draft.isPublic) {
@@ -161,16 +162,53 @@ async function goToCreatePost() {
 }
 
 /* ───────── Guardar y editar ───────── */
+// Qué hacer cuando termine de guardar: null, 'share' (compartir link) o 'publish' (crear post)
+let afterSave = null
+// Acción opcional del aviso de éxito (un botón: compartir necesita un toque del usuario)
+const successAction = ref(null)
+
+function openSave(then = null) {
+  afterSave = then
+  // si la guarda para compartirla o publicarla, tiene que ser pública
+  if (then && !routeId.value) draft.isPublic = true
+  saveOpen.value = true
+}
+
 let successTimer
-function showSuccess(text) {
+function showSuccess(text, action = null, ms = 3000) {
   success.value = text
+  successAction.value = action
   clearTimeout(successTimer)
-  successTimer = setTimeout(() => (success.value = ''), 3000)
+  successTimer = setTimeout(() => {
+    success.value = ''
+    successAction.value = null
+  }, ms)
+}
+
+async function shareSavedLink() {
+  try {
+    const status = await shareRouteLink({ id: routeId.value, name: draft.name })
+    const text = linkShareMessage(status)
+    showSuccess(text || 'Listo')
+  } catch (e) {
+    notice.value = e.message
+  }
 }
 
 function onSaved({ row, created }) {
-  showSuccess(created ? 'Ruta guardada en Mis rutas' : 'Cambios guardados')
+  const then = afterSave
+  afterSave = null
   if (created) router.replace(`/rutas/${row.id}/editar`)
+  if (then === 'publish') {
+    router.push({ path: '/comunidad/publicar', query: { route: row.id } })
+    return
+  }
+  if (then === 'share') {
+    // El menú nativo de compartir pide un toque reciente: se ofrece en el aviso
+    showSuccess('Ruta guardada', { label: 'Compartir link', run: shareSavedLink }, 8000)
+    return
+  }
+  showSuccess(created ? 'Ruta guardada en Mis rutas' : 'Cambios guardados')
 }
 
 // Avisos que llegan del panel (por ejemplo, al compartir el link)
@@ -274,11 +312,21 @@ onBeforeUnmount(() => {
       </p>
       <p
         v-if="success"
-        class="flex items-center gap-2 rounded-full bg-card px-3 py-1.5 text-sm shadow-lg"
+        class="pointer-events-auto flex items-center gap-2 rounded-full bg-card py-1.5 pr-1.5 pl-3 text-sm shadow-lg"
+        :class="{ 'pr-3': !successAction }"
         role="status"
       >
         <IconLucide name="CheckCircle2" :size="16" class="text-primary" />
         {{ success }}
+        <Button
+          v-if="successAction"
+          size="sm"
+          class="ml-1 rounded-full"
+          @click="successAction.run()"
+        >
+          <IconLucide name="Share2" :size="14" />
+          {{ successAction.label }}
+        </Button>
       </p>
     </div>
 
@@ -300,7 +348,8 @@ onBeforeUnmount(() => {
       :near="mapCenter"
       @place-added="onPlaceAdded"
       @publish="goToCreatePost"
-      @save="saveOpen = true"
+      @save="openSave()"
+      @save-then-share="openSave('share')"
       @notify="onNotify"
     />
 

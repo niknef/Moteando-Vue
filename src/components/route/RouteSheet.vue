@@ -24,7 +24,7 @@ const props = defineProps({
   // Devuelve { lng, lat } para priorizar resultados de búsqueda cerca (centro del mapa)
   near: { type: Function, default: () => null },
 })
-const emit = defineEmits(['place-added', 'publish', 'save', 'notify'])
+const emit = defineEmits(['place-added', 'publish', 'save', 'save-then-share', 'notify'])
 const expanded = defineModel('expanded', { type: Boolean, default: false })
 
 const draft = useRouteDraftStore()
@@ -77,6 +77,19 @@ function roleOf(index) {
   if (index === 0) return 'Salida'
   if (index === waypoints.value.length - 1) return 'Llegada'
   return `Parada ${index}`
+}
+
+// km del tramo que llega a este punto (null si no hay dato: primer punto o ruta cargada)
+function legKm(index) {
+  if (index === 0) return null
+  return result.value?.legsKm?.[index - 1] ?? null
+}
+
+// Una parada a menos de 2 km de la anterior en una ruta larga suele ser un error del buscador
+// (por ejemplo, la calle "Luján" de CABA en lugar de la ciudad)
+function isSuspicious(index) {
+  const km = legKm(index)
+  return km !== null && km < 2 && result.value.distanceKm > 20
 }
 
 function badgeOf(index) {
@@ -232,7 +245,19 @@ function onHandleClick() {
               class="w-full px-3 py-2 text-left hover:bg-accent focus-visible:bg-accent focus-visible:outline-none"
               @click="addPlace(place)"
             >
-              <span class="block text-sm">{{ place.label }}</span>
+              <span class="flex items-center gap-2">
+                <span class="truncate text-sm" :class="{ 'font-semibold': place.isPlace }">
+                  {{ place.label }}
+                </span>
+                <span
+                  class="shrink-0 rounded-sm px-1.5 py-px text-[10px] font-medium tracking-wide uppercase"
+                  :class="
+                    place.isPlace ? 'bg-primary/15 text-primary' : 'bg-muted text-muted-foreground'
+                  "
+                >
+                  {{ place.kind }}
+                </span>
+              </span>
               <span class="block truncate text-xs text-muted-foreground">{{ place.detail }}</span>
             </button>
           </li>
@@ -278,7 +303,19 @@ function onHandleClick() {
             </span>
             <div class="min-w-0 flex-1">
               <p class="truncate text-sm">{{ wp.label || 'Buscando el nombre…' }}</p>
-              <p class="text-xs text-muted-foreground">{{ roleOf(i) }}</p>
+              <p class="text-xs text-muted-foreground">
+                {{ roleOf(i) }}
+                <template v-if="legKm(i) !== null">
+                  · {{ formatKm(legKm(i)) }} desde el anterior</template
+                >
+              </p>
+              <p
+                v-if="isSuspicious(i)"
+                class="mt-0.5 flex items-center gap-1 text-xs text-note-caution"
+              >
+                <IconLucide name="CircleAlert" :size="12" />
+                Muy cerca del anterior: ¿es el lugar que querías?
+              </p>
             </div>
             <DropdownMenu>
               <DropdownMenuTrigger as-child>
@@ -357,6 +394,7 @@ function onHandleClick() {
         :route="shareable"
         can-publish
         @publish="emit('publish')"
+        @need-save="emit('save-then-share')"
         @link-shared="onLinkShared"
         @error="(message) => emit('notify', { text: message, type: 'error' })"
       >

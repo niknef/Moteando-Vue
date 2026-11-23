@@ -104,7 +104,7 @@ const goBack = () => router.back()
         v-if="activeBike"
         class="bg-neutral-700 p-4 rounded-md border-l-4 border-orange-500 flex items-center gap-2 text-white mb-6"
       >
-        <IconLucide name="Bike" :size="20" class="text-orange-400" />
+        <IconLucide name="Motorbike" :size="20" class="text-orange-400" />
         <span>Moto activa: {{ activeBike.brand }} {{ activeBike.model }}</span>
       </div>
 
