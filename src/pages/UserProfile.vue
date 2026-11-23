@@ -8,6 +8,7 @@ import BaseButton from '@/components/ui/BaseButton.vue'
 import BaseAlert from '@/components/ui/BaseAlert.vue'
 import Loader from '@/components/ui/Loader.vue'
 import IconLucide from '@/components/ui/IconLucide.vue'
+import ProfileRoutes from '@/components/route/ProfileRoutes.vue'
 
 import { getUserProfileByPK } from '@/services/user-profile'
 import { getBikeById } from '@/services/bikes' // 👉 asegurate de tener este método
@@ -111,6 +112,8 @@ const goBack = () => router.back()
         <IconLucide name="Info" :size="20" class="inline mr-1" />
         Este usuario no tiene una moto activa.
       </div>
+
+      <ProfileRoutes :user-id="profile.id" title="Rutas" class="mt-8" />
 
       <div class="flex justify-end gap-4 mt-6">
         <BaseButton type="gray" size="sm" @click="goBack">

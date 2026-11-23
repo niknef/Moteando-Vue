@@ -82,3 +82,31 @@ export async function deleteRoute(id) {
   if (error) throw new Error('No se pudo borrar la ruta: ' + error.message)
   if (!data.length) throw new Error('No se pudo borrar la ruta: no existe o no es tuya')
 }
+
+/**
+ * Rutas públicas para explorar, la última modificada primero, con el autor de cada una.
+ * userId: solo las de ese usuario (perfil) · search: filtra por nombre.
+ */
+export async function listPublicRoutes({ userId, search, limit = 30 } = {}) {
+  let query = supabase
+    .from('routes')
+    .select(COLUMNS)
+    .eq('is_public', true)
+    .order('updated_at', { ascending: false })
+    .limit(limit)
+  if (userId) query = query.eq('user_id', userId)
+  if (search?.trim()) query = query.ilike('name', `%${search.trim()}%`)
+
+  const { data, error } = await query
+  if (error) throw new Error('No se pudieron cargar las rutas: ' + error.message)
+
+  // routes apunta a auth.users (no a user_profiles): los autores se traen aparte
+  const ids = [...new Set(data.map((r) => r.user_id))]
+  if (!ids.length) return []
+  const { data: profiles } = await supabase
+    .from('user_profiles')
+    .select('id, first_name, last_name, avatar_url')
+    .in('id', ids)
+  const byId = Object.fromEntries((profiles ?? []).map((p) => [p.id, p]))
+  return data.map((r) => ({ ...r, author: byId[r.user_id] ?? null }))
+}
