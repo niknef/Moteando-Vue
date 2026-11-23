@@ -4,6 +4,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
 import IconLucide from '@/components/ui/IconLucide.vue'
+import ProfileRoutes from '@/components/route/ProfileRoutes.vue'
 import BaseHeading1 from '@/components/ui/BaseHeading1.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
 
@@ -116,6 +117,15 @@ async function activate(id) {
           <BaseButton v-else size="xs" type="orange" @click="activate(b.id)"> Activar </BaseButton>
         </div>
       </div>
+
+      <!-- Rutas públicas (lo que ven los demás en tu perfil) -->
+      <ProfileRoutes
+        :user-id="auth.user?.id"
+        title="Mis rutas públicas"
+        empty-text="Todavía no hiciste pública ninguna ruta."
+        more-to="/rutas"
+        class="mb-6"
+      />
 
       <!-- Botonera -->
       <div class="flex justify-center gap-4 items-center mt-4">
