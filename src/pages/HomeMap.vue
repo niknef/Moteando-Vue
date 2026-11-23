@@ -1,5 +1,5 @@
 <script setup>
-import { LngLatBounds, Marker } from 'maplibre-gl'
+import { Marker } from 'maplibre-gl'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import RouteSheet from '@/components/route/RouteSheet.vue'
 import SaveRouteDialog from '@/components/route/SaveRouteDialog.vue'
 import { useMap } from '@/composables/useMap'
+import { boundsOf, setRouteLine, waypointMarkerElement } from '@/lib/map-route'
 import { useRouteDraftStore } from '@/stores/routeDraft'
 import { useAuthStore } from '@/stores/auth'
 import { getRouteById } from '@/services/routes'
@@ -37,34 +38,18 @@ const router = useRouter()
 
 const banner = computed(() => notice.value || error.value)
 
-/* ───────── Colores del tema para el mapa (no lee clases de Tailwind) ───────── */
-function themeColor(name) {
-  return getComputedStyle(document.documentElement).getPropertyValue(`--${name}`).trim()
-}
-
 /* ───────── Marcadores ───────── */
 let markers = []
-
-function markerElement(index, total) {
-  const isStart = index === 0
-  const isEnd = total > 1 && index === total - 1
-  const el = document.createElement('button')
-  el.type = 'button'
-  el.className = [
-    'grid size-8 cursor-grab place-items-center rounded-full border-2 border-background text-sm font-bold shadow-lg active:cursor-grabbing',
-    isStart ? 'bg-brand-teal text-foreground' : 'bg-primary text-primary-foreground',
-  ].join(' ')
-  el.textContent = isStart ? 'A' : isEnd ? 'B' : String(index)
-  el.setAttribute('aria-label', isStart ? 'Salida' : isEnd ? 'Llegada' : `Parada ${index}`)
-  return el
-}
 
 function syncMarkers() {
   if (!map.value) return
   markers.forEach((m) => m.remove())
   const list = waypoints.value
   markers = list.map((wp, i) => {
-    const m = new Marker({ element: markerElement(i, list.length), draggable: true })
+    const m = new Marker({
+      element: waypointMarkerElement(i, list.length, { draggable: true }),
+      draggable: true,
+    })
       .setLngLat([wp.lng, wp.lat])
       .addTo(map.value)
     m.on('dragend', () => {
@@ -81,32 +66,7 @@ watch(markersKey, syncMarkers)
 
 /* ───────── Línea de la ruta ───────── */
 function drawRoute() {
-  const m = map.value
-  if (!m) return
-  const data = result.value
-    ? { type: 'Feature', geometry: result.value.geometry, properties: {} }
-    : { type: 'FeatureCollection', features: [] }
-
-  const source = m.getSource(ROUTE_SOURCE)
-  if (source) {
-    source.setData(data)
-    return
-  }
-  m.addSource(ROUTE_SOURCE, { type: 'geojson', data })
-  m.addLayer({
-    id: `${ROUTE_SOURCE}-casing`,
-    type: 'line',
-    source: ROUTE_SOURCE,
-    layout: { 'line-cap': 'round', 'line-join': 'round' },
-    paint: { 'line-color': themeColor('surface-deep'), 'line-width': 9 },
-  })
-  m.addLayer({
-    id: `${ROUTE_SOURCE}-line`,
-    type: 'line',
-    source: ROUTE_SOURCE,
-    layout: { 'line-cap': 'round', 'line-join': 'round' },
-    paint: { 'line-color': themeColor('primary'), 'line-width': 5 },
-  })
+  if (map.value) setRouteLine(map.value, ROUTE_SOURCE, result.value?.geometry ?? null)
 }
 
 /* ───────── Encuadre ───────── */
@@ -139,8 +99,7 @@ function fitRoute() {
     centerOn(coords[0])
     return
   }
-  const bounds = coords.reduce((b, c) => b.extend(c), new LngLatBounds(coords[0], coords[0]))
-  m.fitBounds(bounds, { padding: mapPadding(), maxZoom: 15, duration: 600 })
+  m.fitBounds(boundsOf(coords), { padding: mapPadding(), maxZoom: 15, duration: 600 })
 }
 
 // Al agregar o quitar puntos se reencuadra; al arrastrar uno, no (molestaría)
@@ -197,11 +156,21 @@ function goToCreatePost() {
 
 /* ───────── Guardar y editar ───────── */
 let successTimer
-function onSaved({ row, created }) {
-  success.value = created ? 'Ruta guardada en Mis rutas' : 'Cambios guardados'
+function showSuccess(text) {
+  success.value = text
   clearTimeout(successTimer)
   successTimer = setTimeout(() => (success.value = ''), 3000)
+}
+
+function onSaved({ row, created }) {
+  showSuccess(created ? 'Ruta guardada en Mis rutas' : 'Cambios guardados')
   if (created) router.replace(`/rutas/${row.id}/editar`)
+}
+
+// Avisos que llegan del panel (por ejemplo, al compartir el link)
+function onNotify({ text, type }) {
+  if (type === 'success') showSuccess(text)
+  else notice.value = text
 }
 
 // /rutas/:id/editar carga la ruta guardada; /rutas/nueva arranca de cero si se estaba editando.
@@ -326,6 +295,7 @@ onBeforeUnmount(() => {
       @place-added="onPlaceAdded"
       @publish="goToCreatePost"
       @save="saveOpen = true"
+      @notify="onNotify"
     />
 
     <SaveRouteDialog v-model:open="saveOpen" @saved="onSaved" />
