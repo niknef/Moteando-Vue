@@ -98,11 +98,15 @@ function clearDraft() {
   if (window.confirm(question)) draft.reset()
 }
 
-/* ───────── Arrastre de la manija (mobile) ───────── */
+/* ───────── Manija (mobile): toque alterna, arrastre decide por la dirección ───────── */
+// El toque se resuelve en `click` y no en `pointerup`: si el panel se achica en pointerup,
+// el click que el navegador dispara después cae sobre el mapa y agrega un punto fantasma.
 let startY = null
+let dragged = false
 
 function onHandleDown(e) {
   startY = e.clientY
+  dragged = false
   e.currentTarget.setPointerCapture(e.pointerId)
 }
 
@@ -110,8 +114,17 @@ function onHandleUp(e) {
   if (startY === null) return
   const dy = e.clientY - startY
   startY = null
-  // un toque alterna; un arrastre decide por la dirección
-  expanded.value = Math.abs(dy) < 8 ? !expanded.value : dy < 0
+  if (Math.abs(dy) < 8) return // es un toque: lo maneja onHandleClick
+  dragged = true
+  expanded.value = dy < 0
+}
+
+function onHandleClick() {
+  if (dragged) {
+    dragged = false
+    return
+  }
+  expanded.value = !expanded.value
 }
 </script>
 
@@ -128,6 +141,7 @@ function onHandleUp(e) {
       :aria-expanded="expanded"
       @pointerdown="onHandleDown"
       @pointerup="onHandleUp"
+      @click="onHandleClick"
     >
       <span class="h-1.5 w-10 rounded-full bg-muted-foreground/40" />
     </button>
