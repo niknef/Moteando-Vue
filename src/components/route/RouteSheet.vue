@@ -21,11 +21,12 @@ const props = defineProps({
   // Devuelve { lng, lat } para priorizar resultados de búsqueda cerca (centro del mapa)
   near: { type: Function, default: () => null },
 })
-const emit = defineEmits(['place-added', 'publish'])
+const emit = defineEmits(['place-added', 'publish', 'save'])
 const expanded = defineModel('expanded', { type: Boolean, default: false })
 
 const draft = useRouteDraftStore()
-const { waypoints, result, loading, error, avoid, preference, isEmpty, isFull } = storeToRefs(draft)
+const { routeId, name, waypoints, result, loading, error, avoid, preference, isEmpty, isFull } =
+  storeToRefs(draft)
 
 /* ───────── Resumen ───────── */
 function formatDuration(min) {
@@ -98,7 +99,10 @@ const avoidTolls = computed({
 })
 
 function clearDraft() {
-  if (window.confirm('¿Vaciar la ruta? Se borran todos los puntos.')) draft.reset()
+  const question = routeId.value
+    ? '¿Empezar una ruta nueva? Los cambios sin guardar se pierden.'
+    : '¿Vaciar la ruta? Se borran todos los puntos.'
+  if (window.confirm(question)) draft.reset()
 }
 
 /* ───────── Arrastre de la manija (mobile) ───────── */
@@ -137,6 +141,9 @@ function onHandleUp(e) {
 
     <!-- Resumen -->
     <div class="shrink-0 px-4 pt-1 pb-3 lg:pt-4">
+      <p v-if="routeId" class="mb-1 truncate text-sm text-muted-foreground">
+        Editando · <span class="text-foreground">{{ name }}</span>
+      </p>
       <p class="text-2xl font-semibold tracking-tight" aria-live="polite">{{ summary }}</p>
       <p class="mt-0.5 text-sm text-muted-foreground">{{ stopsText }}</p>
     </div>
@@ -305,9 +312,15 @@ function onHandleUp(e) {
 
     <!-- Pie -->
     <div class="flex shrink-0 gap-2 border-t border-border p-4">
-      <Button variant="ghost" size="lg" :disabled="isEmpty" @click="clearDraft">Vaciar</Button>
-      <Button class="flex-1" size="lg" :disabled="!result || loading" @click="emit('publish')">
-        Publicar en comunidad
+      <Button variant="ghost" size="lg" :disabled="isEmpty" @click="clearDraft">
+        {{ routeId ? 'Nueva' : 'Vaciar' }}
+      </Button>
+      <Button variant="outline" size="lg" :disabled="!result || loading" @click="emit('publish')">
+        Publicar
+      </Button>
+      <Button class="flex-1" size="lg" :disabled="!result || loading" @click="emit('save')">
+        <IconLucide name="Save" :size="16" />
+        {{ routeId ? 'Guardar cambios' : 'Guardar' }}
       </Button>
     </div>
   </section>

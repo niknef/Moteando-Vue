@@ -8,8 +8,11 @@ import Loader from '@/components/ui/Loader.vue'
 import IconLucide from '@/components/ui/IconLucide.vue'
 import { Button } from '@/components/ui/button'
 import RouteSheet from '@/components/route/RouteSheet.vue'
+import SaveRouteDialog from '@/components/route/SaveRouteDialog.vue'
 import { useMap } from '@/composables/useMap'
 import { useRouteDraftStore } from '@/stores/routeDraft'
+import { useAuthStore } from '@/stores/auth'
+import { getRouteById } from '@/services/routes'
 
 // Diseñador de rutas: el mapa ocupa toda la pantalla y el borrador vive en el store.
 
@@ -21,10 +24,14 @@ const sheet = ref(null)
 const sheetExpanded = ref(false)
 const mapReady = ref(false)
 const notice = ref('')
+const success = ref('')
+const saveOpen = ref(false)
+const loadingRoute = ref(false)
 
 const { map, init } = useMap()
 const draft = useRouteDraftStore()
-const { waypoints, result, loading, error } = storeToRefs(draft)
+const { routeId, waypoints, result, loading, error } = storeToRefs(draft)
+const auth = useAuthStore()
 const route = useRoute()
 const router = useRouter()
 
@@ -188,6 +195,45 @@ function goToCreatePost() {
   })
 }
 
+/* ───────── Guardar y editar ───────── */
+let successTimer
+function onSaved({ row, created }) {
+  success.value = created ? 'Ruta guardada en Mis rutas' : 'Cambios guardados'
+  clearTimeout(successTimer)
+  successTimer = setTimeout(() => (success.value = ''), 3000)
+  if (created) router.replace(`/rutas/${row.id}/editar`)
+}
+
+// /rutas/:id/editar carga la ruta guardada; /rutas/nueva arranca de cero si se estaba editando.
+// Si el borrador ya es esa ruta (por ejemplo, al recargar) se conservan los cambios sin guardar.
+async function loadForRoute(id) {
+  // sin id no se limpia el aviso: puede venir de un error al cargar (redirige acá)
+  if (!id) {
+    if (routeId.value) draft.reset()
+    return
+  }
+  notice.value = ''
+  if (routeId.value === id) return
+
+  loadingRoute.value = true
+  try {
+    const row = await getRouteById(id)
+    if (row.user_id !== auth.user?.id) throw new Error('Solo podés editar tus propias rutas')
+    draft.loadRoute(row)
+  } catch (e) {
+    notice.value = e.message
+    router.replace('/rutas/nueva')
+  } finally {
+    loadingRoute.value = false
+  }
+}
+watch(() => route.params.id, loadForRoute, { immediate: true })
+
+// Si el borrador se vacía mientras se edita ("Nueva", cerrar sesión), la URL vuelve a /rutas/nueva
+watch(routeId, (id) => {
+  if (!id && route.params.id) router.replace('/rutas/nueva')
+})
+
 // "Copiar ruta" desde el feed llega con coordenadas en la query: arma un borrador nuevo
 function loadFromQuery() {
   const { originLat, originLng, destLat, destLng } = route.query
@@ -227,7 +273,7 @@ onBeforeUnmount(() => {
     <!-- MapLibre le pone position: relative: el alto sale de h-full -->
     <div ref="mapContainer" class="absolute inset-0 h-full w-full" />
 
-    <div v-if="!mapReady" class="absolute inset-0 z-20 grid place-items-center">
+    <div v-if="!mapReady || loadingRoute" class="absolute inset-0 z-20 grid place-items-center">
       <Loader size="lg" />
     </div>
 
@@ -251,6 +297,14 @@ onBeforeUnmount(() => {
         <IconLucide name="CircleAlert" :size="16" class="mt-0.5 shrink-0" />
         {{ banner }}
       </p>
+      <p
+        v-if="success"
+        class="flex items-center gap-2 rounded-full bg-card px-3 py-1.5 text-sm shadow-lg"
+        role="status"
+      >
+        <IconLucide name="CheckCircle2" :size="16" class="text-primary" />
+        {{ success }}
+      </p>
     </div>
 
     <!-- Encuadrar la ruta -->
@@ -271,7 +325,10 @@ onBeforeUnmount(() => {
       :near="mapCenter"
       @place-added="onPlaceAdded"
       @publish="goToCreatePost"
+      @save="saveOpen = true"
     />
+
+    <SaveRouteDialog v-model:open="saveOpen" @saved="onSaved" />
   </div>
 </template>
 
