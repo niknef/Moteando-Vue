@@ -13,7 +13,7 @@ import BaseAlert from '@/components/ui/BaseAlert.vue'
 import IconLucide from '@/components/ui/IconLucide.vue'
 import Loader from '@/components/ui/Loader.vue'
 import RoutePreview from '@/components/route/RoutePreview.vue'
-import { deleteRoute, listMyRoutes } from '@/services/routes'
+import { deleteRoute, listMyRoutes, updateRoute } from '@/services/routes'
 import { useRouteDraftStore } from '@/stores/routeDraft'
 import { formatDuration, formatKm, formatShortDate } from '@/lib/format'
 import { downloadGpx, linkShareMessage, openInGoogleMaps, shareRouteWithLink } from '@/lib/share'
@@ -62,6 +62,23 @@ async function load() {
 }
 
 const openRoute = (route) => router.push(`/rutas/${route.id}/editar`)
+
+// Contá tu salida: el post cuelga de la ruta, que tiene que ser pública
+async function publishRide(route) {
+  if (!route.is_public) {
+    const question =
+      'Para publicarla en la comunidad la ruta tiene que ser pública. ¿Hacerla pública?'
+    if (!window.confirm(question)) return
+    try {
+      await updateRoute(route.id, { is_public: true })
+      route.is_public = true
+    } catch (e) {
+      error.value = e.message
+      return
+    }
+  }
+  router.push({ path: '/comunidad/publicar', query: { route: route.id } })
+}
 
 async function removeRoute(route) {
   if (!window.confirm(`¿Borrar "${route.name}"? No se puede deshacer.`)) return
@@ -166,6 +183,10 @@ onMounted(load)
             <DropdownMenuItem @select="openRoute(route)">
               <IconLucide name="PencilLine" :size="16" />
               Editar
+            </DropdownMenuItem>
+            <DropdownMenuItem @select="publishRide(route)">
+              <IconLucide name="Newspaper" :size="16" />
+              Contá tu salida
             </DropdownMenuItem>
             <DropdownMenuItem @select="shareLink(route)">
               <IconLucide name="Share2" :size="16" />

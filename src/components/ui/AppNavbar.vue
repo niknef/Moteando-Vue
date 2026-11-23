@@ -19,8 +19,7 @@ const router = useRouter()
 
 /* ítems de izquierda a derecha (Perfil va en el avatar de la derecha) */
 const items = [
-  { to: '/comunidad', icon: 'Users', label: 'Comunidad' },
-  { to: '/explorar', icon: 'Compass', label: 'Explorar' },
+  { to: '/descubrir', icon: 'Compass', label: 'Descubrir' },
   { to: '/rutas', icon: 'Map', label: 'Mis rutas' },
   { to: '/rutas/nueva', icon: 'CirclePlus', label: 'Crear ruta' },
 ]
