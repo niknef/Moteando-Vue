@@ -1,3 +1,5 @@
+import { updateRoute } from '@/services/routes'
+
 // Compartir una ruta con el navegador de cada uno: link de Google Maps y archivo GPX.
 // `route`: { name, description?, waypoints: [{ lng, lat, label }], options?: { avoid }, geometry? }
 
@@ -106,3 +108,48 @@ export function downloadGpx(route) {
   // Safari necesita que la URL siga viva un momento después del click
   setTimeout(() => URL.revokeObjectURL(url), 1000)
 }
+
+/* ───────── Link público ───────── */
+export const publicRouteUrl = (id) => `${window.location.origin}/r/${id}`
+
+// Comparte el link con el menú nativo del celular; si no hay, lo copia.
+// Devuelve 'shared', 'copied' o 'cancelled'.
+export async function shareRouteLink(route) {
+  const url = publicRouteUrl(route.id)
+  if (navigator.share) {
+    try {
+      await navigator.share({ title: route.name, url })
+      return 'shared'
+    } catch (e) {
+      if (e.name === 'AbortError') return 'cancelled'
+      // si el menú nativo falla, se cae a copiar
+    }
+  }
+  try {
+    await navigator.clipboard.writeText(url)
+    return 'copied'
+  } catch {
+    throw new Error('No se pudo copiar el link')
+  }
+}
+
+// Flujo completo de "Compartir link": si la ruta es privada pide permiso para hacerla pública.
+// `route` necesita { id, name, is_public }. Devuelve { status, madePublic }.
+export async function shareRouteWithLink(route) {
+  if (!route.id) throw new Error('Guardá la ruta para poder compartir el link')
+
+  let madePublic = false
+  if (!route.is_public) {
+    const question =
+      'La ruta es privada. ¿Hacerla pública para compartir el link? Cualquiera con el link la va a poder ver.'
+    if (!window.confirm(question)) return { status: 'cancelled', madePublic }
+    await updateRoute(route.id, { is_public: true })
+    madePublic = true
+  }
+  const status = await shareRouteLink(route)
+  return { status, madePublic }
+}
+
+// Texto para avisar cómo salió
+export const linkShareMessage = (status) =>
+  ({ copied: 'Link copiado', shared: 'Link compartido' })[status] ?? ''

@@ -16,7 +16,7 @@ import RoutePreview from '@/components/route/RoutePreview.vue'
 import { deleteRoute, listMyRoutes } from '@/services/routes'
 import { useRouteDraftStore } from '@/stores/routeDraft'
 import { formatDuration, formatKm, formatShortDate } from '@/lib/format'
-import { downloadGpx, openInGoogleMaps } from '@/lib/share'
+import { downloadGpx, linkShareMessage, openInGoogleMaps, shareRouteWithLink } from '@/lib/share'
 
 defineOptions({ name: 'MyRoutes' })
 
@@ -27,6 +27,21 @@ const routes = ref([])
 const loading = ref(true)
 const error = ref('')
 const deletingId = ref(null)
+const notice = ref('')
+
+let noticeTimer
+async function shareLink(route) {
+  error.value = ''
+  try {
+    const { status, madePublic } = await shareRouteWithLink(route)
+    if (madePublic) route.is_public = true
+    notice.value = linkShareMessage(status)
+    clearTimeout(noticeTimer)
+    noticeTimer = setTimeout(() => (notice.value = ''), 2500)
+  } catch (e) {
+    error.value = e.message
+  }
+}
 
 const stopsOf = (route) => {
   const stops = Math.max(route.waypoints.length - 2, 0)
@@ -107,6 +122,7 @@ onMounted(load)
     </header>
 
     <BaseAlert :message="error" type="error" class="mb-4" />
+    <BaseAlert :message="notice" type="success" class="mb-4" />
 
     <ul class="space-y-3">
       <li
@@ -150,6 +166,10 @@ onMounted(load)
             <DropdownMenuItem @select="openRoute(route)">
               <IconLucide name="PencilLine" :size="16" />
               Editar
+            </DropdownMenuItem>
+            <DropdownMenuItem @select="shareLink(route)">
+              <IconLucide name="Share2" :size="16" />
+              Compartir link
             </DropdownMenuItem>
             <DropdownMenuItem @select="openInGoogleMaps(route)">
               <IconLucide name="ExternalLink" :size="16" />

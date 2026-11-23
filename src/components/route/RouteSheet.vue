@@ -4,6 +4,7 @@ import { storeToRefs } from 'pinia'
 import { useRouteDraftStore } from '@/stores/routeDraft'
 import { useGeocoding } from '@/composables/useGeocoding'
 import { formatDuration, formatKm } from '@/lib/format'
+import { linkShareMessage } from '@/lib/share'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
@@ -23,7 +24,7 @@ const props = defineProps({
   // Devuelve { lng, lat } para priorizar resultados de búsqueda cerca (centro del mapa)
   near: { type: Function, default: () => null },
 })
-const emit = defineEmits(['place-added', 'publish', 'save'])
+const emit = defineEmits(['place-added', 'publish', 'save', 'notify'])
 const expanded = defineModel('expanded', { type: Boolean, default: false })
 
 const draft = useRouteDraftStore()
@@ -37,12 +38,15 @@ const {
   error,
   avoid,
   preference,
+  isPublic,
   isEmpty,
   isFull,
 } = storeToRefs(draft)
 
 // Lo que se comparte: el borrador tal como está (guardado o no)
 const shareable = computed(() => ({
+  id: routeId.value,
+  is_public: isPublic.value,
   name: name.value,
   description: description.value,
   waypoints: waypoints.value,
@@ -111,6 +115,12 @@ const avoidTolls = computed({
   get: () => avoid.value.includes('tollways'),
   set: (on) => draft.setAvoid('tollways', on),
 })
+
+function onLinkShared({ status, madePublic }) {
+  if (madePublic) isPublic.value = true
+  const text = linkShareMessage(status)
+  if (text) emit('notify', { text, type: 'success' })
+}
 
 function clearDraft() {
   const question = routeId.value
@@ -343,7 +353,13 @@ function onHandleClick() {
       <Button variant="ghost" size="lg" :disabled="isEmpty" @click="clearDraft">
         {{ routeId ? 'Nueva' : 'Vaciar' }}
       </Button>
-      <RouteShareMenu :route="shareable" can-publish @publish="emit('publish')">
+      <RouteShareMenu
+        :route="shareable"
+        can-publish
+        @publish="emit('publish')"
+        @link-shared="onLinkShared"
+        @error="(message) => emit('notify', { text: message, type: 'error' })"
+      >
         <Button variant="outline" size="lg" :disabled="!result || loading">
           <IconLucide name="Share2" :size="16" />
           Compartir
