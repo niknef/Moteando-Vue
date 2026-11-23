@@ -1,18 +1,84 @@
+/* ------------------------------------------------------------------ */
+/*  services/routes.js · rutas diseñadas (tabla `routes`)             */
+/* ------------------------------------------------------------------ */
 import supabase from './supabase'
 
-export async function saveRoute({ name, description, is_public, geojson }) {
+const COLUMNS =
+  'id, user_id, name, description, is_public, waypoints, options, geometry, distance_km, duration_min, created_at, updated_at'
+
+/**
+ * Trae una ruta por id. RLS deja ver las propias y las públicas.
+ */
+export async function getRouteById(id) {
+  const { data, error } = await supabase.from('routes').select(COLUMNS).eq('id', id).maybeSingle()
+
+  if (error) throw new Error('No se pudo cargar la ruta: ' + error.message)
+  if (!data) throw new Error('No encontramos esa ruta')
+  return data
+}
+
+/**
+ * Crea una ruta del usuario logueado. `route` sale de routeDraft.toRow().
+ * Devuelve la fila creada.
+ */
+export async function saveRoute(route) {
   const {
     data: { user },
   } = await supabase.auth.getUser()
+  if (!user) throw new Error('Iniciá sesión para guardar la ruta')
 
-  if (!user) return // ↩️  todavía no logeado: salteamos guardado
+  const { data, error } = await supabase
+    .from('routes')
+    .insert({ ...route, user_id: user.id })
+    .select(COLUMNS)
+    .single()
 
-  const { error } = await supabase.from('routes').insert({
-    user_id: user.id,
-    name,
-    description,
-    is_public,
-    data: geojson,
-  })
-  if (error) throw error
+  if (error) throw new Error('No se pudo guardar la ruta: ' + error.message)
+  return data
+}
+
+/**
+ * Actualiza una ruta propia. Devuelve la fila actualizada.
+ */
+export async function updateRoute(id, route) {
+  const { data, error } = await supabase
+    .from('routes')
+    .update(route)
+    .eq('id', id)
+    .select(COLUMNS)
+    .maybeSingle()
+
+  if (error) throw new Error('No se pudo actualizar la ruta: ' + error.message)
+  // sin fila: no existe o no es del usuario (RLS)
+  if (!data) throw new Error('No se pudo actualizar la ruta: no existe o no es tuya')
+  return data
+}
+
+/**
+ * Lista las rutas del usuario logueado, la última modificada primero.
+ */
+export async function listMyRoutes() {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) throw new Error('Iniciá sesión para ver tus rutas')
+
+  const { data, error } = await supabase
+    .from('routes')
+    .select(COLUMNS)
+    .eq('user_id', user.id)
+    .order('updated_at', { ascending: false })
+
+  if (error) throw new Error('No se pudieron cargar tus rutas: ' + error.message)
+  return data
+}
+
+/**
+ * Borra una ruta propia.
+ */
+export async function deleteRoute(id) {
+  const { data, error } = await supabase.from('routes').delete().eq('id', id).select('id')
+
+  if (error) throw new Error('No se pudo borrar la ruta: ' + error.message)
+  if (!data.length) throw new Error('No se pudo borrar la ruta: no existe o no es tuya')
 }

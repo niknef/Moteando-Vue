@@ -44,6 +44,7 @@ const routes = [
 
       { path: 'rutas', component: MyRoutes },
       { path: 'rutas/nueva', component: HomeMap },
+      { path: 'rutas/:id/editar', component: HomeMap },
 
       { path: 'comunidad', component: PostList },
       { path: 'comunidad/publicar', component: CreatePost },
