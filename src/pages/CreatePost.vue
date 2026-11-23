@@ -141,7 +141,7 @@ export default {
 </script>
 
 <template>
-  <section class="max-w-xl mx-auto sm:mt-8 bg-neutral-800 text-white p-6 sm:rounded-lg shadow-md">
+  <section class="max-w-xl mx-auto sm:mt-8 bg-card text-foreground p-6 sm:rounded-lg shadow-md">
     <div class="flex items-center justify-between mb-4">
       <BaseHeading1>Crear publicación</BaseHeading1>
     </div>
@@ -193,18 +193,24 @@ export default {
         <div class="flex gap-4">
           <div class="flex-1">
             <label class="block mb-1 text-sm">Horas</label>
-            <select v-model="durationHours" class="w-full px-4 py-2 bg-neutral-600 rounded">
+            <select
+              v-model="durationHours"
+              class="w-full px-4 py-2 bg-muted border border-input rounded-lg"
+            >
               <option v-for="n in 24" :key="n" :value="n - 1">{{ n - 1 }}</option>
             </select>
           </div>
           <div class="flex-1">
             <label class="block mb-1 text-sm">Minutos</label>
-            <select v-model="durationMinutes" class="w-full px-4 py-2 bg-neutral-600 rounded">
+            <select
+              v-model="durationMinutes"
+              class="w-full px-4 py-2 bg-muted border border-input rounded-lg"
+            >
               <option v-for="n in [0, 15, 30, 45]" :key="n" :value="n">{{ n }}</option>
             </select>
           </div>
         </div>
-        <p class="text-sm text-gray-400 mt-2">
+        <p class="text-sm text-muted-foreground mt-2">
           Duración seleccionada: {{ durationHours }} h {{ durationMinutes }} min
         </p>
       </div>
@@ -212,7 +218,11 @@ export default {
       <!-- Puntaje -->
       <div>
         <BaseLabel for="rating">Puntaje</BaseLabel>
-        <select id="rating" v-model="post.rating" class="w-full px-4 py-2 bg-neutral-600 rounded">
+        <select
+          id="rating"
+          v-model="post.rating"
+          class="w-full px-4 py-2 bg-muted border border-input rounded-lg"
+        >
           <option disabled value="">Seleccioná un puntaje</option>
           <option v-for="n in 5" :key="n" :value="n">{{ n }}</option>
         </select>
@@ -225,7 +235,7 @@ export default {
           id="description"
           v-model="post.description"
           required
-          class="w-full px-4 py-2 bg-neutral-600 rounded"
+          class="w-full px-4 py-2 bg-muted border border-input rounded-lg"
           placeholder="Contanos cómo fue el recorrido, si lo hiciste solo o en grupo..."
         ></textarea>
       </div>
@@ -235,7 +245,7 @@ export default {
         <BaseLabel>Imagen</BaseLabel>
         <input type="file" :accept="imageAccept" class="text-sm mt-1" @change="handleFile" />
         <div v-if="preview" class="mt-4 flex justify-center">
-          <img :src="preview" class="w-48 h-48 object-cover rounded border border-gray-500" />
+          <img :src="preview" class="w-48 h-48 object-cover rounded-lg border border-border" />
         </div>
       </div>
 

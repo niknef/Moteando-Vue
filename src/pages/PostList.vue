@@ -85,7 +85,7 @@ async function toggleLike(p) {
 </script>
 
 <template>
-  <section class="max-w-4xl mx-auto sm:mt-8 bg-neutral-800 text-white p-6 sm:rounded-lg shadow-md">
+  <section class="max-w-4xl mx-auto sm:mt-8 bg-card text-foreground p-6 sm:rounded-lg shadow-md">
     <!-- encabezado -->
     <div class="flex justify-between items-center mb-6">
       <BaseHeading1>Posts recientes</BaseHeading1>
@@ -103,12 +103,12 @@ async function toggleLike(p) {
 
     <!-- listado -->
     <template v-else>
-      <p v-if="!posts.length" class="text-center text-gray-300">Aún no hay rutas.</p>
+      <p v-if="!posts.length" class="text-center text-foreground/80">Aún no hay rutas.</p>
 
       <article
         v-for="p in posts"
         :key="p.id"
-        class="bg-neutral-700/40 rounded-lg p-5 mb-6 shadow-md flex flex-col gap-4"
+        class="bg-muted/60 rounded-lg p-5 mb-6 shadow-md flex flex-col gap-4"
       >
         <!-- Datos del usuario -->
         <header class="flex items-center justify-between">
@@ -121,10 +121,10 @@ async function toggleLike(p) {
               class="w-10 h-10 rounded-full object-cover border"
             />
             <div>
-              <p class="font-semibold hover:text-orange-400">
+              <p class="font-semibold hover:text-primary">
                 {{ p.user_profiles?.first_name }} {{ p.user_profiles?.last_name }}
               </p>
-              <p class="text-xs text-gray-400">
+              <p class="text-xs text-muted-foreground">
                 {{ new Date(p.created_at).toLocaleDateString() }}
               </p>
             </div>
@@ -145,17 +145,17 @@ async function toggleLike(p) {
         <div class="flex flex-col sm:flex-row sm:gap-6">
           <!-- Datos de la ruta -->
           <div class="flex-1">
-            <p class="font-medium text-orange-400 flex items-center gap-1 mb-1">
+            <p class="font-medium text-primary flex items-center gap-1 mb-1">
               <IconLucide name="MapPinned" :size="18" /> {{ p.route_name }}
             </p>
-            <p class="text-sm text-gray-300 flex items-center gap-1 mb-1">
+            <p class="text-sm text-foreground/80 flex items-center gap-1 mb-1">
               <IconLucide name="Clock" :size="18" /> {{ formatDuration(p.duration) }}
             </p>
-            <p class="text-sm text-gray-300 flex items-center gap-1 mb-3">
-              <IconLucide name="Star" :size="18" class="text-yellow-400" /> {{ p.rating }}/5
+            <p class="text-sm text-foreground/80 flex items-center gap-1 mb-3">
+              <IconLucide name="Star" :size="18" class="text-rating" /> {{ p.rating }}/5
             </p>
 
-            <p class="bg-neutral-800/60 p-3 rounded border-l-4 border-orange-500 mb-4">
+            <p class="bg-muted p-3 rounded-r-lg border-l-4 border-primary mb-4">
               {{ p.description }}
             </p>
           </div>
@@ -165,7 +165,7 @@ async function toggleLike(p) {
             <img
               :src="p.image_url"
               alt="Imagen de la ruta"
-              class="max-h-60 rounded border cursor-pointer hover:opacity-90 transition w-full object-cover"
+              class="max-h-60 rounded-lg border cursor-pointer hover:opacity-90 transition w-full object-cover"
               @click="router.push(`/user/${p.user_profiles?.id}`)"
             />
           </div>
@@ -182,13 +182,13 @@ async function toggleLike(p) {
             <IconLucide name="Copy" :size="16" /> Copiar ruta
           </button>
 
-          <span class="flex items-center gap-1 text-gray-400">
+          <span class="flex items-center gap-1 text-muted-foreground">
             <IconLucide name="MessageCircle" :size="16" /> {{ p.comments }}
           </span>
 
           <button
             class="flex items-center gap-1"
-            :class="p.liked_by_me ? 'text-rose-400' : 'text-gray-400'"
+            :class="p.liked_by_me ? 'text-primary' : 'text-muted-foreground'"
             @click="toggleLike(p)"
           >
             <IconLucide

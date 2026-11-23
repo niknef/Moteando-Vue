@@ -22,8 +22,8 @@ export default {
     v-if="message"
     :class="[
       'text-center text-sm px-4 py-2 rounded transition-all',
-      type === 'success' ? 'text-green-400 bg-green-800/30' : '',
-      type === 'error' ? 'text-red-400 bg-red-800/30' : '',
+      type === 'success' ? 'text-success bg-success/15' : '',
+      type === 'error' ? 'text-destructive bg-destructive/15' : '',
     ]"
   >
     {{ message }}

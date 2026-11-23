@@ -4,7 +4,7 @@ export default {
 }
 </script>
 <template>
-  <label class="block mb-1 text-xl font-semibold">
+  <label class="mb-1.5 block text-sm font-medium text-foreground">
     <slot />
   </label>
 </template>

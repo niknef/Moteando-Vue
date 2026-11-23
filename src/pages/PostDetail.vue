@@ -127,7 +127,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <section class="max-w-4xl mx-auto mt-8 px-4 text-white">
+  <section class="max-w-4xl mx-auto mt-8 px-4 text-foreground">
     <div class="mb-6 flex justify-between items-center">
       <BaseHeading1>Detalle del Post</BaseHeading1>
     </div>
@@ -136,9 +136,9 @@ onBeforeUnmount(() => {
       <Loader class="w-10 h-10" />
     </div>
 
-    <div v-else-if="error" class="text-red-400 text-center">{{ error }}</div>
+    <div v-else-if="error" class="text-destructive text-center">{{ error }}</div>
 
-    <div v-else class="bg-neutral-800 p-6 rounded-lg shadow space-y-4">
+    <div v-else class="bg-card p-6 rounded-lg shadow space-y-4">
       <!-- Usuario -->
       <div class="flex items-center gap-4 mb-3">
         <img
@@ -149,42 +149,47 @@ onBeforeUnmount(() => {
         <div>
           <router-link
             :to="`/usuario/${post.user_profiles?.id}`"
-            class="font-semibold hover:underline hover:text-orange-400"
+            class="font-semibold hover:underline hover:text-primary"
           >
             {{ post.user_profiles?.first_name }} {{ post.user_profiles?.last_name }}
           </router-link>
-          <p class="text-sm text-gray-400">{{ new Date(post.created_at).toLocaleDateString() }}</p>
+          <p class="text-sm text-muted-foreground">
+            {{ new Date(post.created_at).toLocaleDateString() }}
+          </p>
         </div>
       </div>
       <!-- Nombre de la ruta -->
-      <h2 class="text-2xl font-bold text-orange-400 mb-4">{{ post.route_name }}</h2>
+      <h2 class="text-2xl font-bold text-primary mb-4">{{ post.route_name }}</h2>
 
       <PostRouteCard v-if="post.routes" :route="post.routes" class="mb-4" />
 
       <!-- Info + Imagen -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
         <div class="md:col-span-2 space-y-2">
-          <p class="text-orange-400 font-semibold flex items-center gap-2">
-            <IconLucide name="MapPin" :size="18" /> Coordenadas de origen: {{ post.start_point }}
+          <!-- los posts viejos guardaban coordenadas como nombre: se muestran como dato secundario -->
+          <p class="flex items-center gap-2 text-sm text-foreground/80">
+            <IconLucide name="MapPin" :size="18" class="text-brand-teal" />
+            <span class="text-muted-foreground">Salida:</span> {{ post.start_point }}
           </p>
-          <p class="text-orange-400 font-semibold flex items-center gap-2">
-            <IconLucide name="MapPin" :size="18" /> Coordenadas de llegada: {{ post.end_point }}
+          <p class="flex items-center gap-2 text-sm text-foreground/80">
+            <IconLucide name="MapPin" :size="18" class="text-primary" />
+            <span class="text-muted-foreground">Llegada:</span> {{ post.end_point }}
           </p>
-          <p class="text-sm text-gray-300 flex items-center gap-2">
+          <p class="text-sm text-foreground/80 flex items-center gap-2">
             <IconLucide name="Clock" :size="18" /> {{ formatDuration(post.duration) }}
           </p>
-          <p class="text-sm text-gray-300 flex items-center gap-2">
-            <IconLucide name="Star" :size="18" class="text-yellow-400" /> {{ post.rating }}/5
+          <p class="text-sm text-foreground/80 flex items-center gap-2">
+            <IconLucide name="Star" :size="18" class="text-rating" /> {{ post.rating }}/5
           </p>
           <p
-            class="bg-neutral-700 text-white p-3 rounded-md border-l-4 border-orange-500 italic shadow-sm"
+            class="bg-muted text-foreground p-3 rounded-r-lg border-l-4 border-primary italic shadow-sm"
           >
             {{ post.description }}
           </p>
         </div>
 
         <div v-if="post.image_url" class="flex justify-center">
-          <img :src="post.image_url" alt="Imagen de la ruta" class="max-h-80 rounded border" />
+          <img :src="post.image_url" alt="Imagen de la ruta" class="max-h-80 rounded-lg border" />
         </div>
       </div>
 
@@ -196,7 +201,7 @@ onBeforeUnmount(() => {
 
         <button
           class="flex items-center gap-1"
-          :class="post.liked_by_me ? 'text-rose-400' : 'text-gray-400'"
+          :class="post.liked_by_me ? 'text-primary' : 'text-muted-foreground'"
           @click="toggleLike"
         >
           <IconLucide :name="post.liked_by_me ? 'Heart' : 'Heart'" :size="16" />
@@ -205,9 +210,9 @@ onBeforeUnmount(() => {
       </div>
 
       <!-- Comentarios -->
-      <h2 class="text-xl font-semibold text-orange-400 mb-4">Comentarios</h2>
+      <h2 class="text-xl font-semibold text-primary mb-4">Comentarios</h2>
       <div ref="commentsContainer" class="max-h-60 overflow-y-auto pr-2 space-y-4 mb-6">
-        <div v-for="c in comments" :key="c.id" class="bg-neutral-700 p-3 rounded-lg">
+        <div v-for="c in comments" :key="c.id" class="bg-muted p-3 rounded-lg">
           <div class="flex items-start gap-3">
             <img
               :src="c.user_profiles?.avatar_url || '/assets/user.jpg'"
@@ -215,16 +220,16 @@ onBeforeUnmount(() => {
               alt="Avatar"
             />
             <div class="flex-1">
-              <p class="text-sm font-semibold text-orange-300">
+              <p class="text-sm font-semibold text-primary">
                 <router-link :to="`/usuario/${c.user_profiles?.id}`" class="hover:underline">
                   {{ c.user_profiles?.first_name || 'Sin nombre' }}
                   {{ c.user_profiles?.last_name || '' }}
                 </router-link>
-                <span class="text-xs text-gray-400 ml-2">{{
+                <span class="text-xs text-muted-foreground ml-2">{{
                   new Date(c.created_at).toLocaleString()
                 }}</span>
               </p>
-              <p class="text-sm text-gray-200 mt-1">{{ c.content }}</p>
+              <p class="text-sm text-foreground mt-1">{{ c.content }}</p>
             </div>
           </div>
         </div>
@@ -234,19 +239,19 @@ onBeforeUnmount(() => {
       <div>
         <textarea
           v-model="newComment"
-          class="w-full p-3 bg-neutral-700 rounded text-white"
+          class="w-full p-3 bg-muted rounded-lg text-foreground"
           placeholder="Escribí tu comentario..."
         ></textarea>
         <div class="flex justify-end gap-4 mt-2">
           <a
             href="/comunidad"
-            class="flex items-center gap-2 text-sm bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded"
+            class="flex items-center gap-2 text-sm bg-secondary hover:bg-accent px-4 py-2 rounded-lg"
           >
             <IconLucide name="ArrowLeft" :size="20" /> Volver
           </a>
           <button
             :disabled="commentLoading"
-            class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded text-sm transition"
+            class="bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-lg text-sm transition"
             @click="submitComment"
           >
             <template v-if="commentLoading">

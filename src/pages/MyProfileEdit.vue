@@ -130,7 +130,7 @@ const goBack = () => router.back()
 
 <template>
   <section
-    class="max-w-xl mx-auto sm:mt-8 bg-neutral-800 text-white p-6 sm:rounded-lg shadow-md mb-6"
+    class="max-w-xl mx-auto sm:mt-8 bg-card text-foreground p-6 sm:rounded-lg shadow-md mb-6"
   >
     <BaseHeading1>Editar perfil</BaseHeading1>
 
@@ -138,7 +138,7 @@ const goBack = () => router.back()
       <!-- Email (solo lectura) -->
       <div>
         <BaseLabel>Email</BaseLabel>
-        <BaseInput :model-value="email" disabled class="text-gray-400 cursor-not-allowed" />
+        <BaseInput :model-value="email" disabled class="text-muted-foreground cursor-not-allowed" />
       </div>
 
       <!-- Nombre / Apellido -->
@@ -159,7 +159,7 @@ const goBack = () => router.back()
         <textarea
           v-model="form.bio"
           rows="3"
-          class="w-full px-4 py-2 bg-neutral-600 rounded"
+          class="w-full px-4 py-2 bg-muted border border-input rounded-lg"
         ></textarea>
       </div>
 
@@ -171,7 +171,7 @@ const goBack = () => router.back()
           <div class="flex gap-2">
             <!-- seleccionar -->
             <label
-              class="bg-orange-500 hover:bg-orange-600 transition text-white text-sm px-4 py-2 rounded cursor-pointer w-max flex items-center gap-2"
+              class="bg-primary transition text-primary-foreground hover:bg-primary/90 text-sm px-4 py-2 rounded-lg cursor-pointer w-max flex items-center gap-2"
             >
               <IconLucide name="Image" :size="20" />
               Seleccionar
@@ -181,7 +181,7 @@ const goBack = () => router.back()
             <!-- quitar -->
             <button
               type="button"
-              class="text-sm text-red-400 underline disabled:text-gray-500"
+              class="text-sm text-destructive underline disabled:text-muted-foreground"
               :disabled="!preview || preview === defaultAvatar"
               @click="removeAvatar"
             >
@@ -192,7 +192,7 @@ const goBack = () => router.back()
 
         <!-- preview -->
         <div class="flex justify-center sm:justify-end sm:w-1/2 my-4">
-          <img :src="preview" class="w-32 h-32 object-cover rounded-full border border-gray-500" />
+          <img :src="preview" class="w-32 h-32 object-cover rounded-full border border-border" />
         </div>
       </div>
 

@@ -64,7 +64,7 @@ const goBack = () => router.back()
 
 <template>
   <section
-    class="max-w-xl mx-auto sm:mt-8 bg-neutral-800 text-white p-6 sm:rounded-lg shadow-md mb-6"
+    class="max-w-xl mx-auto sm:mt-8 bg-card text-foreground p-6 sm:rounded-lg shadow-md mb-6"
   >
     <!-- loader -->
     <div v-if="loading" class="flex justify-center my-16">
@@ -79,36 +79,36 @@ const goBack = () => router.back()
       <!-- cabecera -->
       <BaseHeading1>Perfil de {{ profile.first_name }} {{ profile.last_name }}</BaseHeading1>
 
-      <hr class="border-t border-gray-600 mb-6" />
+      <hr class="border-t border-border mb-6" />
 
       <!-- avatar -->
       <div class="flex justify-center mb-6">
         <img
           :src="profile.avatar_url || '/assets/user.jpg'"
-          class="w-32 h-32 object-cover rounded-full border border-gray-600"
+          class="w-32 h-32 object-cover rounded-full border border-border"
         />
       </div>
 
       <!-- nombre -->
 
-      <h2 class="text-2xl font-bold text-orange-400 text-center mb-4">
+      <h2 class="text-2xl font-bold text-primary text-center mb-4">
         {{ profile.first_name }} {{ profile.last_name }}
       </h2>
       <!-- bio -->
-      <p class="text-gray-300 text-center italic mb-6 whitespace-pre-wrap">
+      <p class="text-foreground/80 text-center italic mb-6 whitespace-pre-wrap">
         {{ profile.bio || 'Este usuario aún no escribió su biografía.' }}
       </p>
 
       <!-- moto activa -->
       <div
         v-if="activeBike"
-        class="bg-neutral-700 p-4 rounded-md border-l-4 border-orange-500 flex items-center gap-2 text-white mb-6"
+        class="bg-muted p-4 rounded-r-lg border-l-4 border-primary flex items-center gap-2 text-foreground mb-6"
       >
-        <IconLucide name="Motorbike" :size="20" class="text-orange-400" />
+        <IconLucide name="Motorbike" :size="20" class="text-primary" />
         <span>Moto activa: {{ activeBike.brand }} {{ activeBike.model }}</span>
       </div>
 
-      <div v-else class="text-center text-gray-400">
+      <div v-else class="text-center text-muted-foreground">
         <IconLucide name="Info" :size="20" class="inline mr-1" />
         Este usuario no tiene una moto activa.
       </div>

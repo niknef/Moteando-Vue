@@ -39,8 +39,8 @@ async function activate(id) {
 </script>
 
 <template>
-  <div class="min-h-full flex items-center justify-center bg-black/95">
-    <section class="w-full max-w-xl bg-neutral-800 text-white p-8 sm:rounded-lg shadow-md">
+  <div class="min-h-full flex items-center justify-center">
+    <section class="w-full max-w-xl bg-card text-foreground p-8 sm:rounded-lg shadow-md">
       <!-- Título -->
       <BaseHeading1 class="text-center">Mi perfil</BaseHeading1>
 
@@ -48,36 +48,36 @@ async function activate(id) {
       <div class="mt-6 flex justify-center">
         <img
           :src="profile.avatar_url || '/assets/user.jpg'"
-          class="w-32 h-32 rounded-full object-cover border border-gray-500"
+          class="w-32 h-32 rounded-full object-cover border border-border"
           alt="Foto de perfil"
         />
       </div>
 
       <!-- Datos personales -->
       <div class="my-6 grid gap-4 sm:grid-cols-2 text-sm sm:text-base">
-        <div class="bg-neutral-100/10 p-3 rounded-sm">
-          <h2 class="text-gray-300 font-semibold">Nombre</h2>
-          <p class="text-white/50 mt-1">
+        <div class="bg-muted p-3 rounded-lg">
+          <h2 class="text-foreground/80 font-semibold">Nombre</h2>
+          <p class="text-muted-foreground mt-1">
             {{ profile.first_name || 'Agregar en editar perfil' }}
           </p>
         </div>
 
-        <div class="bg-neutral-100/10 p-3 rounded-sm">
-          <h2 class="text-gray-300 font-semibold">Apellido</h2>
-          <p class="text-white/50 mt-1">
+        <div class="bg-muted p-3 rounded-lg">
+          <h2 class="text-foreground/80 font-semibold">Apellido</h2>
+          <p class="text-muted-foreground mt-1">
             {{ profile.last_name || 'Agregar en editar perfil' }}
           </p>
         </div>
 
-        <div class="bg-neutral-100/10 p-3 rounded-sm">
-          <h2 class="text-gray-300 font-semibold">Email</h2>
-          <p class="text-white/50 mt-1">{{ profile.email }}</p>
+        <div class="bg-muted p-3 rounded-lg">
+          <h2 class="text-foreground/80 font-semibold">Email</h2>
+          <p class="text-muted-foreground mt-1">{{ profile.email }}</p>
         </div>
 
         <!-- Moto activa -->
-        <div class="bg-neutral-100/10 p-3 rounded-sm">
-          <h2 class="text-gray-300 font-semibold">Moto activa</h2>
-          <p class="text-white/50 mt-1">
+        <div class="bg-muted p-3 rounded-lg">
+          <h2 class="text-foreground/80 font-semibold">Moto activa</h2>
+          <p class="text-muted-foreground mt-1">
             {{
               bikes.find((b) => b.id === profile.active_bike_id)
                 ? `${bikes.find((b) => b.id === profile.active_bike_id).brand}
@@ -88,9 +88,9 @@ async function activate(id) {
           </p>
         </div>
 
-        <div class="sm:col-span-2 bg-neutral-100/10 p-3 rounded-sm">
-          <h2 class="text-gray-300 font-semibold">Biografía</h2>
-          <p class="text-white/50 mt-1 whitespace-pre-wrap">
+        <div class="sm:col-span-2 bg-muted p-3 rounded-lg">
+          <h2 class="text-foreground/80 font-semibold">Biografía</h2>
+          <p class="text-muted-foreground mt-1 whitespace-pre-wrap">
             {{ profile.bio || 'Agregar en editar perfil' }}
           </p>
         </div>
@@ -98,21 +98,21 @@ async function activate(id) {
 
       <!-- Listado de motos -->
       <div v-if="bikes.length" class="space-y-3 mb-6">
-        <h2 class="text-gray-300 font-semibold mb-1">Mis motos</h2>
+        <h2 class="text-foreground/80 font-semibold mb-1">Mis motos</h2>
 
         <div
           v-for="b in bikes"
           :key="b.id"
-          class="flex items-center gap-3 p-2 rounded bg-neutral-700/40"
+          class="flex items-center gap-3 p-2 rounded-lg bg-muted/60"
         >
-          <img :src="b.photo_url" class="w-12 h-12 rounded object-cover" />
+          <img :src="b.photo_url" class="w-12 h-12 rounded-lg object-cover" />
           <div class="flex-1 text-sm">{{ b.brand }} {{ b.model }} ({{ b.year }})</div>
 
           <IconLucide
             v-if="b.id === profile.active_bike_id"
             name="CheckCircle2"
             :size="20"
-            class="text-orange-400"
+            class="text-primary"
           />
           <BaseButton v-else size="xs" type="orange" @click="activate(b.id)"> Activar </BaseButton>
         </div>
@@ -146,7 +146,7 @@ async function activate(id) {
 
       <!-- Cerrar sesión -->
       <p class="mt-4 text-center">
-        <button class="text-red-400 hover:text-red-500 underline" @click="handleLogout">
+        <button class="text-destructive hover:text-destructive underline" @click="handleLogout">
           Cerrar sesión
         </button>
       </p>
