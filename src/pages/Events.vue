@@ -1,6 +1,6 @@
 <!-- src/pages/Events.vue -->
 <template>
-  <div class="flex flex-col items-center justify-center min-h-screen text-center p-6">
+  <div class="flex flex-col items-center justify-center min-h-full text-center p-6">
     <!-- Ícono Lucide -->
     <HammerIcon class="w-24 h-24 text-orange-500 mb-6 animate-pulse" />
 
@@ -16,7 +16,7 @@
 <script>
 import BaseHeading1 from '@/components/ui/BaseHeading1.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
-import { HammerIcon } from 'lucide-vue-next'
+import { Hammer as HammerIcon } from '@lucide/vue'
 
 export default {
   name: 'Events',

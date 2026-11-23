@@ -65,6 +65,19 @@ export const useAuthStore = defineStore('auth', () => {
     await loadProfile()
   }
 
+  async function requestPasswordReset(email) {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/restablecer`,
+    })
+    if (error) throw error
+  }
+
+  async function updatePassword(password) {
+    // Requiere sesión: la abre el link del mail de recuperación
+    const { error } = await supabase.auth.updateUser({ password })
+    if (error) throw error
+  }
+
   async function logout() {
     await supabase.auth.signOut()
     session.value = null
@@ -87,5 +100,7 @@ export const useAuthStore = defineStore('auth', () => {
     register,
     logout,
     updateProfile,
+    requestPasswordReset,
+    updatePassword,
   }
 })

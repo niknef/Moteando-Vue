@@ -30,8 +30,8 @@ onMounted(async () => {
 })
 
 /* navegación */
-const gotoAdd = () => router.push('/my-bikes/new')
-const goBack = () => router.push('/profile/me')
+const gotoAdd = () => router.push('/garaje/nueva')
+const goBack = () => router.push('/perfil')
 
 /* abrir modal o alerta */
 function onDeleteClick(bike) {
@@ -100,7 +100,7 @@ async function confirmDelete() {
 
             <IconLucide v-if="b.is_active" name="CheckCircle2" :size="22" class="text-orange-400" />
 
-            <router-link :to="`/my-bikes/${b.id}/edit`">
+            <router-link :to="`/garaje/${b.id}/editar`">
               <BaseButton size="xs" type="orange">
                 <IconLucide name="PencilLine" :size="16" />
               </BaseButton>

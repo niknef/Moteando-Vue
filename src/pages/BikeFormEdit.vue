@@ -17,7 +17,7 @@ import { uploadImage, deleteImageByUrl, IMAGE_ACCEPT } from '@/services/storage'
 
 /* router */
 const router = useRouter()
-const goBack = () => router.push('/my-bikes')
+const goBack = () => router.push('/garaje')
 const { params } = useRoute()
 const bikeId = params.id
 
@@ -54,7 +54,7 @@ onUnmounted(() => {
 onMounted(async () => {
   const all = await listBikes()
   const current = all.find((b) => b.id === bikeId)
-  if (!current) return router.push('/my-bikes')
+  if (!current) return router.push('/garaje')
 
   form.value = {
     brand: current.brand,
@@ -108,7 +108,7 @@ async function handleSubmit() {
       await deleteImageByUrl('bikes', originalPhoto.value)
     }
     success.value = true
-    setTimeout(() => router.push('/my-bikes'), 1000)
+    setTimeout(() => router.push('/garaje'), 1000)
   } catch (e) {
     error.value = e.message || 'Error inesperado'
   } finally {

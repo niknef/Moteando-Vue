@@ -236,7 +236,7 @@ onBeforeUnmount(() => {
         ></textarea>
         <div class="flex justify-end gap-4 mt-2">
           <a
-            href="/posts"
+            href="/comunidad"
             class="flex items-center gap-2 text-sm bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded"
           >
             <IconLucide name="ArrowLeft" :size="20" /> Volver

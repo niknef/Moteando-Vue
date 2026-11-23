@@ -42,7 +42,7 @@ function copyRoute(p) {
     .catch((err) => console.error('Error al copiar', err))
 
   router.push({
-    path: '/map',
+    path: '/rutas/nueva',
     query: {
       originLat: latA,
       originLng: lngA,
@@ -129,7 +129,7 @@ async function toggleLike(p) {
             </div>
           </div>
 
-          <router-link :to="`/posts/${p.id}`">
+          <router-link :to="`/comunidad/${p.id}`">
             <BaseButton type="gray" size="xs">
               <template #icon><IconLucide name="Eye" :size="16" /></template>
               Ver

@@ -17,7 +17,7 @@ import { uploadImage, IMAGE_ACCEPT } from '@/services/storage'
 
 /* router & helpers */
 const router = useRouter()
-const goBack = () => router.push('/my-bikes')
+const goBack = () => router.push('/garaje')
 
 /* -------- estado ---------- */
 const form = ref({ brand: '', model: '', year: '', color: '', photoFile: null })
@@ -64,7 +64,7 @@ async function handleSubmit() {
 
     /* mostrar alerta y redirigir tras 1 s */
     success.value = true
-    setTimeout(() => router.push('/my-bikes'), 1000)
+    setTimeout(() => router.push('/garaje'), 1000)
   } catch (e) {
     error.value = e.message || 'Error inesperado'
   } finally {

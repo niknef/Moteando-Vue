@@ -5,11 +5,13 @@ import { useAuthStore } from '@/stores/auth'
 /* ────────── vistas públicas ────────── */
 const Login = () => import('@/pages/Login.vue')
 const Register = () => import('@/pages/Register.vue')
-
+const ForgotPassword = () => import('@/pages/ForgotPassword.vue')
+const ResetPassword = () => import('@/pages/ResetPassword.vue')
 /* ────────── layout y vistas privadas ────────── */
 const AppShell = () => import('@/components/layout/AppShell.vue')
 
 const HomeMap = () => import('@/pages/HomeMap.vue')
+const MyRoutes = () => import('@/pages/MyRoutes.vue')
 const PostList = () => import('@/pages/PostList.vue')
 const PostDetail = () => import('@/pages/PostDetail.vue')
 const CreatePost = () => import('@/pages/CreatePost.vue')
@@ -27,8 +29,10 @@ const EditBike = () => import('@/pages/BikeFormEdit.vue')
 /* ────────── rutas ────────── */
 const routes = [
   /* públicas */
-  { path: '/login', component: Login },
-  { path: '/register', component: Register },
+  { path: '/ingresar', component: Login },
+  { path: '/registro', component: Register },
+  { path: '/recuperar', component: ForgotPassword },
+  { path: '/restablecer', component: ResetPassword },
 
   /* privadas envueltas en AppShell */
   {
@@ -36,28 +40,49 @@ const routes = [
     component: AppShell,
     meta: { requiresAuth: true },
     children: [
-      { path: '', redirect: '/map' },
+      { path: '', redirect: '/rutas/nueva' },
 
-      { path: 'map', component: HomeMap },
-      { path: 'posts', component: PostList },
-      { path: 'posts/create', component: CreatePost },
-      { path: 'posts/:id', component: PostDetail },
+      { path: 'rutas', component: MyRoutes },
+      { path: 'rutas/nueva', component: HomeMap },
 
-      { path: 'events', component: Events },
+      { path: 'comunidad', component: PostList },
+      { path: 'comunidad/publicar', component: CreatePost },
+      { path: 'comunidad/:id', component: PostDetail },
 
-      { path: 'profile/me', component: MyProfile },
-      { path: 'profile/edit', component: EditProfile },
+      { path: 'eventos', component: Events },
+
+      { path: 'perfil', component: MyProfile },
+      { path: 'perfil/editar', component: EditProfile },
 
       { path: 'usuario/:id', component: UserProfile },
 
-      { path: 'my-bikes', component: MyBikes },
-      { path: 'my-bikes/new', component: NewBike },
-      { path: 'my-bikes/:id/edit', component: EditBike },
+      { path: 'garaje', component: MyBikes },
+      { path: 'garaje/nueva', component: NewBike },
+      { path: 'garaje/:id/editar', component: EditBike },
     ],
   },
 
+  /* direcciones viejas (en inglés): redirigen a las nuevas conservando la query */
+  ...[
+    ['/login', '/ingresar'],
+    ['/register', '/registro'],
+    ['/map', '/rutas/nueva'],
+    ['/posts', '/comunidad'],
+    ['/posts/create', '/comunidad/publicar'],
+    ['/posts/:id', (p) => `/comunidad/${p.id}`],
+    ['/events', '/eventos'],
+    ['/profile/me', '/perfil'],
+    ['/profile/edit', '/perfil/editar'],
+    ['/my-bikes', '/garaje'],
+    ['/my-bikes/new', '/garaje/nueva'],
+    ['/my-bikes/:id/edit', (p) => `/garaje/${p.id}/editar`],
+  ].map(([path, to]) => ({
+    path,
+    redirect: (r) => ({ path: typeof to === 'function' ? to(r.params) : to, query: r.query }),
+  })),
+
   /* fallback */
-  { path: '/:pathMatch(.*)*', redirect: '/map' },
+  { path: '/:pathMatch(.*)*', redirect: '/rutas/nueva' },
 ]
 
 /* ────────── router ────────── */
@@ -65,7 +90,7 @@ const router = createRouter({
   history: createWebHistory(),
   routes,
   scrollBehavior(to, from, savedPosition) {
-    if (to.hash) return { el: to.hash }
+    if (to.hash && !to.hash.includes('access_token')) return { el: to.hash }
     if (savedPosition) return savedPosition
     return { top: 0 }
   },
@@ -78,10 +103,10 @@ router.beforeEach(async (to) => {
   await auth.init()
 
   if (to.meta.requiresAuth && !auth.isLoggedIn) {
-    return { path: '/login', query: { redirect: to.fullPath } }
+    return { path: '/ingresar', query: { redirect: to.fullPath } }
   }
-  if ((to.path === '/login' || to.path === '/register') && auth.isLoggedIn) {
-    return '/map'
+  if ((to.path === '/ingresar' || to.path === '/registro') && auth.isLoggedIn) {
+    return '/rutas/nueva'
   }
 })
 

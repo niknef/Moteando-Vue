@@ -1,41 +1,36 @@
 <!-- src/components/ui/AppBottomNav.vue -->
 <script setup>
-import { useRoute } from 'vue-router'
 import IconLucide from '@/components/ui/IconLucide.vue'
-
-const route = useRoute()
-const isActive = (p) => route.path.startsWith(p)
+import { useActiveNav } from '@/composables/useActiveNav'
 
 /* ítems de izquierda a derecha */
 const items = [
-  { to: '/posts', icon: 'Newspaper', label: 'Posts' },
-  { to: '/events', icon: 'CalendarClock', label: 'Eventos' },
-  { to: '/map', icon: 'MapPinned', label: 'Mapa' },
-  { to: '/profile/me', icon: 'UserCircle', label: 'Perfil' },
-  { to: '/my-bikes', icon: 'Warehouse', label: 'Garage' },
+  { to: '/comunidad', icon: 'Users', label: 'Comunidad' },
+  { to: '/rutas', icon: 'Map', label: 'Mis rutas' },
+  { to: '/rutas/nueva', icon: 'CirclePlus', label: 'Crear' },
+  { to: '/perfil', icon: 'User', label: 'Perfil' },
 ]
+
+const activeTo = useActiveNav(items.map((item) => item.to))
 </script>
 
 <template>
-  <nav
-    class="lg:hidden fixed bottom-0 inset-x-0 bg-[#1c1c1c] border-t border-neutral-800 h-16 flex justify-around items-center shadow-lg z-50"
-    :style="{ paddingBottom: 'env(safe-area-inset-bottom)' }"
-  >
-    <RouterLink
-      v-for="item in items"
-      :key="item.to"
-      :to="item.to"
-      class="group flex flex-col items-center justify-center transition-colors duration-200"
-      :class="isActive(item.to) ? 'text-orange-400' : 'text-gray-400 opacity-80'"
-      :aria-label="item.label"
-    >
-      <IconLucide
-        :name="item.icon"
-        :size="24"
-        :active="isActive(item.to)"
-        class="transition-colors duration-200 group-hover:text-orange-400"
-      />
-      <span class="text-[10px] mt-0.5">{{ item.label }}</span>
-    </RouterLink>
+  <!-- El relleno de abajo deja lugar a la barra de gestos del iPhone sin achicar los ítems -->
+  <nav class="shrink-0 border-t border-border bg-background pb-[env(safe-area-inset-bottom)]">
+    <div class="flex h-16 items-center justify-around">
+      <RouterLink
+        v-for="item in items"
+        :key="item.to"
+        :to="item.to"
+        class="flex h-full min-w-16 flex-col items-center justify-center gap-1 transition-colors"
+        :class="
+          item.to === activeTo ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+        "
+        :aria-current="item.to === activeTo ? 'page' : undefined"
+      >
+        <IconLucide :name="item.icon" :size="24" />
+        <span class="text-[11px] font-medium">{{ item.label }}</span>
+      </RouterLink>
+    </div>
   </nav>
 </template>
