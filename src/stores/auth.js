@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import supabase from '@/services/supabase'
 import { getUserProfileByPK, updateUserProfile } from '@/services/user-profile'
+import { useRouteDraftStore } from '@/stores/routeDraft'
 
 export const useAuthStore = defineStore('auth', () => {
   // Estado
@@ -82,6 +83,8 @@ export const useAuthStore = defineStore('auth', () => {
     await supabase.auth.signOut()
     session.value = null
     profile.value = null
+    // el borrador de ruta es del usuario: no lo dejamos en el navegador
+    useRouteDraftStore().reset()
   }
 
   async function updateProfile(data) {
