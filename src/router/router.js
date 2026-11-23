@@ -17,7 +17,6 @@ const Explore = () => import('@/pages/Explore.vue')
 const PostList = () => import('@/pages/PostList.vue')
 const PostDetail = () => import('@/pages/PostDetail.vue')
 const CreatePost = () => import('@/pages/CreatePost.vue')
-const Events = () => import('@/pages/Events.vue')
 
 const MyProfile = () => import('@/pages/MyProfile.vue')
 const EditProfile = () => import('@/pages/MyProfileEdit.vue')
@@ -55,8 +54,6 @@ const routes = [
       { path: 'comunidad/publicar', component: CreatePost },
       { path: 'comunidad/:id', component: PostDetail },
 
-      { path: 'eventos', component: Events },
-
       { path: 'perfil', component: MyProfile },
       { path: 'perfil/editar', component: EditProfile },
 
@@ -76,7 +73,6 @@ const routes = [
     ['/posts', '/comunidad'],
     ['/posts/create', '/comunidad/publicar'],
     ['/posts/:id', (p) => `/comunidad/${p.id}`],
-    ['/events', '/eventos'],
     ['/profile/me', '/perfil'],
     ['/profile/edit', '/perfil/editar'],
     ['/my-bikes', '/garaje'],

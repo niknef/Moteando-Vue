@@ -7,10 +7,11 @@ import { useRoute } from 'vue-router'
 export function useActiveNav(paths) {
   const route = useRoute()
 
-  return computed(
-    () =>
-      toValue(paths)
-        .filter((to) => route.path === to || route.path.startsWith(to + '/'))
-        .sort((a, b) => b.length - a.length)[0],
-  )
+  return computed(() => {
+    // Editar una ruta es seguir en el diseñador: marca "Crear", no "Mis rutas"
+    const path = /^\/rutas\/[^/]+\/editar$/.test(route.path) ? '/rutas/nueva' : route.path
+    return toValue(paths)
+      .filter((to) => path === to || path.startsWith(to + '/'))
+      .sort((a, b) => b.length - a.length)[0]
+  })
 }
