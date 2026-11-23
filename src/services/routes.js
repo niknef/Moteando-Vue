@@ -12,7 +12,7 @@ export async function saveRoute({ name, description, is_public, geojson }) {
     name,
     description,
     is_public,
-    data: geojson,
+    geometry: geojson,
   })
   if (error) throw error
 }
