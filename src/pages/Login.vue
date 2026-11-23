@@ -1,4 +1,5 @@
 <script setup>
+import { safeRedirect } from '@/lib/redirect'
 /* ────────── imports ────────── */
 import { ref, reactive } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -35,7 +36,7 @@ async function handleSubmit() {
   try {
     await auth.login(user.email, user.password)
     // Si el guard nos mandó acá desde otra página, volvemos a ella
-    router.push(route.query.redirect || '/rutas/nueva')
+    router.push(safeRedirect(route.query.redirect))
   } catch (err) {
     const msg = err.message
     if (msg.includes('Invalid login credentials')) {
@@ -115,7 +116,14 @@ async function handleSubmit() {
 
     <p class="flex justify-center gap-1.5 pt-8 text-[15px] text-muted-foreground">
       ¿No tenés cuenta?
-      <router-link to="/registro" class="font-semibold text-primary">Registrate</router-link>
+      <router-link
+        :to="{
+          path: '/registro',
+          query: route.query.redirect ? { redirect: route.query.redirect } : {},
+        }"
+        class="font-semibold text-primary"
+        >Registrate</router-link
+      >
     </p>
   </div>
 </template>

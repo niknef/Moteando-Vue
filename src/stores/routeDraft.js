@@ -53,8 +53,23 @@ export const useRouteDraftStore = defineStore('routeDraft', () => {
     if (!wp) return
     wp.lng = lng
     wp.lat = lat
+    // un nombre puesto a mano ("YPF de Gral. Rodríguez") no se pisa al mover el punto
+    if (wp.named) return
     wp.label = label ?? ''
     if (!label) resolveLabel(id)
+  }
+
+  // Nombre propio y tipo de parada (nafta, comida, foto, reagrupe). label vacío = volver al automático
+  function updateWaypoint(id, { label, type }) {
+    const wp = waypoints.value.find((w) => w.id === id)
+    if (!wp) return
+    if (type !== undefined) wp.type = type || null
+    if (label !== undefined) {
+      const clean = label.trim().slice(0, 60)
+      wp.named = !!clean
+      wp.label = clean
+      if (!clean) resolveLabel(id)
+    }
   }
 
   function removeWaypoint(id) {
@@ -190,7 +205,13 @@ export const useRouteDraftStore = defineStore('routeDraft', () => {
       name: name.value.trim(),
       description: description.value.trim() || null,
       is_public: isPublic.value,
-      waypoints: waypoints.value.map(({ lng, lat, label }) => ({ lng, lat, label })),
+      waypoints: waypoints.value.map(({ lng, lat, label, type, named }) => ({
+        lng,
+        lat,
+        label,
+        ...(type ? { type } : {}),
+        ...(named ? { named } : {}),
+      })),
       options: { avoid: avoid.value, preference: preference.value },
       geometry: result.value.geometry,
       distance_km: result.value.distanceKm,
@@ -214,6 +235,7 @@ export const useRouteDraftStore = defineStore('routeDraft', () => {
     isEmpty,
     addWaypoint,
     moveWaypointTo,
+    updateWaypoint,
     removeWaypoint,
     reorderWaypoint,
     reverseWaypoints,

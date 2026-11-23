@@ -5,6 +5,14 @@ import { useRouteDraftStore } from '@/stores/routeDraft'
 import { useGeocoding } from '@/composables/useGeocoding'
 import { formatDuration, formatKm } from '@/lib/format'
 import { linkShareMessage } from '@/lib/share'
+import { STOP_TYPES, stopType } from '@/lib/stop-types'
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
@@ -12,6 +20,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
@@ -96,6 +105,18 @@ function badgeOf(index) {
   if (index === 0) return 'A'
   if (index === waypoints.value.length - 1) return 'B'
   return String(index)
+}
+
+/* ───────── Renombrar un punto ───────── */
+const renaming = ref(null) // { id, label }
+
+function openRename(wp) {
+  renaming.value = { id: wp.id, label: wp.named ? wp.label : '', placeholder: wp.label }
+}
+
+function saveRename() {
+  draft.updateWaypoint(renaming.value.id, { label: renaming.value.label })
+  renaming.value = null
 }
 
 /* ───────── Búsqueda ───────── */
@@ -305,6 +326,17 @@ function onHandleClick() {
               <p class="truncate text-sm">{{ wp.label || 'Buscando el nombre…' }}</p>
               <p class="text-xs text-muted-foreground">
                 {{ roleOf(i) }}
+                <template v-if="stopType(wp.type)">
+                  ·
+                  <span :class="stopType(wp.type).color">
+                    <IconLucide
+                      :name="stopType(wp.type).icon"
+                      :size="12"
+                      class="inline align-[-2px]"
+                    />
+                    {{ stopType(wp.type).label }}
+                  </span>
+                </template>
                 <template v-if="legKm(i) !== null">
                   · {{ formatKm(legKm(i)) }} desde el anterior</template
                 >
@@ -323,7 +355,30 @@ function onHandleClick() {
                   <IconLucide name="EllipsisVertical" :size="16" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
+              <DropdownMenuContent align="end" class="min-w-48">
+                <DropdownMenuItem @select="openRename(wp)">
+                  <IconLucide name="PencilLine" :size="16" />
+                  Renombrar
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuLabel class="text-xs text-muted-foreground"
+                  >Tipo de parada</DropdownMenuLabel
+                >
+                <DropdownMenuItem
+                  v-for="(t, key) in STOP_TYPES"
+                  :key="key"
+                  @select="draft.updateWaypoint(wp.id, { type: wp.type === key ? null : key })"
+                >
+                  <IconLucide :name="t.icon" :size="16" :class="t.color" />
+                  {{ t.label }}
+                  <IconLucide
+                    v-if="wp.type === key"
+                    name="CheckCircle2"
+                    :size="14"
+                    class="ml-auto text-primary"
+                  />
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem :disabled="i === 0" @select="draft.reorderWaypoint(i, i - 1)">
                   <IconLucide name="ArrowUp" :size="16" />
                   Subir
@@ -408,5 +463,29 @@ function onHandleClick() {
         {{ routeId ? 'Guardar cambios' : 'Guardar' }}
       </Button>
     </div>
+    <!-- Renombrar un punto -->
+    <Dialog :open="!!renaming" @update:open="(open) => !open && (renaming = null)">
+      <DialogContent class="sm:max-w-sm">
+        <form v-if="renaming" class="grid gap-4" @submit.prevent="saveRename">
+          <DialogHeader>
+            <DialogTitle>Nombre del punto</DialogTitle>
+          </DialogHeader>
+          <Input
+            v-model="renaming.label"
+            maxlength="60"
+            :placeholder="renaming.placeholder || 'Ej.: YPF de Gral. Rodríguez'"
+            aria-label="Nombre del punto"
+            autofocus
+          />
+          <p class="text-xs text-muted-foreground">Vacío = el nombre del lugar en el mapa.</p>
+          <DialogFooter>
+            <Button type="button" variant="ghost" size="lg" @click="renaming = null">
+              Cancelar
+            </Button>
+            <Button type="submit" size="lg">Guardar</Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   </section>
 </template>
