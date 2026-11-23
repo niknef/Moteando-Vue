@@ -1,5 +1,8 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue'
+
+// embedded: se muestra dentro de Descubrir (pestaña Salidas), sin su propio encabezado
+const props = defineProps({ embedded: { type: Boolean, default: false } })
 import { useRouter } from 'vue-router'
 
 import BaseHeading1 from '@/components/ui/BaseHeading1.vue'
@@ -85,11 +88,17 @@ async function toggleLike(p) {
 </script>
 
 <template>
-  <section class="max-w-4xl mx-auto sm:mt-8 bg-card text-foreground p-6 sm:rounded-lg shadow-md">
+  <section
+    :class="
+      props.embedded
+        ? 'text-foreground'
+        : 'max-w-4xl mx-auto sm:mt-8 bg-card text-foreground p-6 sm:rounded-lg shadow-md'
+    "
+  >
     <!-- encabezado -->
-    <div class="flex justify-between items-center mb-6">
+    <div v-if="!props.embedded" class="flex justify-between items-center mb-6">
       <BaseHeading1>Posts recientes</BaseHeading1>
-      <router-link to="/create-post">
+      <router-link to="/comunidad/publicar">
         <BaseButton type="orange" size="sm">
           <template #icon><IconLucide name="Plus" :size="18" /></template>
           Nueva

@@ -128,7 +128,7 @@ export default {
         })
 
         this.success = true
-        this.$router.push('/comunidad')
+        this.$router.push({ path: '/descubrir', query: { tab: 'salidas' } })
       } catch (e) {
         this.error = 'No se pudo guardar el post: ' + (e.message ?? 'error desconocido')
         console.error('[CreatePost] Error al guardar:', e)

@@ -243,12 +243,13 @@ onBeforeUnmount(() => {
           placeholder="Escribí tu comentario..."
         ></textarea>
         <div class="flex justify-end gap-4 mt-2">
-          <a
-            href="/comunidad"
+          <!-- router-link y no <a href>: volver sin recargar toda la app (bug B9) -->
+          <router-link
+            :to="{ path: '/descubrir', query: { tab: 'salidas' } }"
             class="flex items-center gap-2 text-sm bg-secondary hover:bg-accent px-4 py-2 rounded-lg"
           >
             <IconLucide name="ArrowLeft" :size="20" /> Volver
-          </a>
+          </router-link>
           <button
             :disabled="commentLoading"
             class="bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-lg text-sm transition"

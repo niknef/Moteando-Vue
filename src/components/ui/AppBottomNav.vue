@@ -5,8 +5,7 @@ import { useActiveNav } from '@/composables/useActiveNav'
 
 /* ítems de izquierda a derecha */
 const items = [
-  { to: '/comunidad', icon: 'Users', label: 'Comunidad' },
-  { to: '/explorar', icon: 'Compass', label: 'Explorar' },
+  { to: '/descubrir', icon: 'Compass', label: 'Descubrir' },
   { to: '/rutas/nueva', icon: 'CirclePlus', label: 'Crear' },
   { to: '/rutas', icon: 'Map', label: 'Mis rutas' },
   { to: '/perfil', icon: 'User', label: 'Perfil' },

@@ -84,10 +84,19 @@ export async function deleteRoute(id) {
 }
 
 /**
- * Rutas públicas para explorar, la última modificada primero, con el autor de cada una.
- * userId: solo las de ese usuario (perfil) · search: filtra por nombre.
+ * Rutas públicas para descubrir, la última modificada primero, con el autor de cada una y
+ * su señal social (cantidad de salidas publicadas y puntaje promedio).
+ * userId: solo las de ese usuario (perfil) · search: filtra por nombre ·
+ * minKm/maxKm: rango de distancia · noHighways: solo las que evitan autopistas.
  */
-export async function listPublicRoutes({ userId, search, limit = 30 } = {}) {
+export async function listPublicRoutes({
+  userId,
+  search,
+  minKm,
+  maxKm,
+  noHighways,
+  limit = 30,
+} = {}) {
   let query = supabase
     .from('routes')
     .select(COLUMNS)
@@ -96,19 +105,44 @@ export async function listPublicRoutes({ userId, search, limit = 30 } = {}) {
     .limit(limit)
   if (userId) query = query.eq('user_id', userId)
   if (search?.trim()) query = query.ilike('name', `%${search.trim()}%`)
+  if (minKm != null) query = query.gte('distance_km', minKm)
+  if (maxKm != null) query = query.lt('distance_km', maxKm)
+  if (noHighways) query = query.filter('options->avoid', 'cs', '["highways"]')
 
   const { data, error } = await query
   if (error) throw new Error('No se pudieron cargar las rutas: ' + error.message)
+  if (!data.length) return []
 
-  // routes apunta a auth.users (no a user_profiles): los autores se traen aparte
-  const ids = [...new Set(data.map((r) => r.user_id))]
-  if (!ids.length) return []
-  const { data: profiles } = await supabase
-    .from('user_profiles')
-    .select('id, first_name, last_name, avatar_url')
-    .in('id', ids)
+  // routes apunta a auth.users (no a user_profiles): autores y salidas se traen aparte
+  const userIds = [...new Set(data.map((r) => r.user_id))]
+  const routeIds = data.map((r) => r.id)
+  const [{ data: profiles }, { data: posts }] = await Promise.all([
+    supabase
+      .from('user_profiles')
+      .select('id, first_name, last_name, avatar_url')
+      .in('id', userIds),
+    supabase.from('posts').select('route_id, rating').in('route_id', routeIds),
+  ])
   const byId = Object.fromEntries((profiles ?? []).map((p) => [p.id, p]))
-  return data.map((r) => ({ ...r, author: byId[r.user_id] ?? null }))
+
+  const stats = {}
+  for (const { route_id: id, rating } of posts ?? []) {
+    stats[id] ??= { count: 0, sum: 0, rated: 0 }
+    stats[id].count++
+    if (rating != null) {
+      stats[id].sum += Number(rating)
+      stats[id].rated++
+    }
+  }
+  return data.map((r) => {
+    const st = stats[r.id]
+    return {
+      ...r,
+      author: byId[r.user_id] ?? null,
+      rides: st?.count ?? 0,
+      rating: st?.rated ? Math.round((st.sum / st.rated) * 10) / 10 : null,
+    }
+  })
 }
 
 /**

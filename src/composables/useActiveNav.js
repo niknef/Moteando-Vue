@@ -8,8 +8,11 @@ export function useActiveNav(paths) {
   const route = useRoute()
 
   return computed(() => {
-    // Editar una ruta es seguir en el diseñador: marca "Crear", no "Mis rutas"
-    const path = /^\/rutas\/[^/]+\/editar$/.test(route.path) ? '/rutas/nueva' : route.path
+    // Editar una ruta es seguir en el diseñador: marca "Crear", no "Mis rutas".
+    // Los posts (/comunidad/…) son parte de Descubrir.
+    let path = route.path
+    if (/^\/rutas\/[^/]+\/editar$/.test(path)) path = '/rutas/nueva'
+    else if (path.startsWith('/comunidad')) path = '/descubrir'
     return toValue(paths)
       .filter((to) => path === to || path.startsWith(to + '/'))
       .sort((a, b) => b.length - a.length)[0]

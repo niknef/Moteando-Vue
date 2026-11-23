@@ -13,8 +13,7 @@ const AppShell = () => import('@/components/layout/AppShell.vue')
 
 const HomeMap = () => import('@/pages/HomeMap.vue')
 const MyRoutes = () => import('@/pages/MyRoutes.vue')
-const Explore = () => import('@/pages/Explore.vue')
-const PostList = () => import('@/pages/PostList.vue')
+const Discover = () => import('@/pages/Discover.vue')
 const PostDetail = () => import('@/pages/PostDetail.vue')
 const CreatePost = () => import('@/pages/CreatePost.vue')
 
@@ -46,11 +45,13 @@ const routes = [
       { path: '', redirect: '/rutas/nueva' },
 
       { path: 'rutas', component: MyRoutes },
-      { path: 'explorar', component: Explore },
+      { path: 'descubrir', component: Discover },
+      // Explorar y Comunidad viven ahora en Descubrir (pestañas Rutas y Salidas)
+      { path: 'explorar', redirect: '/descubrir' },
       { path: 'rutas/nueva', component: HomeMap },
       { path: 'rutas/:id/editar', component: HomeMap },
 
-      { path: 'comunidad', component: PostList },
+      { path: 'comunidad', redirect: { path: '/descubrir', query: { tab: 'salidas' } } },
       { path: 'comunidad/publicar', component: CreatePost },
       { path: 'comunidad/:id', component: PostDetail },
 
