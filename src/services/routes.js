@@ -110,3 +110,20 @@ export async function listPublicRoutes({ userId, search, limit = 30 } = {}) {
   const byId = Object.fromEntries((profiles ?? []).map((p) => [p.id, p]))
   return data.map((r) => ({ ...r, author: byId[r.user_id] ?? null }))
 }
+
+/**
+ * Copia una ruta (propia o pública de otro) a las rutas del usuario logueado, como privada.
+ * Devuelve la ruta nueva.
+ */
+export async function copyRouteToMine(route) {
+  return saveRoute({
+    name: route.name.slice(0, 80),
+    description: route.description,
+    is_public: false,
+    waypoints: route.waypoints,
+    options: route.options,
+    geometry: route.geometry,
+    distance_km: route.distance_km,
+    duration_min: route.duration_min,
+  })
+}

@@ -1,4 +1,5 @@
 import { updateRoute } from '@/services/routes'
+import { stopType } from '@/lib/stop-types'
 
 // Compartir una ruta con el navegador de cada uno: link de Google Maps y archivo GPX.
 // `route`: { name, description?, waypoints: [{ lng, lat, label }], options?: { avoid }, geometry? }
@@ -61,8 +62,21 @@ const coord = (lng, lat) => `lat="${lat.toFixed(6)}" lon="${lng.toFixed(6)}"`
 
 export function routeToGpx(route) {
   const name = route.name?.trim() || 'Ruta de Moteando'
+  // tipo de parada (nafta, comida…) como <type>, que muestran Garmin y OsmAnd
+  const typeTag = (w) => (stopType(w.type) ? `<type>${xml(stopType(w.type).label)}</type>` : '')
   const wpts = route.waypoints
-    .map((w) => `  <wpt ${coord(w.lng, w.lat)}><name>${xml(w.label || 'Punto')}</name></wpt>`)
+    .map(
+      (w) =>
+        `  <wpt ${coord(w.lng, w.lat)}><name>${xml(w.label || 'Punto')}</name>${typeTag(w)}</wpt>`,
+    )
+    .join('\n')
+  // <rte>: los mismos puntos como ruta, para los GPS que recalculan entre puntos de paso (Zumo,
+  // Basecamp). El <trk> lleva la línea exacta calculada.
+  const rtepts = route.waypoints
+    .map(
+      (w) =>
+        `    <rtept ${coord(w.lng, w.lat)}><name>${xml(w.label || 'Punto')}</name>${typeTag(w)}</rtept>`,
+    )
     .join('\n')
   const trkpts = (route.geometry?.coordinates ?? route.waypoints.map((w) => [w.lng, w.lat]))
     .map(([lng, lat]) => `      <trkpt ${coord(lng, lat)}/>`)
@@ -74,6 +88,10 @@ export function routeToGpx(route) {
     <name>${xml(name)}</name>${route.description ? `\n    <desc>${xml(route.description)}</desc>` : ''}
   </metadata>
 ${wpts}
+  <rte>
+    <name>${xml(name)}</name>
+${rtepts}
+  </rte>
   <trk>
     <name>${xml(name)}</name>
     <trkseg>

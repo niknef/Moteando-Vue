@@ -1,14 +1,15 @@
 <script setup>
 import { Marker } from 'maplibre-gl'
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 import Logo from '@/assets/moteando.svg'
 import Loader from '@/components/ui/Loader.vue'
 import IconLucide from '@/components/ui/IconLucide.vue'
 import { Button } from '@/components/ui/button'
 import { useMap } from '@/composables/useMap'
-import { getRouteById } from '@/services/routes'
+import { copyRouteToMine, getRouteById } from '@/services/routes'
+import { stopType } from '@/lib/stop-types'
 import { useAuthStore } from '@/stores/auth'
 import { formatDuration, formatKm } from '@/lib/format'
 import { downloadGpx, linkShareMessage, openInGoogleMaps, shareRouteLink } from '@/lib/share'
@@ -23,6 +24,7 @@ const ROUTE_SOURCE = 'public-route'
 const DESKTOP = '(min-width: 1024px)'
 
 const route = useRoute()
+const router = useRouter()
 const auth = useAuthStore()
 const { map, init } = useMap()
 
@@ -92,6 +94,28 @@ async function shareLink() {
   }
 }
 
+/* ───────── Guardar en mis rutas ───────── */
+const copying = ref(false)
+const copiedId = ref(null)
+
+// Con cuenta: copia la ruta a Mis rutas. Sin cuenta: registro y vuelve acá con ?guardar=1
+async function saveToMine() {
+  if (!auth.isLoggedIn) {
+    router.push({ path: '/registro', query: { redirect: `/r/${data.value.id}?guardar=1` } })
+    return
+  }
+  copying.value = true
+  try {
+    const copy = await copyRouteToMine(data.value)
+    copiedId.value = copy.id
+    showToast('Guardada en Mis rutas')
+  } catch (e) {
+    showToast(e.message)
+  } finally {
+    copying.value = false
+  }
+}
+
 /* ───────── Carga ───────── */
 onMounted(async () => {
   init(mapContainer.value)
@@ -104,6 +128,12 @@ onMounted(async () => {
     loading.value = false
   }
   if (data.value) whenMapReady(drawOnMap)
+
+  // Vuelve del registro con la intención de guardarla: se guarda una sola vez y se limpia la URL
+  if (data.value && route.query.guardar && auth.isLoggedIn && !isOwner.value) {
+    router.replace({ query: {} })
+    saveToMine()
+  }
 })
 
 onBeforeUnmount(() => {
@@ -183,6 +213,14 @@ onBeforeUnmount(() => {
               {{ i === 0 ? 'A' : i === data.waypoints.length - 1 ? 'B' : i }}
             </span>
             <span class="truncate">{{ wp.label || 'Punto sin nombre' }}</span>
+            <span
+              v-if="stopType(wp.type)"
+              class="flex shrink-0 items-center gap-1 text-xs"
+              :class="stopType(wp.type).color"
+            >
+              <IconLucide :name="stopType(wp.type).icon" :size="12" />
+              {{ stopType(wp.type).label }}
+            </span>
           </li>
         </ol>
       </div>
@@ -202,15 +240,35 @@ onBeforeUnmount(() => {
             Compartir
           </Button>
         </div>
+        <Button v-if="copiedId" variant="ghost" size="lg" class="w-full" as-child>
+          <router-link :to="`/rutas/${copiedId}/editar`">
+            <IconLucide name="PencilLine" :size="16" />
+            Abrir mi copia para editarla
+          </router-link>
+        </Button>
+        <Button
+          v-else-if="!isOwner"
+          variant="ghost"
+          size="lg"
+          class="w-full"
+          :disabled="copying"
+          @click="saveToMine"
+        >
+          <IconLucide name="BookmarkPlus" :size="16" />
+          {{ copying ? 'Guardando…' : 'Guardar en mis rutas' }}
+        </Button>
         <Button v-if="isOwner" variant="ghost" size="lg" class="w-full" as-child>
           <router-link :to="`/rutas/${data.id}/editar`">
             <IconLucide name="PencilLine" :size="16" />
             Editar mi ruta
           </router-link>
         </Button>
-        <p v-else-if="!auth.isLoggedIn" class="pt-1 text-center text-xs text-muted-foreground">
+        <p v-if="!auth.isLoggedIn" class="pt-1 text-center text-xs text-muted-foreground">
           ¿Querés armar tus propias rutas?
-          <router-link to="/registro" class="text-primary underline-offset-4 hover:underline">
+          <router-link
+            :to="{ path: '/registro', query: { redirect: `/r/${data.id}` } }"
+            class="text-primary underline-offset-4 hover:underline"
+          >
             Creá tu cuenta
           </router-link>
         </p>

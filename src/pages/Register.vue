@@ -1,7 +1,8 @@
 <script setup>
+import { safeRedirect } from '@/lib/redirect'
 /* ────────── imports ────────── */
 import { ref, reactive } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -27,6 +28,7 @@ const loading = ref(false)
 
 /* ────────── router ────────── */
 const router = useRouter()
+const route = useRoute()
 const auth = useAuthStore()
 
 /* ────────── helpers ────────── */
@@ -47,7 +49,8 @@ async function handleSubmit() {
   try {
     const { firstName, lastName, email, password } = user
     await auth.register(email, password, firstName.trim(), lastName.trim())
-    router.push('/rutas/nueva') // nueva home
+    // si vino desde un link (por ejemplo, una ruta compartida), vuelve ahí
+    router.push(safeRedirect(route.query.redirect))
   } catch (err) {
     const msg = err.message
     if (msg.includes('User already registered')) {
@@ -150,7 +153,14 @@ async function handleSubmit() {
 
     <p class="flex justify-center gap-1.5 pt-8 text-[15px] text-muted-foreground">
       ¿Ya tenés cuenta?
-      <router-link to="/ingresar" class="font-semibold text-primary">Iniciá sesión</router-link>
+      <router-link
+        :to="{
+          path: '/ingresar',
+          query: route.query.redirect ? { redirect: route.query.redirect } : {},
+        }"
+        class="font-semibold text-primary"
+        >Iniciá sesión</router-link
+      >
     </p>
   </div>
 </template>
