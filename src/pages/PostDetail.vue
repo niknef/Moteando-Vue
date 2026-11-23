@@ -9,6 +9,7 @@ import BaseHeading1 from '@/components/ui/BaseHeading1.vue'
 import Loader from '@/components/ui/Loader.vue'
 import BaseAlert from '@/components/ui/BaseAlert.vue'
 import IconLucide from '@/components/ui/IconLucide.vue'
+import PostRouteCard from '@/components/route/PostRouteCard.vue'
 
 const route = useRoute()
 
@@ -157,6 +158,8 @@ onBeforeUnmount(() => {
       </div>
       <!-- Nombre de la ruta -->
       <h2 class="text-2xl font-bold text-orange-400 mb-4">{{ post.route_name }}</h2>
+
+      <PostRouteCard v-if="post.routes" :route="post.routes" class="mb-4" />
 
       <!-- Info + Imagen -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">

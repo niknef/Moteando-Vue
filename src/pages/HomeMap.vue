@@ -13,7 +13,7 @@ import { useMap } from '@/composables/useMap'
 import { boundsOf, setRouteLine, waypointMarkerElement } from '@/lib/map-route'
 import { useRouteDraftStore } from '@/stores/routeDraft'
 import { useAuthStore } from '@/stores/auth'
-import { getRouteById } from '@/services/routes'
+import { getRouteById, updateRoute } from '@/services/routes'
 
 // Diseñador de rutas: el mapa ocupa toda la pantalla y el borrador vive en el store.
 
@@ -137,21 +137,27 @@ function onPlaceAdded(place) {
 
 const mapCenter = () => map.value?.getCenter() ?? null
 
-// Publicar sigue usando el flujo de posts actual (salida y llegada); se rehace en la Fase 2
-function goToCreatePost() {
-  const list = waypoints.value
-  const start = list[0]
-  const end = list[list.length - 1]
-  router.push({
-    path: '/comunidad/publicar',
-    query: {
-      start_point: start.label,
-      end_point: end.label,
-      start_geom: `POINT (${start.lng} ${start.lat})`,
-      end_geom: `POINT (${end.lng} ${end.lat})`,
-      route_type: draft.preference,
-    },
-  })
+// Publicar en la comunidad: el post apunta a la ruta guardada, que tiene que ser pública
+async function goToCreatePost() {
+  notice.value = ''
+  if (!routeId.value) {
+    notice.value = 'Guardá la ruta para poder publicarla'
+    saveOpen.value = true
+    return
+  }
+  if (!draft.isPublic) {
+    const question =
+      'Para publicarla en la comunidad la ruta tiene que ser pública. ¿Hacerla pública?'
+    if (!window.confirm(question)) return
+    try {
+      await updateRoute(routeId.value, { is_public: true })
+      draft.isPublic = true
+    } catch (e) {
+      notice.value = e.message
+      return
+    }
+  }
+  router.push({ path: '/comunidad/publicar', query: { route: routeId.value } })
 }
 
 /* ───────── Guardar y editar ───────── */
