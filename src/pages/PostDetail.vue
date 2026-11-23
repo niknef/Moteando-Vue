@@ -10,6 +10,8 @@ import Loader from '@/components/ui/Loader.vue'
 import BaseAlert from '@/components/ui/BaseAlert.vue'
 import IconLucide from '@/components/ui/IconLucide.vue'
 import PostRouteCard from '@/components/route/PostRouteCard.vue'
+import PostPhotos from '@/components/route/PostPhotos.vue'
+import { formatShortDate } from '@/lib/format'
 
 const route = useRoute()
 
@@ -154,7 +156,11 @@ onBeforeUnmount(() => {
             {{ post.user_profiles?.first_name }} {{ post.user_profiles?.last_name }}
           </router-link>
           <p class="text-sm text-muted-foreground">
-            {{ new Date(post.created_at).toLocaleDateString() }}
+            {{
+              post.ride_date
+                ? `Salió el ${formatShortDate(post.ride_date + 'T12:00')}`
+                : formatShortDate(post.created_at)
+            }}
           </p>
         </div>
       </div>
@@ -188,9 +194,11 @@ onBeforeUnmount(() => {
           </p>
         </div>
 
-        <div v-if="post.image_url" class="flex justify-center">
-          <img :src="post.image_url" alt="Imagen de la ruta" class="max-h-80 rounded-lg border" />
-        </div>
+        <PostPhotos
+          :photos="post.photos"
+          :image-url="post.image_url"
+          :alt="`Foto de ${post.route_name}`"
+        />
       </div>
 
       <!-- Acciones -->

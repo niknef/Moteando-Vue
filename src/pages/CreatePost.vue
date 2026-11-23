@@ -1,276 +1,315 @@
-<script>
-import BaseHeading1 from '@/components/ui/BaseHeading1.vue'
-import BaseButton from '@/components/ui/BaseButton.vue'
-import BaseInput from '@/components/ui/BaseInput.vue'
-import BaseLabel from '@/components/ui/BaseLabel.vue'
-import Loader from '@/components/ui/Loader.vue'
+<script setup>
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import BaseAlert from '@/components/ui/BaseAlert.vue'
 import IconLucide from '@/components/ui/IconLucide.vue'
-
+import Loader from '@/components/ui/Loader.vue'
 import RoutePreview from '@/components/route/RoutePreview.vue'
 import { createPost } from '@/services/posts'
-import { getRouteById } from '@/services/routes'
-import { formatDuration, formatKm } from '@/lib/format'
-import { uploadImage, validateImage, IMAGE_ACCEPT } from '@/services/storage'
+import { getRouteById, listMyRoutes, updateRoute } from '@/services/routes'
+import { IMAGE_ACCEPT, deleteImageByUrl, uploadImage, validateImage } from '@/services/storage'
 import { useAuthStore } from '@/stores/auth'
+import { formatDuration, formatKm } from '@/lib/format'
 
-export default {
-  name: 'CreatePost',
-  components: {
-    BaseHeading1,
-    BaseButton,
-    BaseInput,
-    BaseLabel,
-    Loader,
-    IconLucide,
-    BaseAlert,
-    RoutePreview,
-  },
-  data() {
-    return {
-      post: {
-        route_name: '',
-        start_point: this.$route.query.start_point || '',
-        end_point: this.$route.query.end_point || '',
-        start_geom: this.$route.query.start_geom || '',
-        end_geom: this.$route.query.end_geom || '',
-        route_type: this.$route.query.route_type || '',
-        duration: '', // Se va a armar antes de enviar
-        rating: 3,
-        description: '',
-        image_url: '',
-        route_id: null,
-      },
-      // ruta guardada que se publica (viene de ?route=<id> desde el diseñador)
-      linkedRoute: null,
-      loadingRoute: false,
-      durationHours: 0,
-      durationMinutes: 0,
+// "Contá tu salida": el post es la crónica de una salida sobre una ruta guardada.
+// Con ?route=<id> la ruta ya está elegida; si no, se elige entre las propias.
 
-      file: null,
-      preview: '',
-      imageAccept: IMAGE_ACCEPT,
-      success: false,
-      error: null,
-      loading: false,
+defineOptions({ name: 'CreatePost' })
+
+const MAX_PHOTOS = 6
+
+const route = useRoute()
+const router = useRouter()
+const auth = useAuthStore()
+
+const ride = ref(null) // ruta elegida
+const myRoutes = ref([])
+const loading = ref(true)
+const saving = ref(false)
+const error = ref('')
+
+const today = new Date().toISOString().slice(0, 10)
+const rideDate = ref(today)
+const rating = ref(0)
+const description = ref('')
+const photos = ref([]) // [{ file, preview }]
+
+const canPublish = computed(() => ride.value && rating.value > 0 && !saving.value)
+
+/* ───────── Ruta ───────── */
+function chooseRoute(r) {
+  error.value = ''
+  ride.value = r
+  if (!description.value && r.description) description.value = r.description
+  router.replace({ query: { route: r.id } })
+}
+
+async function changeRoute() {
+  ride.value = null
+  if (!myRoutes.value.length) {
+    loading.value = true
+    try {
+      myRoutes.value = await listMyRoutes()
+    } catch (e) {
+      error.value = e.message
+    } finally {
+      loading.value = false
     }
-  },
-  async created() {
-    const routeId = this.$route.query.route
-    if (routeId) await this.loadRoute(routeId)
-  },
-  methods: {
-    formatKm,
-    formatDuration,
-    // Completa el post con los datos de la ruta: nombre, salida, llegada y duración estimada
-    async loadRoute(id) {
-      this.loadingRoute = true
-      try {
-        const route = await getRouteById(id)
-        const start = route.waypoints[0]
-        const end = route.waypoints[route.waypoints.length - 1]
-        this.linkedRoute = route
-        Object.assign(this.post, {
-          route_id: route.id,
-          route_name: route.name,
-          start_point: start.label || `${start.lat}, ${start.lng}`,
-          end_point: end.label || `${end.lat}, ${end.lng}`,
-          start_geom: `POINT (${start.lng} ${start.lat})`,
-          end_geom: `POINT (${end.lng} ${end.lat})`,
-          route_type: route.options?.preference ?? 'fastest',
-          description: this.post.description || route.description || '',
-        })
-        // el selector va de a 15 minutos: se redondea el total (55 min → 1 h, no 0 h 0 min)
-        const minutes = Math.round((Number(route.duration_min) || 0) / 15) * 15
-        this.durationHours = Math.min(Math.floor(minutes / 60), 23)
-        this.durationMinutes = minutes % 60
-      } catch (e) {
-        this.error = e.message
-      } finally {
-        this.loadingRoute = false
-      }
-    },
-    handleFile(e) {
-      const f = e.target.files[0]
-      if (!f) return
-      try {
-        validateImage(f)
-      } catch (err) {
-        this.error = err.message
-        return
-      }
-      this.error = null
-      this.file = f
-      this.preview = URL.createObjectURL(f)
-    },
-    async handleSubmit() {
-      const userId = useAuthStore().user?.id
-      if (!userId) {
-        this.error = 'Usuario no autenticado'
-        return
-      }
+  }
+}
 
-      // Armamos duración en formato HH:MM:SS
-      this.post.duration = `${String(this.durationHours).padStart(2, '0')}:${String(this.durationMinutes).padStart(2, '0')}:00`
+onMounted(async () => {
+  try {
+    if (route.query.route) {
+      const r = await getRouteById(route.query.route)
+      if (r.user_id !== auth.user?.id) throw new Error('Solo podés publicar salidas de tus rutas')
+      chooseRoute(r)
+    } else {
+      myRoutes.value = await listMyRoutes()
+    }
+  } catch (e) {
+    error.value = e.message
+  } finally {
+    loading.value = false
+  }
+})
 
-      this.loading = true
-      this.error = null
-      this.success = false
+/* ───────── Fotos ───────── */
+function addPhotos(event) {
+  error.value = ''
+  for (const file of event.target.files) {
+    if (photos.value.length >= MAX_PHOTOS) {
+      error.value = `Podés subir hasta ${MAX_PHOTOS} fotos`
+      break
+    }
+    try {
+      validateImage(file)
+      photos.value.push({ file, preview: URL.createObjectURL(file) })
+    } catch (e) {
+      error.value = `${file.name}: ${e.message}`
+    }
+  }
+  event.target.value = ''
+}
 
-      try {
-        if (this.file) {
-          this.post.image_url = await uploadImage('posts', this.file)
-        }
+function removePhoto(index) {
+  URL.revokeObjectURL(photos.value[index].preview)
+  photos.value.splice(index, 1)
+}
 
-        await createPost({
-          ...this.post,
-          user_id: userId,
-        })
+onBeforeUnmount(() => photos.value.forEach((p) => URL.revokeObjectURL(p.preview)))
 
-        this.success = true
-        this.$router.push({ path: '/descubrir', query: { tab: 'salidas' } })
-      } catch (e) {
-        this.error = 'No se pudo guardar el post: ' + (e.message ?? 'error desconocido')
-        console.error('[CreatePost] Error al guardar:', e)
-      } finally {
-        this.loading = false
-      }
-    },
-  },
+/* ───────── Publicar ───────── */
+function toInterval(min) {
+  const total = Math.round(Number(min) || 0)
+  const hh = String(Math.floor(total / 60)).padStart(2, '0')
+  const mm = String(total % 60).padStart(2, '0')
+  return `${hh}:${mm}:00`
+}
+
+async function publish() {
+  if (!canPublish.value) return
+  error.value = ''
+
+  const r = ride.value
+  // La salida se ve en la comunidad junto con su ruta: tiene que ser pública
+  if (!r.is_public) {
+    const question = 'Para publicar la salida, la ruta tiene que ser pública. ¿Hacerla pública?'
+    if (!window.confirm(question)) return
+  }
+
+  saving.value = true
+  const uploaded = []
+  try {
+    if (!r.is_public) {
+      await updateRoute(r.id, { is_public: true })
+      r.is_public = true
+    }
+    // subir → guardar → (si falla) borrar lo subido
+    for (const p of photos.value) uploaded.push(await uploadImage('posts', p.file))
+
+    const start = r.waypoints[0]
+    const end = r.waypoints[r.waypoints.length - 1]
+    await createPost({
+      user_id: auth.user.id,
+      route_id: r.id,
+      route_name: r.name,
+      start_point: start.label || `${start.lat}, ${start.lng}`,
+      end_point: end.label || `${end.lat}, ${end.lng}`,
+      start_geom: `POINT (${start.lng} ${start.lat})`,
+      end_geom: `POINT (${end.lng} ${end.lat})`,
+      route_type: r.options?.preference ?? 'fastest',
+      duration: toInterval(r.duration_min),
+      rating: rating.value,
+      description: description.value.trim() || null,
+      ride_date: rideDate.value || null,
+      photos: uploaded,
+      image_url: uploaded[0] ?? null,
+    })
+    router.push({ path: '/descubrir', query: { tab: 'salidas' } })
+  } catch (e) {
+    await Promise.all(uploaded.map((url) => deleteImageByUrl('posts', url)))
+    error.value = e.message
+  } finally {
+    saving.value = false
+  }
 }
 </script>
 
 <template>
-  <section class="max-w-xl mx-auto sm:mt-8 bg-card text-foreground p-6 sm:rounded-lg shadow-md">
-    <div class="flex items-center justify-between mb-4">
-      <BaseHeading1>Crear publicación</BaseHeading1>
-    </div>
+  <div class="mx-auto w-full max-w-xl px-4 py-6 lg:py-10">
+    <header class="mb-5">
+      <h1 class="text-2xl font-semibold tracking-tight">Contá tu salida</h1>
+      <p class="text-sm text-muted-foreground">
+        Se publica en Descubrir junto con la ruta, para que otros la puedan hacer.
+      </p>
+    </header>
 
-    <Loader v-if="loadingRoute" size="md" class="mx-auto my-6" />
+    <div v-if="loading" class="grid place-items-center py-16"><Loader size="lg" /></div>
 
-    <!-- Ruta que se publica -->
-    <div
-      v-if="linkedRoute"
-      class="mt-4 flex items-center gap-4 rounded-xl border border-border bg-card p-3"
-    >
-      <RoutePreview :geometry="linkedRoute.geometry" class="size-20 shrink-0 rounded-lg" />
-      <div class="min-w-0">
-        <p class="truncate font-medium">{{ linkedRoute.name }}</p>
+    <!-- Elegir la ruta -->
+    <section v-else-if="!ride" class="space-y-3">
+      <h2 class="font-medium">¿Qué ruta hiciste?</h2>
+      <BaseAlert :message="error" type="error" />
+      <template v-if="!myRoutes.length && !error">
         <p class="text-sm text-muted-foreground">
-          {{ formatKm(linkedRoute.distance_km) }} · {{ formatDuration(linkedRoute.duration_min) }}
+          Todavía no tenés rutas guardadas. Armá la que hiciste y después contá la salida.
         </p>
-        <p class="text-xs text-muted-foreground">El post va a mostrar esta ruta</p>
-      </div>
-    </div>
+        <Button as-child size="lg">
+          <router-link to="/rutas/nueva">
+            <IconLucide name="CirclePlus" :size="16" />
+            Armar una ruta
+          </router-link>
+        </Button>
+      </template>
+      <ul class="space-y-2">
+        <li v-for="r in myRoutes" :key="r.id">
+          <button
+            type="button"
+            class="flex w-full items-center gap-3 rounded-xl border border-border bg-card p-2.5 text-left transition-colors hover:bg-accent/40"
+            @click="chooseRoute(r)"
+          >
+            <RoutePreview :geometry="r.geometry" class="size-14 shrink-0 rounded-lg" />
+            <span class="min-w-0">
+              <span class="block truncate font-medium">{{ r.name }}</span>
+              <span class="block text-sm text-muted-foreground">
+                {{ formatKm(r.distance_km) }} · {{ formatDuration(r.duration_min) }}
+              </span>
+            </span>
+          </button>
+        </li>
+      </ul>
+    </section>
 
-    <form class="flex flex-col gap-4 mt-4" @submit.prevent="handleSubmit">
-      <!-- Nombre de la ruta -->
-      <div>
-        <BaseLabel for="route_name">Nombre de la ruta</BaseLabel>
-        <BaseInput
-          id="route_name"
-          v-model="post.route_name"
-          required
-          placeholder="Ej: Paseo por Palermo"
+    <!-- Formulario -->
+    <form v-else class="space-y-6" @submit.prevent="publish">
+      <!-- La ruta, como héroe -->
+      <div class="overflow-hidden rounded-xl border border-border bg-card">
+        <RoutePreview :geometry="ride.geometry" class="aspect-[2/1] w-full" />
+        <div class="flex items-center justify-between gap-3 p-3">
+          <div class="min-w-0">
+            <p class="truncate font-medium">{{ ride.name }}</p>
+            <p class="text-sm text-muted-foreground">
+              {{ formatKm(ride.distance_km) }} · {{ formatDuration(ride.duration_min) }}
+            </p>
+          </div>
+          <Button type="button" variant="ghost" size="sm" @click="changeRoute">Cambiar</Button>
+        </div>
+      </div>
+
+      <div class="grid gap-2">
+        <Label for="ride-date">¿Cuándo la hiciste?</Label>
+        <input
+          id="ride-date"
+          v-model="rideDate"
+          type="date"
+          :max="today"
+          class="h-11 rounded-lg border border-input bg-muted px-3.5 text-foreground [color-scheme:dark] outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
         />
       </div>
 
-      <!-- Punto de inicio -->
-      <div>
-        <BaseLabel for="start_point">Punto de inicio</BaseLabel>
-        <BaseInput id="start_point" :model-value="post.start_point" disabled />
-      </div>
-
-      <!-- Punto de finalización -->
-      <div>
-        <BaseLabel for="end_point">Punto de finalización</BaseLabel>
-        <BaseInput id="end_point" :model-value="post.end_point" disabled />
-      </div>
-
-      <!-- Duración -->
-      <div>
-        <BaseLabel>Duración estimada</BaseLabel>
-        <div class="flex gap-4">
-          <div class="flex-1">
-            <label class="block mb-1 text-sm">Horas</label>
-            <select
-              v-model="durationHours"
-              class="w-full px-4 py-2 bg-muted border border-input rounded-lg"
-            >
-              <option v-for="n in 24" :key="n" :value="n - 1">{{ n - 1 }}</option>
-            </select>
-          </div>
-          <div class="flex-1">
-            <label class="block mb-1 text-sm">Minutos</label>
-            <select
-              v-model="durationMinutes"
-              class="w-full px-4 py-2 bg-muted border border-input rounded-lg"
-            >
-              <option v-for="n in [0, 15, 30, 45]" :key="n" :value="n">{{ n }}</option>
-            </select>
-          </div>
+      <fieldset class="grid gap-2">
+        <legend class="mb-2 text-sm font-medium">¿Qué tal estuvo?</legend>
+        <div class="flex gap-1" role="radiogroup" aria-label="Puntaje">
+          <button
+            v-for="n in 5"
+            :key="n"
+            type="button"
+            role="radio"
+            :aria-checked="rating === n"
+            :aria-label="`${n} de 5`"
+            class="grid size-11 place-items-center rounded-lg transition-colors hover:bg-muted"
+            @click="rating = n"
+          >
+            <IconLucide
+              name="Star"
+              :size="28"
+              :class="n <= rating ? 'fill-current text-rating' : 'text-muted-foreground'"
+            />
+          </button>
         </div>
-        <p class="text-sm text-muted-foreground mt-2">
-          Duración seleccionada: {{ durationHours }} h {{ durationMinutes }} min
-        </p>
+      </fieldset>
+
+      <div class="grid gap-2">
+        <Label for="ride-text">Contala (opcional)</Label>
+        <Textarea
+          id="ride-text"
+          v-model="description"
+          rows="4"
+          maxlength="1000"
+          placeholder="Cómo estuvo el camino, dónde paraste, qué recomendás…"
+        />
       </div>
 
-      <!-- Puntaje -->
-      <div>
-        <BaseLabel for="rating">Puntaje</BaseLabel>
-        <select
-          id="rating"
-          v-model="post.rating"
-          class="w-full px-4 py-2 bg-muted border border-input rounded-lg"
-        >
-          <option disabled value="">Seleccioná un puntaje</option>
-          <option v-for="n in 5" :key="n" :value="n">{{ n }}</option>
-        </select>
-      </div>
-
-      <!-- Descripción -->
-      <div>
-        <BaseLabel for="description">Descripción</BaseLabel>
-        <textarea
-          id="description"
-          v-model="post.description"
-          required
-          class="w-full px-4 py-2 bg-muted border border-input rounded-lg"
-          placeholder="Contanos cómo fue el recorrido, si lo hiciste solo o en grupo..."
-        ></textarea>
-      </div>
-
-      <!-- Imagen -->
-      <div>
-        <BaseLabel>Imagen</BaseLabel>
-        <input type="file" :accept="imageAccept" class="text-sm mt-1" @change="handleFile" />
-        <div v-if="preview" class="mt-4 flex justify-center">
-          <img :src="preview" class="w-48 h-48 object-cover rounded-lg border border-border" />
+      <div class="grid gap-2">
+        <div class="flex items-baseline justify-between">
+          <Label>Fotos</Label>
+          <span class="text-xs text-muted-foreground">{{ photos.length }}/{{ MAX_PHOTOS }}</span>
+        </div>
+        <div class="grid grid-cols-3 gap-2">
+          <div
+            v-for="(p, i) in photos"
+            :key="p.preview"
+            class="relative aspect-square overflow-hidden rounded-lg"
+          >
+            <img :src="p.preview" alt="" class="size-full object-cover" />
+            <button
+              type="button"
+              class="absolute top-1 right-1 grid size-8 place-items-center rounded-full bg-background/80"
+              :aria-label="`Quitar foto ${i + 1}`"
+              @click="removePhoto(i)"
+            >
+              <IconLucide name="X" :size="16" />
+            </button>
+          </div>
+          <label
+            v-if="photos.length < MAX_PHOTOS"
+            class="grid aspect-square cursor-pointer place-items-center rounded-lg border border-dashed border-border text-muted-foreground transition-colors hover:bg-accent/40"
+          >
+            <span class="flex flex-col items-center gap-1 text-xs">
+              <IconLucide name="Image" :size="22" />
+              Agregar
+            </span>
+            <input
+              type="file"
+              :accept="IMAGE_ACCEPT"
+              multiple
+              class="sr-only"
+              aria-label="Agregar fotos"
+              @change="addPhotos"
+            />
+          </label>
         </div>
       </div>
 
-      <!-- Botones -->
-      <div class="flex justify-end gap-4">
-        <router-link to="/comunidad">
-          <BaseButton type="gray">
-            <template #icon><IconLucide name="ArrowLeft" :size="20" /></template>
-            Volver
-          </BaseButton>
-        </router-link>
+      <BaseAlert :message="error" type="error" />
 
-        <template v-if="loading">
-          <BaseButton type="loading">
-            <Loader size="sm" />
-          </BaseButton>
-        </template>
-        <template v-else>
-          <BaseButton type="orange" html-type="submit">Publicar</BaseButton>
-        </template>
-      </div>
-
-      <!-- Mensajes -->
-      <BaseAlert v-if="success" message="Post creado exitosamente" type="success" />
-      <BaseAlert v-if="error" :message="error" type="error" />
+      <Button type="submit" size="lg" class="h-12 w-full text-base" :disabled="!canPublish">
+        {{ saving ? 'Publicando…' : rating ? 'Publicar salida' : 'Elegí un puntaje para publicar' }}
+      </Button>
     </form>
-  </section>
+  </div>
 </template>

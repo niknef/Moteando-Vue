@@ -291,7 +291,7 @@ onMounted(load)
     <!-- ───────── Salidas ───────── -->
     <template v-else>
       <router-link
-        to="/rutas"
+        to="/comunidad/publicar"
         class="mb-5 flex items-center gap-3 rounded-xl border border-dashed border-border p-4 transition-colors hover:bg-accent/40"
       >
         <span class="grid size-10 shrink-0 place-items-center rounded-full bg-primary/15">
