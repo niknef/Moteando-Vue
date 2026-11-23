@@ -1,51 +1,45 @@
-<script>
-export default {
-  name: 'BaseButton',
-  props: {
-    type: {
-      type: String,
-      default: 'primary',
-    },
-    //Esto lo utilizamos para cunado tenemos que hacer un submit
-    //por ejemplo en el login
-    htmlType: {
-      type: String,
-      default: 'button',
-    },
-  },
-  computed: {
-    colorClasses() {
-      switch (this.type) {
-        //El orange lo vamos a utilizar en botones principales
-        case 'orange':
-          return 'bg-orange-500 hover:bg-orange-600 focus:bg-orange-600'
+<script setup>
+import { computed } from 'vue'
+import { buttonVariants } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
-        //Botones de confirmación
-        case 'success':
-          return 'bg-green-600 hover:bg-green-500 focus:bg-green-500'
-        //Botones de error
-        case 'error':
-          return 'bg-red-600 hover:bg-red-500 focus:bg-red-500'
-        //Botones con el loader
-        case 'loading':
-          return 'bg-gray-200'
-        //Botones para volver atras
-        case 'gray':
-          return 'bg-gray-700 hover:bg-gray-600 focus:bg-gray-600'
-        default:
-          return 'bg-blue-600 hover:bg-blue-500 focus:bg-blue-500'
-      }
-    },
-  },
+// Botón de las pantallas viejas, ahora dibujado con las variantes de shadcn y los tokens del tema.
+// Mantiene su API (type, html-type, size, slot icon) para no tocar cada página; en código nuevo
+// usar directamente <Button> de '@/components/ui/button'.
+
+defineOptions({ name: 'BaseButton' })
+
+const props = defineProps({
+  // orange (principal) · gray (secundario / volver) · error (borrar) · success · loading
+  type: { type: String, default: 'primary' },
+  // tipo del <button> (submit en formularios)
+  htmlType: { type: String, default: 'button' },
+  // xs · sm · (por defecto, cómodo para el dedo)
+  size: { type: String, default: '' },
+})
+
+const VARIANT = {
+  orange: 'default',
+  primary: 'default',
+  success: 'default',
+  gray: 'outline',
+  error: 'destructive',
+  loading: 'secondary',
 }
+const SIZE = { xs: 'sm', sm: 'default' }
+
+const classes = computed(() =>
+  cn(
+    buttonVariants({ variant: VARIANT[props.type] ?? 'secondary', size: SIZE[props.size] ?? 'lg' }),
+    // el tamaño por defecto llega a 44 px de alto: se usa con guantes
+    !props.size && 'h-11 px-4 text-[15px]',
+  ),
+)
 </script>
 
 <template>
-  <button
-    :type="htmlType"
-    :class="`inline-flex items-center gap-2 transition px-6 py-2 rounded text-white font-semibold ${colorClasses}`"
-  >
-    <!-- Agregamos un slot para poder crear botones con iconos -->
+  <button :type="htmlType" :class="classes" :disabled="type === 'loading' || undefined">
+    <!-- slot para el ícono, a la izquierda del texto -->
     <slot name="icon" />
     <slot />
   </button>

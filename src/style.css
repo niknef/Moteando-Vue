@@ -31,6 +31,10 @@
   --brand-teal: #40777a;
   --surface-deep: #121212;
 
+  /* Estados y puntaje */
+  --success: #22c55e;
+  --rating: #facc15; /* estrellas */
+
   /* Tipos de nota en el camino (el fondo del ícono va con opacidad: bg-note-caution/20) */
   --note-caution: #f59e0b;
   --note-speed-camera: #ef4444;
@@ -64,6 +68,8 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
   --color-brand-teal: var(--brand-teal);
+  --color-success: var(--success);
+  --color-rating: var(--rating);
   --color-surface-deep: var(--surface-deep);
   --color-note-caution: var(--note-caution);
   --color-note-speed-camera: var(--note-speed-camera);

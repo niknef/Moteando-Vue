@@ -75,7 +75,7 @@ async function handleSubmit() {
 
 <template>
   <section
-    class="max-w-lg mx-auto sm:mt-8 bg-neutral-800 text-white p-6 sm:rounded-lg shadow-md mb-6"
+    class="max-w-lg mx-auto sm:mt-8 bg-card text-foreground p-6 sm:rounded-lg shadow-md mb-6"
   >
     <BaseHeading1>Agregar moto</BaseHeading1>
 

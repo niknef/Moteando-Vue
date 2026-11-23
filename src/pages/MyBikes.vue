@@ -55,7 +55,7 @@ async function confirmDelete() {
 </script>
 
 <template>
-  <div class="max-w-xl mx-auto sm:mt-8 bg-neutral-800 text-white p-6 sm:rounded-lg shadow-md mb-6">
+  <div class="max-w-xl mx-auto sm:mt-8 bg-card text-foreground p-6 sm:rounded-lg shadow-md mb-6">
     <!-- contenedor principal, misma estética que MyProfileEdit -->
     <section class="w-full max-w-xl">
       <!-- loader -->
@@ -65,7 +65,7 @@ async function confirmDelete() {
 
       <!-- sin motos -->
       <div v-else-if="!bikes.length" class="text-center space-y-6">
-        <IconLucide name="Warehouse" :size="48" class="text-gray-500 mx-auto" />
+        <IconLucide name="Warehouse" :size="48" class="text-muted-foreground mx-auto" />
         <p>Aún no cargaste ninguna moto.</p>
         <BaseButton type="orange" class="mx-auto" @click="gotoAdd">
           <template #icon><IconLucide name="Plus" :size="20" /></template>
@@ -89,16 +89,16 @@ async function confirmDelete() {
           <div
             v-for="b in bikes"
             :key="b.id"
-            class="flex items-center gap-3 p-3 rounded bg-neutral-700/40"
+            class="flex items-center gap-3 p-3 rounded-lg bg-muted/60"
           >
-            <img :src="b.photo_url" class="w-14 h-14 rounded object-cover" />
+            <img :src="b.photo_url" class="w-14 h-14 rounded-lg object-cover" />
 
             <div class="flex-1 text-sm">
               <p class="font-medium">{{ b.brand }} {{ b.model }}</p>
-              <p class="text-gray-400 text-xs">{{ b.year }} · {{ b.color }}</p>
+              <p class="text-muted-foreground text-xs">{{ b.year }} · {{ b.color }}</p>
             </div>
 
-            <IconLucide v-if="b.is_active" name="CheckCircle2" :size="22" class="text-orange-400" />
+            <IconLucide v-if="b.is_active" name="CheckCircle2" :size="22" class="text-primary" />
 
             <router-link :to="`/garaje/${b.id}/editar`">
               <BaseButton size="xs" type="orange">
@@ -113,12 +113,8 @@ async function confirmDelete() {
         </div>
 
         <!-- botonera inferior -->
-        <div class="flex justify-center sm:justify-end gap-4 items-center mt-4">
-          <BaseButton
-            type="gray"
-            class="w-full sm:w-auto flex justify-center items-center gap-2"
-            @click="goBack"
-          >
+        <div class="mt-4 grid grid-cols-2 gap-3 sm:flex sm:justify-end">
+          <BaseButton type="gray" class="w-full sm:w-auto" @click="goBack">
             <IconLucide name="ArrowLeft" :size="18" />
             Volver
           </BaseButton>
@@ -126,7 +122,7 @@ async function confirmDelete() {
           <BaseButton
             type="orange"
             :disabled="bikes.length >= 5"
-            class="w-full sm:w-auto flex justify-center items-center gap-2"
+            class="w-full sm:w-auto"
             @click="gotoAdd"
           >
             <IconLucide name="Plus" :size="18" />
@@ -141,24 +137,24 @@ async function confirmDelete() {
       <transition name="fade">
         <div
           v-if="showModal"
-          class="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
+          class="fixed inset-0 z-50 flex items-center justify-center bg-background/80"
           @keydown.esc="showModal = false"
         >
           <div
-            class="bg-neutral-800 text-white w-full max-w-md mx-4 p-6 rounded-lg shadow-lg"
+            class="bg-card text-foreground w-full max-w-md mx-4 p-6 rounded-lg shadow-lg"
             @click.stop
           >
             <!-- foto + nombre -->
             <img
               :src="bikeToErase?.photo_url"
-              class="w-32 h-32 rounded object-cover mx-auto mb-4"
+              class="w-32 h-32 rounded-lg object-cover mx-auto mb-4"
             />
 
             <p class="text-center font-medium mb-4">
               {{ bikeToErase?.brand }} {{ bikeToErase?.model }}
             </p>
 
-            <p class="text-sm text-gray-300 mb-6 text-center">
+            <p class="text-sm text-foreground/80 mb-6 text-center">
               ¿Seguro que querés eliminar esta moto?
             </p>
 
