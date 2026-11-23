@@ -15,12 +15,19 @@ export async function addBike(bike) {
 }
 
 /**
- * Lista todas las motos ordenadas (máx 5).
+ * Lista las motos del usuario logueado (máx 5).
+ * Filtra por user_id a propósito: RLS también deja leer la moto activa de otros perfiles.
  */
 export async function listBikes() {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) throw new Error('Iniciá sesión para ver tus motos')
+
   const { data, error } = await supabase
     .from('user_bikes')
     .select('*')
+    .eq('user_id', user.id)
     .order('created_at', { ascending: false })
 
   if (error) throw new Error('No se pudieron obtener las motos: ' + error.message)
