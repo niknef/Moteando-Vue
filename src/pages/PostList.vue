@@ -7,6 +7,7 @@ import BaseButton from '@/components/ui/BaseButton.vue'
 import BaseAlert from '@/components/ui/BaseAlert.vue'
 import Loader from '@/components/ui/Loader.vue'
 import IconLucide from '@/components/ui/IconLucide.vue'
+import PostRouteCard from '@/components/route/PostRouteCard.vue'
 
 import { getLastPosts, subscribeToNewPosts, likePost, unlikePost } from '@/services/posts'
 
@@ -137,6 +138,9 @@ async function toggleLike(p) {
           </router-link>
         </header>
 
+        <!-- Ruta guardada vinculada (si es pública) -->
+        <PostRouteCard v-if="p.routes" :route="p.routes" />
+
         <!-- Cuerpo con datos e imagen -->
         <div class="flex flex-col sm:flex-row sm:gap-6">
           <!-- Datos de la ruta -->
@@ -169,7 +173,12 @@ async function toggleLike(p) {
 
         <!-- Acciones -->
         <div class="flex flex-wrap justify-end gap-4 text-sm mt-4">
-          <button class="flex items-center gap-1 hover:underline" @click="copyRoute(p)">
+          <!-- posts viejos, sin ruta guardada: se arma una ruta nueva con salida y llegada -->
+          <button
+            v-if="!p.routes"
+            class="flex items-center gap-1 hover:underline"
+            @click="copyRoute(p)"
+          >
             <IconLucide name="Copy" :size="16" /> Copiar ruta
           </button>
 

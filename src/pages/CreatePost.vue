@@ -7,7 +7,10 @@ import Loader from '@/components/ui/Loader.vue'
 import BaseAlert from '@/components/ui/BaseAlert.vue'
 import IconLucide from '@/components/ui/IconLucide.vue'
 
+import RoutePreview from '@/components/route/RoutePreview.vue'
 import { createPost } from '@/services/posts'
+import { getRouteById } from '@/services/routes'
+import { formatDuration, formatKm } from '@/lib/format'
 import { uploadImage, validateImage, IMAGE_ACCEPT } from '@/services/storage'
 import { useAuthStore } from '@/stores/auth'
 
@@ -21,6 +24,7 @@ export default {
     Loader,
     IconLucide,
     BaseAlert,
+    RoutePreview,
   },
   data() {
     return {
@@ -35,7 +39,11 @@ export default {
         rating: 3,
         description: '',
         image_url: '',
+        route_id: null,
       },
+      // ruta guardada que se publica (viene de ?route=<id> desde el diseñador)
+      linkedRoute: null,
+      loadingRoute: false,
       durationHours: 0,
       durationMinutes: 0,
 
@@ -47,7 +55,41 @@ export default {
       loading: false,
     }
   },
+  async created() {
+    const routeId = this.$route.query.route
+    if (routeId) await this.loadRoute(routeId)
+  },
   methods: {
+    formatKm,
+    formatDuration,
+    // Completa el post con los datos de la ruta: nombre, salida, llegada y duración estimada
+    async loadRoute(id) {
+      this.loadingRoute = true
+      try {
+        const route = await getRouteById(id)
+        const start = route.waypoints[0]
+        const end = route.waypoints[route.waypoints.length - 1]
+        this.linkedRoute = route
+        Object.assign(this.post, {
+          route_id: route.id,
+          route_name: route.name,
+          start_point: start.label || `${start.lat}, ${start.lng}`,
+          end_point: end.label || `${end.lat}, ${end.lng}`,
+          start_geom: `POINT (${start.lng} ${start.lat})`,
+          end_geom: `POINT (${end.lng} ${end.lat})`,
+          route_type: route.options?.preference ?? 'fastest',
+          description: this.post.description || route.description || '',
+        })
+        const minutes = Number(route.duration_min) || 0
+        this.durationHours = Math.min(Math.floor(minutes / 60), 23)
+        // el selector va de a 15 minutos
+        this.durationMinutes = (Math.round((minutes % 60) / 15) * 15) % 60
+      } catch (e) {
+        this.error = e.message
+      } finally {
+        this.loadingRoute = false
+      }
+    },
     handleFile(e) {
       const f = e.target.files[0]
       if (!f) return
@@ -88,7 +130,7 @@ export default {
         this.success = true
         this.$router.push('/comunidad')
       } catch (e) {
-        this.error = 'No se pudo guardar el post.'
+        this.error = 'No se pudo guardar el post: ' + (e.message ?? 'error desconocido')
         console.error('[CreatePost] Error al guardar:', e)
       } finally {
         this.loading = false
@@ -102,6 +144,23 @@ export default {
   <section class="max-w-xl mx-auto sm:mt-8 bg-neutral-800 text-white p-6 sm:rounded-lg shadow-md">
     <div class="flex items-center justify-between mb-4">
       <BaseHeading1>Crear publicación</BaseHeading1>
+    </div>
+
+    <Loader v-if="loadingRoute" size="md" class="mx-auto my-6" />
+
+    <!-- Ruta que se publica -->
+    <div
+      v-if="linkedRoute"
+      class="mt-4 flex items-center gap-4 rounded-xl border border-border bg-card p-3"
+    >
+      <RoutePreview :geometry="linkedRoute.geometry" class="size-20 shrink-0 rounded-lg" />
+      <div class="min-w-0">
+        <p class="truncate font-medium">{{ linkedRoute.name }}</p>
+        <p class="text-sm text-muted-foreground">
+          {{ formatKm(linkedRoute.distance_km) }} · {{ formatDuration(linkedRoute.duration_min) }}
+        </p>
+        <p class="text-xs text-muted-foreground">El post va a mostrar esta ruta</p>
+      </div>
     </div>
 
     <form class="flex flex-col gap-4 mt-4" @submit.prevent="handleSubmit">

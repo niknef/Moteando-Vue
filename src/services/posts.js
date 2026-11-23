@@ -6,8 +6,11 @@ import supabase from './supabase'
 /* -------------------------- CRUD post ----------------------------- */
 export async function createPost(payload) {
   const { error } = await supabase.from('posts').insert(payload)
-  if (error) throw error
+  if (error) throw new Error(error.message)
 }
+
+// Datos de la ruta vinculada que muestran el feed y el detalle (null si no hay o es privada)
+const ROUTE_EMBED = 'routes ( id, name, geometry, distance_km, duration_min, is_public )'
 
 /**
  * Devuelve los últimos `limit` posts con:
@@ -22,6 +25,7 @@ export async function getLastPosts(limit = 20) {
       `
       *,
       user_profiles!inner ( id, first_name, last_name, avatar_url ),
+      ${ROUTE_EMBED},
       comments             ( count ),
       post_likes           ( count )
     `,
@@ -59,6 +63,7 @@ export async function getPostById(id) {
       `
       *,
       user_profiles!inner ( id, first_name, last_name, avatar_url ),
+      ${ROUTE_EMBED},
       comments (
         id,
         content,
