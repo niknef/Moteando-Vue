@@ -10,7 +10,7 @@ import IconLucide from '@/components/ui/IconLucide.vue'
 import BaseHeding1 from '@/components/ui/BaseHeading1.vue'
 
 import { useMap } from '@/composables/useMap'
-import { useGeocoding } from '@/composables/useGeocoding'
+import { useGeocoding, reverseGeocode, formatCoord } from '@/composables/useGeocoding'
 import { getRouteGeoJSON } from '@/composables/useRouting'
 
 /* ───────── estado ───────── */
@@ -24,15 +24,26 @@ const waypoints = ref([])
 
 const originQuery = ref('')
 const destQuery = ref('')
-const { results: originRes, search: sO } = useGeocoding()
-const { results: destRes, search: sD } = useGeocoding()
+const { results: originRes, search: sO, clear: clearO } = useGeocoding()
+const { results: destRes, search: sD, clear: clearD } = useGeocoding()
 
 const { map, init } = useMap()
 const route = useRoute()
 const router = useRouter()
 
 /* ───────── helpers ───────── */
-const reverseGeocode = ([lng, lat]) => `${lat.toFixed(5)}, ${lng.toFixed(5)}`
+// Muestra las coordenadas al instante y las reemplaza por el nombre del lugar cuando llega
+async function nameFor(type, coord) {
+  const idx = type === 'origin' ? 0 : 1
+  const query = type === 'origin' ? originQuery : destQuery
+  query.value = formatCoord(coord)
+  const label = await reverseGeocode(coord)
+  const current = waypoints.value[idx]
+  // si el punto se movió mientras tanto, esta respuesta ya no corresponde
+  if (current && current[0] === coord[0] && current[1] === coord[1]) query.value = label
+}
+
+const mapCenter = () => map.value?.getCenter()
 
 function addDraggableMarker(coord, type) {
   const color = type === 'origin' ? '#40777A' : '#E86E1B'
@@ -47,8 +58,7 @@ function addDraggableMarker(coord, type) {
     const { lng, lat } = m.getLngLat()
     const newCoord = [lng, lat]
     waypoints.value[type === 'origin' ? 0 : 1] = newCoord
-    if (type === 'origin') originQuery.value = reverseGeocode(newCoord)
-    else destQuery.value = reverseGeocode(newCoord)
+    nameFor(type, newCoord)
     recalcRoute()
   })
 
@@ -77,17 +87,20 @@ function resetPoints() {
   clearRoutes()
 }
 
-function handleMapClick(e) {
+// label: nombre ya conocido (al elegir un resultado de búsqueda); si no, se busca
+function handleMapClick(e, label) {
   const coord = [e.lngLat.lng, e.lngLat.lat]
 
   if (!markers.value[0]) {
     waypoints.value = [coord]
     addDraggableMarker(coord, 'origin')
-    originQuery.value = reverseGeocode(coord)
+    if (label) originQuery.value = label
+    else nameFor('origin', coord)
   } else if (!markers.value[1]) {
     waypoints.value[1] = coord
     addDraggableMarker(coord, 'dest')
-    destQuery.value = reverseGeocode(coord)
+    if (label) destQuery.value = label
+    else nameFor('dest', coord)
     recalcRoute()
   }
 }
@@ -135,22 +148,17 @@ async function recalcRoute() {
   loadingRoute.value = false
 }
 
-function selectPlace(item, type) {
-  if (!item.lon || !item.lat || isNaN(+item.lon) || isNaN(+item.lat)) {
-    console.error('❌ Coordenadas inválidas:', item)
-    return
-  }
-
-  const coord = [+item.lon, +item.lat]
+function selectPlace(place, type) {
   if (type === 'origin') {
     removeMarker('origin')
-    originRes.value = []
+    clearO()
   } else {
     removeMarker('dest')
-    destRes.value = []
+    clearD()
   }
 
-  handleMapClick({ lngLat: { lng: coord[0], lat: coord[1] } })
+  handleMapClick({ lngLat: { lng: place.lng, lat: place.lat } }, place.label)
+  map.value.flyTo({ center: [place.lng, place.lat], zoom: Math.max(map.value.getZoom(), 12) })
 }
 
 function goToCreatePost() {
@@ -191,8 +199,8 @@ onMounted(() => {
         addDraggableMarker(originCoord, 'origin')
         addDraggableMarker(destCoord, 'dest')
 
-        originQuery.value = reverseGeocode(originCoord)
-        destQuery.value = reverseGeocode(destCoord)
+        nameFor('origin', originCoord)
+        nameFor('dest', destCoord)
 
         recalcRoute()
       }
@@ -216,7 +224,7 @@ onBeforeUnmount(() => map.value?.off('click', handleMapClick))
           id="origin"
           v-model="originQuery"
           placeholder="Buscar origen"
-          @input="sO(originQuery)"
+          @input="sO(originQuery, mapCenter())"
         />
         <ul
           v-if="originRes.length"
@@ -224,11 +232,12 @@ onBeforeUnmount(() => map.value?.off('click', handleMapClick))
         >
           <li
             v-for="o in originRes"
-            :key="o.place_id"
+            :key="o.id"
             class="px-3 py-2 hover:bg-slate-100 cursor-pointer"
             @click="selectPlace(o, 'origin')"
           >
-            {{ o.display_name }}
+            <span class="block">{{ o.label }}</span>
+            <span class="block text-xs text-neutral-500">{{ o.detail }}</span>
           </li>
         </ul>
       </div>
@@ -240,7 +249,7 @@ onBeforeUnmount(() => map.value?.off('click', handleMapClick))
           id="dest"
           v-model="destQuery"
           placeholder="Buscar destino"
-          @input="sD(destQuery)"
+          @input="sD(destQuery, mapCenter())"
         />
         <ul
           v-if="destRes.length"
@@ -248,11 +257,12 @@ onBeforeUnmount(() => map.value?.off('click', handleMapClick))
         >
           <li
             v-for="d in destRes"
-            :key="d.place_id"
+            :key="d.id"
             class="px-3 py-2 hover:bg-slate-100 cursor-pointer"
             @click="selectPlace(d, 'dest')"
           >
-            {{ d.display_name }}
+            <span class="block">{{ d.label }}</span>
+            <span class="block text-xs text-neutral-500">{{ d.detail }}</span>
           </li>
         </ul>
       </div>
