@@ -124,8 +124,8 @@ async function recalcRoute() {
 
   try {
     const [fastest, shortest] = await Promise.all([
-      getRouteGeoJSON(waypoints.value, 'driving-car', 'fastest'),
-      getRouteGeoJSON(waypoints.value, 'driving-car', 'shortest'),
+      getRouteGeoJSON(waypoints.value, 'fastest'),
+      getRouteGeoJSON(waypoints.value, 'shortest'),
     ])
     addOrUpdate('fastest', fastest, '#40777A')
     addOrUpdate('shortest', shortest, '#E86E1B')

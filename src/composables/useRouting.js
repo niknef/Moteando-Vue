@@ -1,13 +1,16 @@
-import axios from 'axios'
+import supabase from '@/services/supabase'
 
-export async function getRouteGeoJSON(coords, profile = 'driving-car', preference = 'fastest') {
-  const { data } = await axios.post(
-    `https://api.openrouteservice.org/v2/directions/${profile}/geojson`,
-    { coordinates: coords, preference }, // ← agrega preference
-    {
-      params: { api_key: import.meta.env.VITE_ORS_KEY },
-      headers: { 'Content-Type': 'application/json' },
-    },
-  )
+// Calcula la ruta con OpenRouteService a través de la Edge Function `route`
+// (la key de ORS no viaja al navegador). Devuelve el GeoJSON de ORS.
+export async function getRouteGeoJSON(coords, preference = 'fastest', avoid = []) {
+  const { data, error } = await supabase.functions.invoke('route', {
+    body: { coordinates: coords, preference, avoid },
+  })
+
+  if (error) {
+    // El mensaje de la función viene en el body de la respuesta
+    const detail = await error.context?.json?.().catch(() => null)
+    throw new Error(detail?.error ?? 'No se pudo calcular la ruta')
+  }
   return data
 }

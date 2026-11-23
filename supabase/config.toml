@@ -428,3 +428,9 @@ enabled = true
 # formatted with uppercase keywords, indent 2, max width 180, trailing commas,
 # and column/key alignment. Set to "null" to emit raw, unformatted SQL.
 # format_options = "{\"keywordCase\":\"upper\",\"indent\":2,\"maxWidth\":180,\"commaStyle\":\"trailing\"}"
+
+# Proxy a OpenRouteService (la key queda en el secret ORS_KEY). Solo usuarios logueados.
+[functions.route]
+enabled = true
+verify_jwt = true
+entrypoint = "./functions/route/index.js"
