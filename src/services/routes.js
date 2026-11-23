@@ -53,3 +53,32 @@ export async function updateRoute(id, route) {
   if (!data) throw new Error('No se pudo actualizar la ruta: no existe o no es tuya')
   return data
 }
+
+/**
+ * Lista las rutas del usuario logueado, la última modificada primero.
+ */
+export async function listMyRoutes() {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) throw new Error('Iniciá sesión para ver tus rutas')
+
+  const { data, error } = await supabase
+    .from('routes')
+    .select(COLUMNS)
+    .eq('user_id', user.id)
+    .order('updated_at', { ascending: false })
+
+  if (error) throw new Error('No se pudieron cargar tus rutas: ' + error.message)
+  return data
+}
+
+/**
+ * Borra una ruta propia.
+ */
+export async function deleteRoute(id) {
+  const { data, error } = await supabase.from('routes').delete().eq('id', id).select('id')
+
+  if (error) throw new Error('No se pudo borrar la ruta: ' + error.message)
+  if (!data.length) throw new Error('No se pudo borrar la ruta: no existe o no es tuya')
+}

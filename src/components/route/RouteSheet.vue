@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useRouteDraftStore } from '@/stores/routeDraft'
 import { useGeocoding } from '@/composables/useGeocoding'
+import { formatDuration, formatKm } from '@/lib/format'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
@@ -29,17 +30,9 @@ const { routeId, name, waypoints, result, loading, error, avoid, preference, isE
   storeToRefs(draft)
 
 /* ───────── Resumen ───────── */
-function formatDuration(min) {
-  if (min < 60) return `${min} min`
-  const h = Math.floor(min / 60)
-  const m = min % 60
-  return m ? `${h} h ${m} min` : `${h} h`
-}
-
 const summary = computed(() => {
   if (result.value) {
-    const km = result.value.distanceKm.toLocaleString('es-AR')
-    return `${km} km · ${formatDuration(result.value.durationMin)}`
+    return `${formatKm(result.value.distanceKm)} · ${formatDuration(result.value.durationMin)}`
   }
   if (loading.value) return 'Calculando ruta…'
   if (isEmpty.value) return 'Tocá el mapa o buscá un lugar'
