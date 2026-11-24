@@ -8,6 +8,7 @@ const Register = () => import('@/pages/Register.vue')
 const ForgotPassword = () => import('@/pages/ForgotPassword.vue')
 const ResetPassword = () => import('@/pages/ResetPassword.vue')
 const PublicRoute = () => import('@/pages/PublicRoute.vue')
+const RidePage = () => import('@/pages/RidePage.vue')
 /* ────────── layout y vistas privadas ────────── */
 const AppShell = () => import('@/components/layout/AppShell.vue')
 
@@ -35,6 +36,8 @@ const routes = [
   { path: '/restablecer', component: ResetPassword },
   // link compartido de una ruta: se ve sin cuenta
   { path: '/r/:id', component: PublicRoute },
+  // link de una rodada: se ve y se anota gente sin cuenta
+  { path: '/s/:id', component: RidePage },
 
   /* privadas envueltas en AppShell */
   {

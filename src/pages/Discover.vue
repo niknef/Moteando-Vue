@@ -10,6 +10,8 @@ import Loader from '@/components/ui/Loader.vue'
 import RouteCard from '@/components/route/RouteCard.vue'
 import PostList from '@/pages/PostList.vue'
 import { copyRouteToMine, listPublicRoutes } from '@/services/routes'
+import { listUpcomingRides } from '@/services/rides'
+import { formatKm } from '@/lib/format'
 import { useAuthStore } from '@/stores/auth'
 
 // Descubrir: un solo lugar para "qué hago este finde". Rutas públicas (con filtros, puntaje y
@@ -22,7 +24,9 @@ const router = useRouter()
 const auth = useAuthStore()
 
 /* ───────── Pestaña (en la URL para que "volver" respete dónde estabas) ───────── */
-const tab = computed(() => (route.query.tab === 'salidas' ? 'salidas' : 'rutas'))
+const tab = computed(() =>
+  ['salidas', 'rodadas'].includes(route.query.tab) ? route.query.tab : 'rutas',
+)
 const setTab = (value) =>
   router.replace({ query: { ...route.query, tab: value === 'rutas' ? undefined : value } })
 
@@ -132,6 +136,45 @@ async function saveRoute(r) {
   }
 }
 
+/* ───────── Rodadas ───────── */
+const rides = ref([])
+const ridesLoading = ref(false)
+const ridesError = ref('')
+let ridesLoaded = false
+
+async function loadRides() {
+  ridesLoading.value = true
+  ridesError.value = ''
+  try {
+    rides.value = await listUpcomingRides()
+    ridesLoaded = true
+  } catch (e) {
+    ridesError.value = e.message
+  } finally {
+    ridesLoading.value = false
+  }
+}
+
+const rideDate = (ride) => new Date(ride.starts_at)
+const rideMonth = (ride) =>
+  rideDate(ride).toLocaleDateString('es-AR', { month: 'short' }).replace('.', '')
+const rideDay = (ride) => rideDate(ride).getDate()
+const rideWhen = (ride) =>
+  rideDate(ride).toLocaleString('es-AR', {
+    weekday: 'long',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  }) + ' h'
+
+watch(
+  tab,
+  (value) => {
+    if (value === 'rodadas' && !ridesLoaded) loadRides()
+  },
+  { immediate: true },
+)
+
 watch(search, debounce(load, 350))
 watch([distance, noHighways], load)
 onMounted(load)
@@ -141,14 +184,17 @@ onMounted(load)
   <div class="mx-auto w-full max-w-2xl px-4 py-6 lg:py-10">
     <header class="mb-4">
       <h1 class="text-2xl font-semibold tracking-tight">Descubrir</h1>
-      <p class="text-sm text-muted-foreground">Rutas y salidas que compartieron otros moteros</p>
+      <p class="text-sm text-muted-foreground">
+        Rutas, rodadas y salidas que compartieron otros moteros
+      </p>
     </header>
 
     <!-- Pestañas -->
-    <div class="mb-5 grid grid-cols-2 gap-1 rounded-lg bg-muted p-1" role="tablist">
+    <div class="mb-5 grid grid-cols-3 gap-1 rounded-lg bg-muted p-1" role="tablist">
       <button
         v-for="t in [
           { key: 'rutas', label: 'Rutas' },
+          { key: 'rodadas', label: 'Rodadas' },
           { key: 'salidas', label: 'Salidas' },
         ]"
         :key="t.key"
@@ -284,6 +330,52 @@ onMounted(load)
               </Button>
             </template>
           </RouteCard>
+        </li>
+      </ul>
+    </template>
+
+    <!-- ───────── Rodadas ───────── -->
+    <template v-else-if="tab === 'rodadas'">
+      <div v-if="ridesLoading" class="grid place-items-center py-16"><Loader size="lg" /></div>
+      <BaseAlert v-else-if="ridesError" :message="ridesError" type="error" />
+      <div v-else-if="!rides.length" class="flex flex-col items-center gap-3 py-16 text-center">
+        <span class="flex size-14 items-center justify-center rounded-full bg-primary/15">
+          <IconLucide name="CalendarPlus" :size="26" class="text-primary" />
+        </span>
+        <p class="font-medium">No hay rodadas próximas</p>
+        <p class="max-w-xs text-sm text-muted-foreground">
+          Organizá una desde Mis rutas o desde cualquier ruta pública, y mandá el link al grupo.
+        </p>
+        <Button as-child variant="outline"
+          ><router-link to="/rutas">Ir a Mis rutas</router-link></Button
+        >
+      </div>
+      <ul v-else class="space-y-3">
+        <li v-for="ride in rides" :key="ride.id">
+          <router-link
+            :to="`/s/${ride.id}`"
+            class="flex items-center gap-4 rounded-xl border border-border bg-card p-3 transition-colors hover:bg-accent/40"
+          >
+            <span
+              class="grid w-14 shrink-0 place-items-center rounded-lg bg-primary/15 py-2 text-primary"
+            >
+              <span class="text-xs uppercase">{{ rideMonth(ride) }}</span>
+              <span class="text-2xl leading-none font-semibold">{{ rideDay(ride) }}</span>
+            </span>
+            <span class="min-w-0 flex-1">
+              <span class="block truncate font-medium">{{ ride.routes.name }}</span>
+              <span class="block text-sm text-muted-foreground first-letter:uppercase">
+                {{ rideWhen(ride) }} · {{ formatKm(ride.routes.distance_km) }}
+              </span>
+              <span class="mt-1 block truncate text-xs text-muted-foreground">
+                {{ ride.meeting_point }} · organiza {{ ride.organizer_name }}
+              </span>
+            </span>
+            <span class="shrink-0 text-center text-xs text-muted-foreground">
+              <span class="block text-lg font-semibold text-foreground">{{ ride.attendees }}</span>
+              {{ ride.attendees === 1 ? 'va' : 'van' }}
+            </span>
+          </router-link>
         </li>
       </ul>
     </template>

@@ -13,6 +13,7 @@ import BaseAlert from '@/components/ui/BaseAlert.vue'
 import IconLucide from '@/components/ui/IconLucide.vue'
 import Loader from '@/components/ui/Loader.vue'
 import RoutePreview from '@/components/route/RoutePreview.vue'
+import OrganizeRideDialog from '@/components/ride/OrganizeRideDialog.vue'
 import { deleteRoute, listMyRoutes, updateRoute } from '@/services/routes'
 import { useRouteDraftStore } from '@/stores/routeDraft'
 import { formatDuration, formatKm, formatShortDate } from '@/lib/format'
@@ -24,6 +25,13 @@ const router = useRouter()
 const draft = useRouteDraftStore()
 
 const routes = ref([])
+// ruta sobre la que se organiza una rodada (abre el diálogo)
+const organizing = ref(null)
+const organizeOpen = ref(false)
+function organize(route) {
+  organizing.value = route
+  organizeOpen.value = true
+}
 const loading = ref(true)
 const error = ref('')
 const deletingId = ref(null)
@@ -184,6 +192,10 @@ onMounted(load)
               <IconLucide name="PencilLine" :size="16" />
               Editar
             </DropdownMenuItem>
+            <DropdownMenuItem @select="organize(route)">
+              <IconLucide name="CalendarPlus" :size="16" />
+              Organizar rodada
+            </DropdownMenuItem>
             <DropdownMenuItem @select="publishRide(route)">
               <IconLucide name="Newspaper" :size="16" />
               Contá tu salida
@@ -209,5 +221,7 @@ onMounted(load)
         </DropdownMenu>
       </li>
     </ul>
+
+    <OrganizeRideDialog v-model:open="organizeOpen" :route="organizing" />
   </div>
 </template>
