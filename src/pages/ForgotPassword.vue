@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import IconLucide from '@/components/ui/IconLucide.vue'
 
 import { useAuthStore } from '@/stores/auth'
-import Logo from '@/assets/moteando.svg'
+import AuthLayout from '@/components/layout/AuthLayout.vue'
 
 defineOptions({ name: 'ForgotPassword' })
 
@@ -44,9 +44,7 @@ async function handleSubmit() {
 </script>
 
 <template>
-  <div class="flex min-h-dvh flex-col bg-background px-6 pt-20 pb-10">
-    <img :src="Logo" alt="Moteando" class="h-12 w-auto self-center" />
-
+  <AuthLayout>
     <!-- Mail enviado -->
     <template v-if="sent">
       <div class="mt-11 flex flex-col items-center gap-4 text-center">
@@ -123,5 +121,5 @@ async function handleSubmit() {
         <router-link to="/ingresar" class="font-semibold text-primary">Iniciá sesión</router-link>
       </p>
     </template>
-  </div>
+  </AuthLayout>
 </template>

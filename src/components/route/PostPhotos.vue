@@ -10,9 +10,11 @@ const props = defineProps({
   alt: { type: String, default: 'Foto de la salida' },
 })
 
-const list = computed(() =>
-  props.photos?.length ? props.photos : [props.imageUrl].filter(Boolean),
-)
+// sin vacíos: posts viejos guardaron [""] cuando no tenían foto
+const list = computed(() => {
+  const photos = (props.photos ?? []).filter(Boolean)
+  return photos.length ? photos : [props.imageUrl].filter(Boolean)
+})
 </script>
 
 <template>
