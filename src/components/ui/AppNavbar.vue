@@ -104,7 +104,9 @@ async function handleLogout() {
           <router-link to="/perfil"><IconLucide name="User" />Mi perfil</router-link>
         </DropdownMenuItem>
         <DropdownMenuItem as-child class="h-10 gap-2.5 px-3">
-          <router-link to="/garaje"><IconLucide name="Warehouse" />Mi garaje</router-link>
+          <router-link :to="{ path: '/perfil', query: { tab: 'garaje' } }"
+            ><IconLucide name="Warehouse" />Mi garaje</router-link
+          >
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem variant="destructive" class="h-10 gap-2.5 px-3" @select="handleLogout">

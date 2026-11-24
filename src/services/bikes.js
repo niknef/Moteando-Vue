@@ -10,8 +10,16 @@ import { deleteImageByUrl } from './storage'
  * Añade una moto a la tabla `user_bikes`.
  */
 export async function addBike(bike) {
-  const { error } = await supabase.from('user_bikes').insert(bike)
-  if (error) throw new Error('No se pudo guardar la moto: ' + error.message)
+  // El id se genera acá: pedir la fila de vuelta (insert + select) choca con las policies de
+  // lectura de user_bikes y user_profiles (recursión). Así no hace falta.
+  const row = { ...bike, id: crypto.randomUUID() }
+  const { error } = await supabase.from('user_bikes').insert(row)
+  if (error) {
+    // la policy "máx. 5" es restrictiva: el insert de la sexta falla por RLS
+    if (error.code === '42501') throw new Error('Llegaste al máximo de 5 motos')
+    throw new Error('No se pudo guardar la moto: ' + error.message)
+  }
+  return row
 }
 
 /**
@@ -47,7 +55,14 @@ export async function updateBike(bikeId, data) {
  * Elimina una moto y su foto del Storage.
  * Recibe la moto entera porque necesita el id y la URL de la foto.
  */
-export async function deleteBike(bike) {
+export async function deleteBike(bike, others = []) {
+  // el perfil apunta a la moto activa (FK sin ON DELETE): antes de borrarla, la activa pasa a
+  // otra moto o el perfil queda sin moto
+  if (bike.is_active) {
+    if (others.length) await setActiveBike(others[0].id)
+    else await clearActiveBike()
+  }
+
   const { error } = await supabase.from('user_bikes').delete().eq('id', bike.id)
 
   if (error) throw new Error('No se pudo eliminar la moto: ' + error.message)
@@ -78,6 +93,18 @@ export async function setActiveBike(bikeId) {
 
   // 3) Guardar referencia en el perfil
   await supabase.from('user_profiles').update({ active_bike_id: bikeId }).eq('id', uid)
+}
+
+/**
+ * Deja el perfil sin moto activa.
+ */
+async function clearActiveBike() {
+  const uid = (await supabase.auth.getUser()).data.user.id
+  const { error } = await supabase
+    .from('user_profiles')
+    .update({ active_bike_id: null })
+    .eq('id', uid)
+  if (error) throw new Error('No se pudo quitar la moto activa: ' + error.message)
 }
 
 /**

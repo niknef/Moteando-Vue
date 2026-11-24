@@ -23,9 +23,7 @@ const EditProfile = () => import('@/pages/MyProfileEdit.vue')
 const UserProfile = () => import('@/pages/UserProfile.vue')
 
 /* ────────── nuevas vistas de motos ────────── */
-const MyBikes = () => import('@/pages/MyBikes.vue')
-const NewBike = () => import('@/pages/BikeFormNew.vue')
-const EditBike = () => import('@/pages/BikeFormEdit.vue')
+const BikeForm = () => import('@/pages/BikeForm.vue')
 
 /* ────────── rutas ────────── */
 const routes = [
@@ -63,9 +61,10 @@ const routes = [
 
       { path: 'usuario/:id', component: UserProfile },
 
-      { path: 'garaje', component: MyBikes },
-      { path: 'garaje/nueva', component: NewBike },
-      { path: 'garaje/:id/editar', component: EditBike },
+      // el garaje se administra en la pestaña Garaje del perfil
+      { path: 'garaje', redirect: { path: '/perfil', query: { tab: 'garaje' } } },
+      { path: 'garaje/nueva', component: BikeForm },
+      { path: 'garaje/:id/editar', component: BikeForm },
     ],
   },
 
