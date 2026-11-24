@@ -82,3 +82,20 @@ export async function getPostById(id) {
     comments: data.comments ?? [],
   }
 }
+
+/**
+ * Salidas (posts) de un usuario, la más nueva primero, con su ruta si es visible.
+ */
+export async function listUserPosts(userId) {
+  const { data, error } = await supabase
+    .from('posts')
+    .select(
+      `id, route_name, rating, description, created_at, ride_date, photos, image_url,
+       routes ( id, name, geometry, distance_km, duration_min )`,
+    )
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+
+  if (error) throw new Error('No se pudieron cargar las salidas: ' + error.message)
+  return data
+}
