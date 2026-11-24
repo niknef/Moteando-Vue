@@ -45,6 +45,7 @@ const SORTS = [
 const search = ref('')
 const distance = ref('all')
 const noHighways = ref(false)
+const curvy = ref(false)
 const sort = ref('recent')
 
 /* ───────── Datos ───────── */
@@ -66,6 +67,7 @@ async function load() {
       minKm: range.min,
       maxKm: range.max,
       noHighways: noHighways.value,
+      curvy: curvy.value,
     })
     if (id === requestId) routes.value = data
   } catch (e) {
@@ -176,7 +178,7 @@ watch(
 )
 
 watch(search, debounce(load, 350))
-watch([distance, noHighways], load)
+watch([distance, noHighways, curvy], load)
 onMounted(load)
 </script>
 
@@ -260,6 +262,19 @@ onMounted(load)
         >
           Sin autopista
         </button>
+        <button
+          type="button"
+          class="h-9 shrink-0 rounded-full border px-3.5 text-sm transition-colors"
+          :class="
+            curvy
+              ? 'border-primary bg-primary/15 text-primary'
+              : 'border-border text-muted-foreground hover:text-foreground'
+          "
+          :aria-pressed="curvy"
+          @click="curvy = !curvy"
+        >
+          Con curvas
+        </button>
       </div>
 
       <!-- Orden -->
@@ -299,7 +314,7 @@ onMounted(load)
         </span>
         <p class="font-medium">
           {{
-            search || distance !== 'all' || noHighways
+            search || distance !== 'all' || noHighways || curvy
               ? 'No hay rutas con esos filtros'
               : 'Todavía no hay rutas públicas'
           }}

@@ -67,7 +67,13 @@ watch(markersKey, syncMarkers)
 
 /* ───────── Línea de la ruta ───────── */
 function drawRoute() {
-  if (map.value) setRouteLine(map.value, ROUTE_SOURCE, result.value?.geometry ?? null)
+  if (!map.value) return
+  setRouteLine(
+    map.value,
+    ROUTE_SOURCE,
+    result.value?.geometry ?? null,
+    result.value?.stats?.unpaved,
+  )
 }
 
 /* ───────── Encuadre ───────── */

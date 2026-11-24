@@ -4,7 +4,7 @@
 import supabase from './supabase'
 
 const COLUMNS =
-  'id, user_id, name, description, is_public, waypoints, options, geometry, distance_km, duration_min, created_at, updated_at'
+  'id, user_id, name, description, is_public, waypoints, options, geometry, distance_km, duration_min, stats, created_at, updated_at'
 
 /**
  * Trae una ruta por id. RLS deja ver las propias y las públicas.
@@ -87,7 +87,8 @@ export async function deleteRoute(id) {
  * Rutas públicas para descubrir, la última modificada primero, con el autor de cada una y
  * su señal social (cantidad de salidas publicadas y puntaje promedio).
  * userId: solo las de ese usuario (perfil) · search: filtra por nombre ·
- * minKm/maxKm: rango de distancia · noHighways: solo las que evitan autopistas.
+ * minKm/maxKm: rango de distancia · noHighways: solo las que evitan autopistas ·
+ * curvy: solo las que tienen algunas o muchas curvas.
  */
 export async function listPublicRoutes({
   userId,
@@ -95,6 +96,7 @@ export async function listPublicRoutes({
   minKm,
   maxKm,
   noHighways,
+  curvy,
   limit = 30,
 } = {}) {
   let query = supabase
@@ -108,6 +110,8 @@ export async function listPublicRoutes({
   if (minKm != null) query = query.gte('distance_km', minKm)
   if (maxKm != null) query = query.lt('distance_km', maxKm)
   if (noHighways) query = query.filter('options->avoid', 'cs', '["highways"]')
+  // 40 °/km = "Algunas curvas" (ver lib/route-stats)
+  if (curvy) query = query.gte('stats->curvature', 40)
 
   const { data, error } = await query
   if (error) throw new Error('No se pudieron cargar las rutas: ' + error.message)
@@ -159,5 +163,6 @@ export async function copyRouteToMine(route) {
     geometry: route.geometry,
     distance_km: route.distance_km,
     duration_min: route.duration_min,
+    stats: route.stats ?? {},
   })
 }

@@ -26,6 +26,8 @@ import {
 } from '@/components/ui/dropdown-menu'
 import IconLucide from '@/components/ui/IconLucide.vue'
 import RouteShareMenu from '@/components/route/RouteShareMenu.vue'
+import RouteStats from '@/components/route/RouteStats.vue'
+import { curvinessOf } from '@/lib/route-stats'
 
 // Panel del diseñador de rutas: hoja inferior en mobile, columna flotante en desktop.
 
@@ -50,7 +52,35 @@ const {
   isPublic,
   isEmpty,
   isFull,
+  alternatives,
+  alternativeIndex,
 } = storeToRefs(draft)
+
+const PREFERENCES = [
+  { value: 'fastest', label: 'Más rápida' },
+  { value: 'shortest', label: 'Más corta' },
+  { value: 'curvy', label: 'Con curvas' },
+]
+
+// Modo curvas como switch en el panel chico; apagarlo vuelve a la más rápida
+const curvyMode = computed({
+  get: () => preference.value === 'curvy',
+  set: (on) => (preference.value = on ? 'curvy' : 'fastest'),
+})
+
+// "La de más curvas" solo si de verdad tiene curvas; si no, son caminos parecidos
+function alternativeTitle(alt, i) {
+  if (i === 0 && curvinessOf(alt.stats?.curvature)?.level > 1) return 'La de más curvas'
+  return `Opción ${i + 1}`
+}
+
+function alternativeText(alt) {
+  const parts = [formatKm(alt.distanceKm), formatDuration(alt.durationMin)]
+  const curves = curvinessOf(alt.stats?.curvature)
+  if (curves) parts.push(curves.label.toLowerCase())
+  if (alt.stats?.unpavedKm >= 0.5) parts.push(`${formatKm(alt.stats.unpavedKm)} de ripio`)
+  return parts.join(' · ')
+}
 
 // Lo que se comparte: el borrador tal como está (guardado o no)
 const shareable = computed(() => ({
@@ -218,6 +248,12 @@ function onHandleClick() {
       </p>
       <p class="text-2xl font-semibold tracking-tight" aria-live="polite">{{ summary }}</p>
       <p class="mt-0.5 text-sm text-muted-foreground">{{ stopsText }}</p>
+      <RouteStats
+        v-if="result?.stats && !loading"
+        :stats="result.stats"
+        :chart="false"
+        class="mt-2"
+      />
     </div>
 
     <!-- Opciones rápidas: mobile con el panel chico -->
@@ -229,6 +265,10 @@ function onHandleClick() {
       <label class="flex items-center gap-2 text-sm">
         <Switch v-model="avoidTolls" />
         Evitar peajes
+      </label>
+      <label class="flex items-center gap-2 text-sm">
+        <Switch v-model="curvyMode" />
+        Modo curvas
       </label>
     </div>
 
@@ -401,6 +441,46 @@ function onHandleClick() {
         </ol>
       </div>
 
+      <!-- Perfil de altura -->
+      <div v-if="result?.stats && result.geometry?.coordinates?.[0]?.length === 3">
+        <h2 class="mb-2 text-sm font-medium text-muted-foreground">Altura</h2>
+        <RouteStats :stats="result.stats" :geometry="result.geometry" :chips="false" />
+      </div>
+
+      <!-- Caminos posibles (modo curvas, de A a B) -->
+      <div v-if="alternatives.length > 1">
+        <h2 class="mb-2 text-sm font-medium text-muted-foreground">Caminos posibles</h2>
+        <div class="grid gap-2" role="radiogroup" aria-label="Caminos posibles">
+          <button
+            v-for="(alt, i) in alternatives"
+            :key="i"
+            type="button"
+            role="radio"
+            :aria-checked="alternativeIndex === i"
+            class="flex min-h-12 items-center gap-3 rounded-lg border px-3 py-2 text-left text-sm transition-colors"
+            :class="
+              alternativeIndex === i
+                ? 'border-primary bg-primary/10'
+                : 'border-border hover:bg-accent/40'
+            "
+            @click="draft.chooseAlternative(i)"
+          >
+            <span
+              class="grid size-5 shrink-0 place-items-center rounded-full border-2"
+              :class="alternativeIndex === i ? 'border-primary' : 'border-muted-foreground/50'"
+            >
+              <span v-if="alternativeIndex === i" class="size-2.5 rounded-full bg-primary" />
+            </span>
+            <span class="min-w-0">
+              <span class="block font-medium">
+                {{ alternativeTitle(alt, i) }}
+              </span>
+              <span class="block text-muted-foreground">{{ alternativeText(alt) }}</span>
+            </span>
+          </button>
+        </div>
+      </div>
+
       <!-- Opciones -->
       <div class="space-y-3">
         <h2 class="text-sm font-medium text-muted-foreground">Opciones</h2>
@@ -413,20 +493,17 @@ function onHandleClick() {
           <Switch v-model="avoidTolls" />
         </label>
         <div
-          class="grid grid-cols-2 gap-1 rounded-lg bg-muted p-1"
+          class="grid grid-cols-3 gap-1 rounded-lg bg-muted p-1"
           role="radiogroup"
           aria-label="Tipo de ruta"
         >
           <button
-            v-for="opt in [
-              { value: 'fastest', label: 'Más rápida' },
-              { value: 'shortest', label: 'Más corta' },
-            ]"
+            v-for="opt in PREFERENCES"
             :key="opt.value"
             type="button"
             role="radio"
             :aria-checked="preference === opt.value"
-            class="rounded-md py-1.5 text-sm transition-colors"
+            class="min-h-9 rounded-md py-1.5 text-sm transition-colors"
             :class="
               preference === opt.value
                 ? 'bg-card text-foreground shadow-sm'
@@ -437,6 +514,13 @@ function onHandleClick() {
             {{ opt.label }}
           </button>
         </div>
+        <p
+          v-if="preference === 'curvy' && result && alternatives.length < 2"
+          class="text-xs text-muted-foreground"
+        >
+          Para comparar caminos con curvas, marcá solo salida y llegada (hasta 100 km). Con paradas,
+          se usa la recomendada.
+        </p>
       </div>
     </div>
 

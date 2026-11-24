@@ -1,10 +1,14 @@
 // Proxy a OpenRouteService: la key vive acá (secret ORS_KEY), no en el bundle del front.
-// Body: { coordinates: [[lng, lat], ...], preference?: 'fastest' | 'shortest', avoid?: string[] }
-// Responde el GeoJSON de ORS tal cual.
+// Body: { coordinates: [[lng, lat], ...], preference?: 'fastest' | 'shortest' | 'recommended' | 'curvy',
+//         avoid?: string[] }
+// Responde el GeoJSON de ORS tal cual, con altura en cada punto ([lng, lat, ele]) y el tipo de
+// superficie por tramo (extras.surface). 'curvy' pide la recomendada con alternativas (ORS solo
+// las da de A a B y hasta 100 km); el front elige la más curva.
 
 const ORS_URL = 'https://api.openrouteservice.org/v2/directions/driving-car/geojson'
 const MAX_POINTS = 25
-const PREFERENCES = ['fastest', 'shortest', 'recommended']
+const PREFERENCES = ['fastest', 'shortest', 'recommended', 'curvy']
+const ALTERNATIVES = { target_count: 3, weight_factor: 2, share_factor: 0.6 }
 const AVOID = ['highways', 'tollways', 'ferries']
 
 // https://giscience.github.io/openrouteservice/api-reference/error-codes
@@ -67,16 +71,30 @@ Deno.serve(async (req) => {
     return json({ error: 'Opciones para evitar inválidas' }, 400)
   }
 
-  const orsBody = { coordinates, preference }
+  const orsBody = {
+    coordinates,
+    preference: preference === 'curvy' ? 'recommended' : preference,
+    elevation: true,
+    extra_info: ['surface'],
+  }
   if (avoid.length) orsBody.options = { avoid_features: avoid }
 
-  const res = await fetch(ORS_URL, {
-    method: 'POST',
-    headers: { Authorization: key, 'Content-Type': 'application/json' },
-    body: JSON.stringify(orsBody),
-  })
+  const ask = (body) =>
+    fetch(ORS_URL, {
+      method: 'POST',
+      headers: { Authorization: key, 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    }).then(async (res) => ({ res, data: await res.json().catch(() => null) }))
 
-  const data = await res.json().catch(() => null)
+  let { res, data } =
+    preference === 'curvy' && coordinates.length === 2
+      ? await ask({ ...orsBody, alternative_routes: ALTERNATIVES })
+      : await ask(orsBody)
+  // más de 100 km: ORS no calcula alternativas, se pide la ruta sola
+  if (!res.ok && data?.error?.code === 2004 && preference === 'curvy' && coordinates.length === 2) {
+    ;({ res, data } = await ask(orsBody))
+  }
+
   if (!res.ok) {
     // ORS devuelve { error: { code, message } } en inglés
     const code = data?.error?.code ?? null
