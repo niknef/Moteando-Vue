@@ -19,7 +19,8 @@ export default [
     },
   },
   {
-    files: ['*.config.js'],
+    // Funciones de Vercel (vista previa de links): corren en Node
+    files: ['*.config.js', 'api/**/*.js'],
     languageOptions: {
       globals: globals.node,
     },

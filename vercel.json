@@ -1,3 +1,24 @@
 {
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+  "functions": {
+    "api/og.js": {
+      "includeFiles": "{src/assets/moteando.svg,node_modules/@fontsource/archivo/files/archivo-latin-{400,700}-normal.woff}"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/:kind(r|s)/:id",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(WhatsApp|facebookexternalhit|Facebot|Twitterbot|TelegramBot|Slackbot|Discordbot|LinkedInBot|SkypeUriPreview|Applebot|Pinterest|redditbot|Embedly|vkShare|Googlebot|bingbot).*"
+        }
+      ],
+      "destination": "/api/share?kind=:kind&id=:id"
+    },
+    {
+      "source": "/((?!api/).*)",
+      "destination": "/index.html"
+    }
+  ]
 }
