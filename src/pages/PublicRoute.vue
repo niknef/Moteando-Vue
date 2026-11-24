@@ -9,6 +9,7 @@ import IconLucide from '@/components/ui/IconLucide.vue'
 import { Button } from '@/components/ui/button'
 import { useMap } from '@/composables/useMap'
 import { copyRouteToMine, getRouteById } from '@/services/routes'
+import OrganizeRideDialog from '@/components/ride/OrganizeRideDialog.vue'
 import { stopType } from '@/lib/stop-types'
 import { useAuthStore } from '@/stores/auth'
 import { formatDuration, formatKm } from '@/lib/format'
@@ -93,6 +94,9 @@ async function shareLink() {
     showToast(e.message)
   }
 }
+
+/* ───────── Organizar rodada (con cuenta) ───────── */
+const organizeOpen = ref(false)
 
 /* ───────── Guardar en mis rutas ───────── */
 const copying = ref(false)
@@ -257,6 +261,16 @@ onBeforeUnmount(() => {
           <IconLucide name="BookmarkPlus" :size="16" />
           {{ copying ? 'Guardando…' : 'Guardar en mis rutas' }}
         </Button>
+        <Button
+          v-if="auth.isLoggedIn"
+          variant="outline"
+          size="lg"
+          class="w-full"
+          @click="organizeOpen = true"
+        >
+          <IconLucide name="CalendarPlus" :size="16" />
+          Organizar rodada con esta ruta
+        </Button>
         <Button v-if="isOwner" variant="ghost" size="lg" class="w-full" as-child>
           <router-link :to="`/rutas/${data.id}/editar`">
             <IconLucide name="PencilLine" :size="16" />
@@ -274,6 +288,8 @@ onBeforeUnmount(() => {
         </p>
       </div>
     </section>
+
+    <OrganizeRideDialog v-if="data" v-model:open="organizeOpen" :route="data" />
   </div>
 </template>
 
