@@ -20,8 +20,13 @@ export const useAuthStore = defineStore('auth', () => {
       profile.value = null
       return
     }
-    // Cargar el perfil del usuario
-    profile.value = await getUserProfileByPK(user.value.id)
+    // Cargar el perfil del usuario. Si falla (por ejemplo, sin señal y sin copia guardada)
+    // la app sigue: el perfil se vuelve a pedir en el próximo cambio de sesión
+    try {
+      profile.value = await getUserProfileByPK(user.value.id)
+    } catch (e) {
+      console.warn('No se pudo cargar el perfil:', e.message)
+    }
   }
 
   let initPromise = null
@@ -85,6 +90,9 @@ export const useAuthStore = defineStore('auth', () => {
     profile.value = null
     // el borrador de ruta es del usuario: no lo dejamos en el navegador
     useRouteDraftStore().reset()
+    // ni las respuestas guardadas para usar sin señal (PWA)
+    if ('caches' in window) await caches.delete('moteando-api').catch(() => {})
+    localStorage.removeItem('moteando:offline-routes')
   }
 
   async function updateProfile(data) {

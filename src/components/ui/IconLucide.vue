@@ -59,6 +59,9 @@ import {
   Users,
   Warehouse,
   X,
+  WifiOff,
+  Sparkles,
+  Smartphone,
 } from '@lucide/vue'
 
 // Solo se registran los íconos que usa la app: importar toda la librería
@@ -122,6 +125,9 @@ const icons = {
   Users,
   Warehouse,
   X,
+  WifiOff,
+  Sparkles,
+  Smartphone,
 }
 
 const props = defineProps({

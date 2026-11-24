@@ -8,6 +8,8 @@ export async function getRouteGeoJSON(coords, preference = 'fastest', avoid = []
   })
 
   if (error) {
+    if (!navigator.onLine)
+      throw new Error('Sin conexión: la ruta se calcula cuando vuelva la señal')
     // El mensaje de la función viene en el body de la respuesta
     const detail = await error.context?.json?.().catch(() => null)
     throw new Error(detail?.error ?? 'No se pudo calcular la ruta')

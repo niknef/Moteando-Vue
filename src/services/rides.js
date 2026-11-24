@@ -3,7 +3,8 @@
 /* ------------------------------------------------------------------ */
 import supabase from './supabase'
 
-const ROUTE_EMBED = 'routes ( id, name, waypoints, options, geometry, distance_km, duration_min, stats )'
+const ROUTE_EMBED =
+  'routes ( id, name, waypoints, options, geometry, distance_km, duration_min, stats )'
 
 /**
  * Crea una rodada sobre una ruta. Devuelve la fila creada.

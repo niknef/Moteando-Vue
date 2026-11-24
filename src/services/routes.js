@@ -58,9 +58,9 @@ export async function updateRoute(id, route) {
  * Lista las rutas del usuario logueado, la última modificada primero.
  */
 export async function listMyRoutes() {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  // getSession lee la sesión guardada (sin pedirla al servidor): así funciona sin señal.
+  // Es una lectura: la que decide qué filas se ven es RLS.
+  const user = (await supabase.auth.getSession()).data.session?.user
   if (!user) throw new Error('Iniciá sesión para ver tus rutas')
 
   const { data, error } = await supabase
@@ -165,4 +165,43 @@ export async function copyRouteToMine(route) {
     duration_min: route.duration_min,
     stats: route.stats ?? {},
   })
+}
+
+/**
+ * Deja cada ruta propia lista para abrirla sin señal: pide su detalle (el service worker guarda
+ * la respuesta). Solo las nuevas o cambiadas desde la última vez, de a 3, y nunca con ahorro de
+ * datos activado. No lanza errores: es un extra.
+ */
+const OFFLINE_KEY = 'moteando:offline-routes'
+
+export async function warmRoutesForOffline(routes) {
+  if (!navigator.onLine || navigator.connection?.saveData || !navigator.serviceWorker?.controller) {
+    return
+  }
+  let seen = {}
+  try {
+    seen = JSON.parse(localStorage.getItem(OFFLINE_KEY)) ?? {}
+  } catch {
+    seen = {}
+  }
+  const pending = routes.filter((r) => seen[r.id] !== r.updated_at)
+  const next = { ...seen }
+  for (let i = 0; i < pending.length; i += 3) {
+    await Promise.all(
+      pending.slice(i, i + 3).map(async (r) => {
+        try {
+          await getRouteById(r.id)
+          next[r.id] = r.updated_at
+        } catch {
+          // queda para la próxima
+        }
+      }),
+    )
+  }
+  // solo las que siguen existiendo
+  const ids = new Set(routes.map((r) => r.id))
+  localStorage.setItem(
+    OFFLINE_KEY,
+    JSON.stringify(Object.fromEntries(Object.entries(next).filter(([id]) => ids.has(id)))),
+  )
 }
