@@ -13,6 +13,7 @@ import { useMap } from '@/composables/useMap'
 import { cancelRide, getRide, joinRide, leaveRide } from '@/services/rides'
 import { useAuthStore } from '@/stores/auth'
 import { formatDuration, formatKm } from '@/lib/format'
+import RouteStats from '@/components/route/RouteStats.vue'
 import { downloadGpx, openInGoogleMaps } from '@/lib/share'
 import { boundsOf, setRouteLine, waypointMarkerElement } from '@/lib/map-route'
 
@@ -91,7 +92,7 @@ function mapPadding() {
 
 function drawOnMap() {
   const m = map.value
-  setRouteLine(m, ROUTE_SOURCE, r.value.geometry)
+  setRouteLine(m, ROUTE_SOURCE, r.value.geometry, r.value.stats?.unpaved)
   const list = r.value.waypoints
   markers = list.map((wp, i) =>
     new Marker({ element: waypointMarkerElement(i, list.length) })
@@ -266,6 +267,8 @@ onBeforeUnmount(() => {
             {{ r.name }} · {{ formatKm(r.distance_km) }} · {{ formatDuration(r.duration_min) }}
           </p>
         </div>
+
+        <RouteStats :stats="r.stats" :chart="false" />
 
         <ul class="space-y-2 text-sm">
           <li class="flex gap-2">

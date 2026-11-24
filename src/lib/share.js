@@ -79,7 +79,12 @@ export function routeToGpx(route) {
     )
     .join('\n')
   const trkpts = (route.geometry?.coordinates ?? route.waypoints.map((w) => [w.lng, w.lat]))
-    .map(([lng, lat]) => `      <trkpt ${coord(lng, lat)}/>`)
+    // con altura (<ele>) si la línea la trae: la usan Garmin, OsmAnd y Komoot para el perfil
+    .map(([lng, lat, ele]) =>
+      Number.isFinite(ele)
+        ? `      <trkpt ${coord(lng, lat)}><ele>${Math.round(ele)}</ele></trkpt>`
+        : `      <trkpt ${coord(lng, lat)}/>`,
+    )
     .join('\n')
 
   return `<?xml version="1.0" encoding="UTF-8"?>

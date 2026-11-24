@@ -13,6 +13,7 @@ import OrganizeRideDialog from '@/components/ride/OrganizeRideDialog.vue'
 import { stopType } from '@/lib/stop-types'
 import { useAuthStore } from '@/stores/auth'
 import { formatDuration, formatKm } from '@/lib/format'
+import RouteStats from '@/components/route/RouteStats.vue'
 import { downloadGpx, linkShareMessage, openInGoogleMaps, shareRouteLink } from '@/lib/share'
 import { boundsOf, setRouteLine, waypointMarkerElement } from '@/lib/map-route'
 
@@ -63,7 +64,7 @@ function fitRoute(duration = 600) {
 
 function drawOnMap() {
   const m = map.value
-  setRouteLine(m, ROUTE_SOURCE, data.value.geometry)
+  setRouteLine(m, ROUTE_SOURCE, data.value.geometry, data.value.stats?.unpaved)
   const list = data.value.waypoints
   markers = list.map((wp, i) =>
     new Marker({ element: waypointMarkerElement(i, list.length) })
@@ -202,6 +203,8 @@ onBeforeUnmount(() => {
           <h1 class="text-xl font-semibold tracking-tight">{{ data.name }}</h1>
           <p class="mt-1 text-sm text-muted-foreground">{{ facts }}</p>
         </div>
+
+        <RouteStats :stats="data.stats" :geometry="data.geometry" />
 
         <p v-if="data.description" class="text-sm whitespace-pre-line">{{ data.description }}</p>
 

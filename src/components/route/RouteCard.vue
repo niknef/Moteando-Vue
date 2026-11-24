@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import RoutePreview from '@/components/route/RoutePreview.vue'
 import IconLucide from '@/components/ui/IconLucide.vue'
 import { formatDuration, formatKm } from '@/lib/format'
+import { curvinessOf } from '@/lib/route-stats'
 
 // Tarjeta de una ruta pública (Descubrir, perfiles): toda la tarjeta lleva a /r/:id.
 // El slot "actions" queda por encima del link (por ejemplo, el botón Guardar).
@@ -18,6 +19,12 @@ const authorName = computed(() =>
   [props.route.author?.first_name, props.route.author?.last_name].filter(Boolean).join(' '),
 )
 const avoidsHighways = computed(() => props.route.options?.avoid?.includes('highways'))
+// "Algunas/Muchas curvas" y ripio, si la ruta se guardó con esos datos
+const curves = computed(() => {
+  const c = curvinessOf(props.route.stats?.curvature)
+  return c && c.level > 1 ? c.label : null
+})
+const unpavedKm = computed(() => props.route.stats?.unpavedKm || 0)
 </script>
 
 <template>
@@ -46,6 +53,11 @@ const avoidsHighways = computed(() => props.route.options?.avoid?.includes('high
           {{ route.rides === 1 ? '1 salida' : `${route.rides} salidas` }}
         </span>
         <span v-if="avoidsHighways">Sin autopista</span>
+        <span v-if="curves" class="flex items-center gap-1">
+          <IconLucide name="Spline" :size="12" />
+          {{ curves }}
+        </span>
+        <span v-if="unpavedKm >= 1" class="text-unpaved">{{ formatKm(unpavedKm) }} de ripio</span>
         <!-- el autor lleva a su perfil (por encima del link de la tarjeta) -->
         <router-link
           v-if="showAuthor && authorName"

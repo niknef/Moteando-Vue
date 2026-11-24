@@ -24,17 +24,31 @@ export function waypointMarkerElement(index, total, { draggable = false } = {}) 
 }
 
 // Crea o actualiza la línea naranja (con borde oscuro). geometry: LineString o null para borrarla.
-export function setRouteLine(map, sourceId, geometry) {
+// unpaved: rangos de índices [[desde, hasta], ...] que se pintan encima, punteados (ripio, tierra).
+export function setRouteLine(map, sourceId, geometry, unpaved = []) {
   const data = geometry
     ? { type: 'Feature', geometry, properties: {} }
     : { type: 'FeatureCollection', features: [] }
+  const coords = geometry?.coordinates ?? []
+  const unpavedData = {
+    type: 'FeatureCollection',
+    features: unpaved
+      .filter(([from, to]) => to > from && to < coords.length)
+      .map(([from, to]) => ({
+        type: 'Feature',
+        geometry: { type: 'LineString', coordinates: coords.slice(from, to + 1) },
+        properties: {},
+      })),
+  }
 
   const source = map.getSource(sourceId)
   if (source) {
     source.setData(data)
+    map.getSource(`${sourceId}-unpaved`)?.setData(unpavedData)
     return
   }
   map.addSource(sourceId, { type: 'geojson', data })
+  map.addSource(`${sourceId}-unpaved`, { type: 'geojson', data: unpavedData })
   map.addLayer({
     id: `${sourceId}-casing`,
     type: 'line',
@@ -48,6 +62,13 @@ export function setRouteLine(map, sourceId, geometry) {
     source: sourceId,
     layout: { 'line-cap': 'round', 'line-join': 'round' },
     paint: { 'line-color': themeColor('primary'), 'line-width': 5 },
+  })
+  map.addLayer({
+    id: `${sourceId}-unpaved`,
+    type: 'line',
+    source: `${sourceId}-unpaved`,
+    layout: { 'line-join': 'round' },
+    paint: { 'line-color': themeColor('unpaved'), 'line-width': 5, 'line-dasharray': [1, 1.2] },
   })
 }
 

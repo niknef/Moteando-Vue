@@ -4,6 +4,7 @@ import { useLocalStorage, StorageSerializers } from '@vueuse/core'
 import debounce from 'lodash.debounce'
 import { getRouteGeoJSON } from '@/composables/useRouting'
 import { reverseGeocode } from '@/composables/useGeocoding'
+import { statsFromFeature } from '@/lib/route-stats'
 
 // Borrador de la ruta que se está diseñando. Vive en localStorage para no perderlo al recargar.
 
@@ -25,13 +26,16 @@ export const useRouteDraftStore = defineStore('routeDraft', () => {
   const isPublic = useLocalStorage(`${KEY}isPublic`, false)
   const waypoints = useLocalStorage(`${KEY}waypoints`, []) // [{ id, lng, lat, label }]
   const avoid = useLocalStorage(`${KEY}avoid`, [...DEFAULT_AVOID]) // subconjunto de AVOID_OPTIONS
-  const preference = useLocalStorage(`${KEY}preference`, 'fastest') // 'fastest' | 'shortest'
-  // { geometry, distanceKm, durationMin }. Con default null hay que decirle que es un objeto
+  const preference = useLocalStorage(`${KEY}preference`, 'fastest') // 'fastest' | 'shortest' | 'curvy'
+  // { geometry, distanceKm, durationMin, legsKm?, stats? }. Con default null hay que decirle que es un objeto
   const result = useLocalStorage(`${KEY}result`, null, { serializer: StorageSerializers.object })
 
   // ─── Estado de la sesión ───
   const loading = ref(false)
   const error = ref('')
+  // Modo curvas de A a B: los caminos que ofreció ORS (mismo formato que result) y el elegido
+  const alternatives = ref([])
+  const alternativeIndex = ref(0)
 
   // ─── Derivados ───
   const canRoute = computed(() => waypoints.value.length >= 2)
@@ -123,22 +127,41 @@ export const useRouteDraftStore = defineStore('routeDraft', () => {
       const geojson = await getRouteGeoJSON(coords, preference.value, avoid.value)
       if (id !== requestId) return // llegó una respuesta más nueva
 
-      const feature = geojson.features[0]
-      const { distance = 0, duration = 0 } = feature.properties.summary ?? {}
-      result.value = {
-        geometry: feature.geometry,
-        distanceKm: Math.round(distance / 100) / 10,
-        durationMin: Math.round(duration / 60),
-        // km de cada tramo (punto i → i + 1); las rutas cargadas de la base no lo traen
-        legsKm: (feature.properties.segments ?? []).map((s) => Math.round(s.distance / 100) / 10),
+      const options = geojson.features.map(toResult)
+      // modo curvas: primero el camino con más curvas
+      if (preference.value === 'curvy') {
+        options.sort((a, b) => b.stats.curvature - a.stats.curvature)
       }
+      alternatives.value = options.length > 1 ? options : []
+      alternativeIndex.value = 0
+      result.value = options[0]
     } catch (e) {
       if (id !== requestId) return
       result.value = null
+      alternatives.value = []
       error.value = e.message
     } finally {
       if (id === requestId) loading.value = false
     }
+  }
+
+  function toResult(feature) {
+    const { distance = 0, duration = 0 } = feature.properties.summary ?? {}
+    return {
+      geometry: feature.geometry,
+      distanceKm: Math.round(distance / 100) / 10,
+      durationMin: Math.round(duration / 60),
+      // km de cada tramo (punto i → i + 1); las rutas cargadas de la base no lo traen
+      legsKm: (feature.properties.segments ?? []).map((s) => Math.round(s.distance / 100) / 10),
+      stats: statsFromFeature(feature),
+    }
+  }
+
+  function chooseAlternative(index) {
+    const option = alternatives.value[index]
+    if (!option) return
+    alternativeIndex.value = index
+    result.value = option
   }
 
   // Recalcula solo cuando cambia algo que afecta la ruta (no al cambiar un nombre)
@@ -176,6 +199,7 @@ export const useRouteDraftStore = defineStore('routeDraft', () => {
     avoid.value = [...DEFAULT_AVOID]
     preference.value = 'fastest'
     result.value = null
+    alternatives.value = []
     loading.value = false
     error.value = ''
   }
@@ -194,6 +218,7 @@ export const useRouteDraftStore = defineStore('routeDraft', () => {
       geometry: row.geometry,
       distanceKm: Number(row.distance_km ?? 0),
       durationMin: Number(row.duration_min ?? 0),
+      stats: row.stats && Object.keys(row.stats).length ? row.stats : null,
     }
     skipNextCalc = true
   }
@@ -216,6 +241,7 @@ export const useRouteDraftStore = defineStore('routeDraft', () => {
       geometry: result.value.geometry,
       distance_km: result.value.distanceKm,
       duration_min: result.value.durationMin,
+      stats: result.value.stats ?? {},
     }
   }
 
@@ -230,6 +256,8 @@ export const useRouteDraftStore = defineStore('routeDraft', () => {
     result,
     loading,
     error,
+    alternatives,
+    alternativeIndex,
     canRoute,
     isFull,
     isEmpty,
@@ -240,6 +268,7 @@ export const useRouteDraftStore = defineStore('routeDraft', () => {
     reorderWaypoint,
     reverseWaypoints,
     setAvoid,
+    chooseAlternative,
     calculate,
     reset,
     loadRoute,
