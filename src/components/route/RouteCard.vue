@@ -46,7 +46,12 @@ const avoidsHighways = computed(() => props.route.options?.avoid?.includes('high
           {{ route.rides === 1 ? '1 salida' : `${route.rides} salidas` }}
         </span>
         <span v-if="avoidsHighways">Sin autopista</span>
-        <span v-if="showAuthor && authorName" class="flex items-center gap-1.5">
+        <!-- el autor lleva a su perfil (por encima del link de la tarjeta) -->
+        <router-link
+          v-if="showAuthor && authorName"
+          :to="`/usuario/${route.user_id}`"
+          class="relative z-10 flex items-center gap-1.5 hover:text-foreground"
+        >
           <img
             v-if="route.author.avatar_url"
             :src="route.author.avatar_url"
@@ -55,7 +60,7 @@ const avoidsHighways = computed(() => props.route.options?.avoid?.includes('high
             @error="(e) => e.target.remove()"
           />
           {{ authorName }}
-        </span>
+        </router-link>
       </p>
     </div>
     <div v-if="$slots.actions" class="relative z-10 shrink-0">
