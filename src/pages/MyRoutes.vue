@@ -14,7 +14,7 @@ import IconLucide from '@/components/ui/IconLucide.vue'
 import Loader from '@/components/ui/Loader.vue'
 import RoutePreview from '@/components/route/RoutePreview.vue'
 import OrganizeRideDialog from '@/components/ride/OrganizeRideDialog.vue'
-import { deleteRoute, listMyRoutes, updateRoute } from '@/services/routes'
+import { deleteRoute, listMyRoutes, updateRoute, warmRoutesForOffline } from '@/services/routes'
 import { useRouteDraftStore } from '@/stores/routeDraft'
 import { formatDuration, formatKm, formatShortDate } from '@/lib/format'
 import { downloadGpx, linkShareMessage, openInGoogleMaps, shareRouteWithLink } from '@/lib/share'
@@ -62,6 +62,8 @@ async function load() {
   error.value = ''
   try {
     routes.value = await listMyRoutes()
+    // en segundo plano: cada ruta queda disponible para abrirla sin señal
+    warmRoutesForOffline(routes.value)
   } catch (e) {
     error.value = e.message
   } finally {

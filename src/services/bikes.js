@@ -19,9 +19,9 @@ export async function addBike(bike) {
  * Filtra por user_id a propósito: RLS también deja leer la moto activa de otros perfiles.
  */
 export async function listBikes() {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  // getSession lee la sesión guardada (sin pedirla al servidor): así funciona sin señal.
+  // Es una lectura: la que decide qué filas se ven es RLS.
+  const user = (await supabase.auth.getSession()).data.session?.user
   if (!user) throw new Error('Iniciá sesión para ver tus motos')
 
   const { data, error } = await supabase

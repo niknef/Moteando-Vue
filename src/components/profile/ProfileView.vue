@@ -12,6 +12,7 @@ import { getBikeById, listBikes, setActiveBike } from '@/services/bikes'
 import { listPublicRoutes } from '@/services/routes'
 import { listUserPosts } from '@/services/posts'
 import { useAuthStore } from '@/stores/auth'
+import { usePwaInstall } from '@/composables/usePwaInstall'
 import { formatKm, formatShortDate } from '@/lib/format'
 
 // Perfil como vitrina: identidad (foto, nombre, moto activa), resumen y pestañas
@@ -25,6 +26,7 @@ const props = defineProps({
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
+const { canInstall, showIosHint, install } = usePwaInstall()
 
 const profile = ref(null)
 const activeBike = ref(null)
@@ -145,6 +147,13 @@ watch(() => props.userId, load, { immediate: true })
               Salir
             </Button>
           </div>
+          <Button v-if="isOwn && canInstall" size="sm" class="mt-2" @click="install">
+            <IconLucide name="Smartphone" :size="14" />
+            Instalar la app
+          </Button>
+          <p v-else-if="isOwn && showIosHint" class="mt-2 text-xs text-muted-foreground">
+            Para tenerla como app: Compartir → Agregar a inicio.
+          </p>
         </div>
       </header>
 
