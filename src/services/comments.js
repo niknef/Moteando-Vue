@@ -38,16 +38,18 @@ export async function createComment({ post_id, content }) {
 
   if (!user) throw new Error('Usuario no autenticado')
 
-  const { error } = await supabase.from('comments').insert({
-    post_id,
-    content,
-    user_id: user.id,
-  })
+  // devuelve el comentario con su autor: la pantalla lo muestra sin esperar al tiempo real
+  const { data, error } = await supabase
+    .from('comments')
+    .insert({ post_id, content, user_id: user.id })
+    .select(`*, user_profiles:user_id ( id, first_name, last_name, avatar_url )`)
+    .single()
 
   if (error) {
     console.error('[comments.js createComment] Error al guardar el comentario:', error)
-    throw error
+    throw new Error('No se pudo enviar el comentario')
   }
+  return data
 }
 
 /**

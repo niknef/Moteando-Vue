@@ -23,3 +23,16 @@ export function formatShortDate(value) {
     ...(sameYear ? {} : { year: 'numeric' }),
   })
 }
+
+// "hace 5 min", "hace 3 h", "ayer"; pasada una semana, la fecha corta
+export function formatRelative(value) {
+  const date = new Date(value)
+  const seconds = (date.getTime() - Date.now()) / 1000
+  const rtf = new Intl.RelativeTimeFormat('es-AR', { numeric: 'auto', style: 'short' })
+  const abs = Math.abs(seconds)
+  if (abs < 60) return 'recién'
+  if (abs < 3600) return rtf.format(Math.round(seconds / 60), 'minute')
+  if (abs < 86400) return rtf.format(Math.round(seconds / 3600), 'hour')
+  if (abs < 7 * 86400) return rtf.format(Math.round(seconds / 86400), 'day')
+  return formatShortDate(value)
+}

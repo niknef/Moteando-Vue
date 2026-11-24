@@ -11,7 +11,7 @@ import PasswordInput from '@/components/ui/PasswordInput.vue'
 import IconLucide from '@/components/ui/IconLucide.vue'
 
 import { useAuthStore } from '@/stores/auth'
-import Logo from '@/assets/moteando.svg'
+import AuthLayout from '@/components/layout/AuthLayout.vue'
 
 defineOptions({ name: 'Login' }) // Esto aunque es opcional en api composition, lo pongo para ayudar a identificar el componente
 
@@ -54,9 +54,9 @@ async function handleSubmit() {
 </script>
 
 <template>
-  <div class="flex min-h-dvh flex-col bg-background px-6 pt-20 pb-10">
-    <img :src="Logo" alt="Moteando" class="h-12 w-auto self-center" />
-    <p class="mt-6 text-[17px] text-muted-foreground">
+  <AuthLayout>
+    <h1 class="mt-6 text-3xl font-semibold tracking-tight">Hola de nuevo</h1>
+    <p class="mt-2 text-[17px] text-muted-foreground">
       Armá tus rutas en moto y compartilas con la comunidad.
     </p>
 
@@ -125,5 +125,5 @@ async function handleSubmit() {
         >Registrate</router-link
       >
     </p>
-  </div>
+  </AuthLayout>
 </template>

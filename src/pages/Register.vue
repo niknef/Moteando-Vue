@@ -12,7 +12,7 @@ import PasswordStrength from '@/components/ui/PasswordStrength.vue'
 import IconLucide from '@/components/ui/IconLucide.vue'
 
 import { useAuthStore } from '@/stores/auth'
-import Logo from '@/assets/moteando.svg'
+import AuthLayout from '@/components/layout/AuthLayout.vue'
 
 defineOptions({ name: 'Register' }) // opcional para DevTools
 
@@ -68,9 +68,7 @@ async function handleSubmit() {
 </script>
 
 <template>
-  <!-- Mismos espacios que Ingresar: el logo no salta al pasar de una pantalla a la otra -->
-  <div class="flex min-h-dvh flex-col bg-background px-6 pt-20 pb-10">
-    <img :src="Logo" alt="Moteando" class="h-12 w-auto self-center" />
+  <AuthLayout>
     <h1 class="mt-6 text-3xl font-semibold tracking-tight">Creá tu cuenta</h1>
     <p class="mt-2 text-[17px] text-muted-foreground">Guardá tus rutas y seguí a otros moteros.</p>
 
@@ -162,5 +160,5 @@ async function handleSubmit() {
         >Iniciá sesión</router-link
       >
     </p>
-  </div>
+  </AuthLayout>
 </template>
